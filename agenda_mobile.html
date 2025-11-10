@@ -827,6 +827,32 @@ body.modo-oscuro {
 .modo-oscuro .tiempo-label {
   color: #e0e0e0;
 }
+
+.modo-oscuro .config-item {
+  background: rgba(30, 30, 45, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.modo-oscuro .config-item h4 {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .config-field label {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .config-field input,
+.modo-oscuro .config-field select {
+  background: rgba(40, 40, 60, 0.8);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: #e0e0e0;
+}
+
+.modo-oscuro .config-field input:focus,
+.modo-oscuro .config-field select:focus {
+  background: rgba(40, 40, 60, 0.95);
+  border-color: #4ecdc4;
+}
 .alert {
   padding: 15px;
   border-radius: 8px;
@@ -845,6 +871,163 @@ body.modo-oscuro {
 }
 input[type="file"] {
   display: none;
+}
+
+/* ========== ELEMENTOS FLOTANTES DE CONFIGURACIÓN ========== */
+.config-floating {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-item {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  min-width: 280px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.config-item.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.config-item h4 {
+  margin: 0 0 15px 0;
+  color: #2d5a27;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.config-item .close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 2px 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.config-item .close-btn:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.config-field {
+  margin-bottom: 12px;
+}
+
+.config-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: #2d5a27;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.config-field input,
+.config-field select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s;
+}
+
+.config-field input:focus,
+.config-field select:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+.config-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.config-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.config-btn-primary {
+  background: #4ecdc4;
+  color: white;
+}
+
+.config-btn-primary:hover {
+  background: #44a08d;
+  transform: translateY(-1px);
+}
+
+.config-btn-secondary {
+  background: #f8f9fa;
+  color: #666;
+  border: 1px solid #e9ecef;
+}
+
+.config-btn-secondary:hover {
+  background: #e9ecef;
+}
+
+.status-indicator {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .config-floating {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .config-item {
+    min-width: auto;
+    padding: 12px;
+  }
+  
+  .config-item h4 {
+    font-size: 14px;
+  }
+  
+  .config-field label {
+    font-size: 12px;
+  }
+  
+  .config-field input,
+  .config-field select {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 }
 
 /* ========== ESTILOS ADAPTATIVOS ========== */
@@ -877,32 +1060,28 @@ input[type="file"] {
 /* MÓVIL - Pantallas táctiles */
 @media (max-width: 768px) and (pointer: coarse) {
   body { font-size: 16px; padding: 5px; }
-  .container { padding: 20px; border-radius: 15px; }
-  .header h1 { font-size: 28px; }
-  .fecha-actual { font-size: 16px; }
-  .boton-guardar, .boton-cargar { padding: 16px 20px; font-size: 16px; min-height: 48px; }
-  .tarea-item { padding: 16px; margin-bottom: 12px; min-height: 60px; }
-  .tarea-simbolo { font-size: 24px; min-width: 40px; }
-  .tarea-texto { font-size: 16px; line-height: 1.4; }
-  .boton-agregar { padding: 16px; font-size: 16px; min-height: 48px; }
-  section { padding: 20px; }
-  section h3 { font-size: 20px; }
-  .modal-content { width: 95%; margin: 2% auto; padding: 25px; border-radius: 15px; }
-  .form-group input, .form-group textarea { padding: 16px; font-size: 16px; }
-  .modal-botones button { padding: 18px; font-size: 16px; min-height: 48px; }
-  .delete-zone { width: 100px; }
-  .migrate-zone { height: 100px; }
-  .calendar-day { min-height: 60px; padding: 6px; }
-  .calendar-nav-btn { padding: 12px 20px; font-size: 18px; }
-  #notas-texto { min-height: 80px; padding: 16px; font-size: 16px; }
-  .tarea-item.dragging { transform: rotate(3deg) scale(1.1); transition: all 0.8s ease; }
-  .delete-zone::before, .migrate-zone::before { font-size: 50px; }
-  .countdown-popup { width: 90%; padding: 25px; }
-  .countdown-number { font-size: 80px; }
-  .leyenda { flex-wrap: wrap !important; justify-content: center !important; gap: 4px !important; }
-  .leyenda span { font-size: 11px !important; padding: 4px 8px !important; margin: 2px !important; }
-  .subtarea-item { padding: 12px 16px !important; }
-  .boton-subtarea { padding: 8px 12px !important; font-size: 12px !important; }
+  .container { padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+  .header { flex-direction: column; gap: 10px; text-align: center; }
+  .header h1 { font-size: 24px; }
+  .fecha-actual { font-size: 14px; }
+  .boton-guardar, .boton-cargar { padding: 12px 16px; font-size: 14px; min-height: 44px; }
+  .tarea-item { padding: 12px; margin-bottom: 8px; min-height: 50px; }
+  .tarea-simbolo { font-size: 20px; min-width: 35px; }
+  .tarea-texto { font-size: 14px; line-height: 1.3; }
+  .boton-agregar { padding: 12px; font-size: 14px; min-height: 44px; }
+  section { padding: 15px; margin-bottom: 10px; }
+  section h3 { font-size: 16px; }
+  .modal-content { width: 95%; margin: 5% auto; padding: 20px; border-radius: 15px; }
+  .form-group input, .form-group textarea { padding: 12px; font-size: 14px; }
+  .modal-botones button { padding: 14px; font-size: 14px; min-height: 44px; }
+  .calendar-day { min-height: 50px; padding: 4px; }
+  .calendar-nav-btn { padding: 10px 16px; font-size: 14px; }
+  #notas-texto { min-height: 60px; padding: 12px; font-size: 14px; }
+  .subtarea-item { padding: 8px 12px !important; }
+  .boton-subtarea { padding: 6px 10px !important; font-size: 11px !important; }
+  .contenedor-dos-columnas { gap: 15px; }
+  .filtros-grid { grid-template-columns: 1fr; gap: 8px; }
+  .filtro-select { font-size: 12px; padding: 6px; }
 }
 
 /* Estilos para tamaños de letra */
@@ -1182,20 +1361,8 @@ input[type="file"] {
       <h1 id="titulo-agenda">🧠 Agenda de Pablo 🚆</h1>
       <div class="fecha-actual" id="fecha-actual"></div>
     </div>
-    <div style="display: flex; flex-direction: column; align-items: flex-end; width:250px;">
-      <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
-        <button class="boton-guardar tooltip" onclick="guardarJSON()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Guardar en GitHub">💾</button>
-        <button class="boton-cargar tooltip" onclick="openSyncModal()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Configurar GitHub">⚙️</button>
-        <button class="boton-cargar tooltip" onclick="verHistorial()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Ver historial">📜</button>
-        <button class="boton-cargar tooltip" onclick="hacerCopia()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Hacer copia">📋</button>
-        <button id="btn-config-visual" class="boton-cargar tooltip" onclick="abrirConfigVisual()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Configuración visual">🎨</button>
-      </div>
-      <div class="leyenda" style="display: flex; gap: 3px; align-items: center; margin-top: 4px; flex-wrap: wrap; justify-content: center;">
-        <span style="background: #f0f8ff; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">● Pendiente</span>
-        <span style="background: #f3e5f5; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">→ Migrada</span>
-        <span style="background: #fff8e1; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">< Programada</span>
-        <span style="background: #e8f5e8; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">✔ Completada</span>
-      </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; width:120px;">
+      <button id="btn-config" class="boton-cargar tooltip" onclick="toggleConfigFloating()" style="padding:6px 12px;font-size:12px;" data-tooltip="Configuración">⚙️</button>
     </div>
   </div>
 
@@ -1754,6 +1921,59 @@ input[type="file"] {
   </div>
 </div>
 
+<!-- Elementos Flotantes de Configuración -->
+<div id="config-floating" class="config-floating">
+  <!-- GitHub Config -->
+  <div id="config-github-item" class="config-item">
+    <h4>🔗 GitHub <button class="close-btn" onclick="ocultarConfigItem('github')">×</button></h4>
+    <div class="config-field">
+      <label>Repositorio:</label>
+      <input type="text" id="config-repo" placeholder="usuario/repo">
+    </div>
+    <div class="config-field">
+      <label>Token:</label>
+      <input type="password" id="config-token" placeholder="ghp_...">
+    </div>
+    <div class="config-actions">
+      <button class="config-btn config-btn-primary" onclick="guardarConfigGitHub()">Guardar</button>
+      <button class="config-btn config-btn-secondary" onclick="probarConexionGitHub()">Probar</button>
+    </div>
+    <div id="github-status" class="status-indicator" style="display:none;"></div>
+  </div>
+  
+  <!-- Visual Config -->
+  <div id="config-visual-item" class="config-item">
+    <h4>🎨 Visual <button class="close-btn" onclick="ocultarConfigItem('visual')">×</button></h4>
+    <div class="config-field">
+      <label>Tema:</label>
+      <select id="config-tema-select">
+        <option value="claro">Claro</option>
+        <option value="oscuro">Oscuro</option>
+      </select>
+    </div>
+    <div class="config-field">
+      <label>Nombre:</label>
+      <input type="text" id="config-nombre-input" placeholder="Mi Agenda">
+    </div>
+    <div class="config-actions">
+      <button class="config-btn config-btn-primary" onclick="guardarConfigVisualPanel()">Aplicar</button>
+    </div>
+  </div>
+  
+  <!-- Actions Config -->
+  <div id="config-actions-item" class="config-item">
+    <h4>⚙️ Acciones <button class="close-btn" onclick="ocultarConfigItem('actions')">×</button></h4>
+    <div class="config-actions">
+      <button class="config-btn config-btn-primary" onclick="guardarJSON()">💾 Guardar</button>
+      <button class="config-btn config-btn-secondary" onclick="githubPull()">🔄 Cargar</button>
+    </div>
+    <div class="config-actions" style="margin-top: 8px;">
+      <button class="config-btn config-btn-secondary" onclick="verHistorial()">📜 Historial</button>
+      <button class="config-btn config-btn-secondary" onclick="hacerCopia()">📋 Copia</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ========== DETECCIÓN DE DISPOSITIVO ==========
 const isMobile = () => {
@@ -2157,8 +2377,11 @@ function saveSyncConfig() {
 }
 
 function openSyncModal() {
-  loadSyncConfig();
-  abrirModal('modal-sync');
+  // Mostrar solo el item de GitHub
+  configItemsVisible = true;
+  cargarConfiguracionesFloating();
+  const githubItem = document.getElementById('config-github-item');
+  githubItem.classList.add('visible');
 }
 
 function getSyncConfig() {
@@ -2421,7 +2644,12 @@ async function githubPush() {
 function toggleAutoSync() {
   appState.sync.githubAutoSync = !appState.sync.githubAutoSync;
   const btn = document.getElementById('toggle-autosync');
-  btn.textContent = 'Auto-sync: ' + (appState.sync.githubAutoSync ? 'ON' : 'OFF');
+  const btnPanel = document.getElementById('toggle-autosync-panel');
+  
+  const text = 'Auto-sync: ' + (appState.sync.githubAutoSync ? 'ON' : 'OFF');
+  if (btn) btn.textContent = text;
+  if (btnPanel) btnPanel.textContent = text;
+  
   if (appState.sync.githubAutoSync) startAutoSync(); else stopAutoSync();
 }
 
@@ -3981,16 +4209,196 @@ function limpiarFiltros(tipo) {
   mostrarAlerta(`🔄 Filtros de ${tipo} limpiados`, 'info');
 }
 
+// ========== ELEMENTOS FLOTANTES DE CONFIGURACIÓN ==========
+let configItemsVisible = false;
+
+function toggleConfigFloating() {
+  configItemsVisible = !configItemsVisible;
+  const items = document.querySelectorAll('.config-item');
+  
+  if (configItemsVisible) {
+    cargarConfiguracionesFloating();
+    items.forEach((item, index) => {
+      setTimeout(() => {
+        item.classList.add('visible');
+      }, index * 100);
+    });
+  } else {
+    items.forEach(item => {
+      item.classList.remove('visible');
+    });
+  }
+}
+
+function ocultarConfigItem(tipo) {
+  const item = document.getElementById(`config-${tipo}-item`);
+  if (item) {
+    item.classList.remove('visible');
+  }
+  
+  // Si no hay items visibles, ocultar todo
+  const visibleItems = document.querySelectorAll('.config-item.visible');
+  if (visibleItems.length === 0) {
+    configItemsVisible = false;
+  }
+}
+
+function cargarConfiguracionesFloating() {
+  // Cargar config GitHub
+  const githubConfig = JSON.parse(localStorage.getItem('github-sync-config') || '{}');
+  const token = sessionStorage.getItem('github-sync-token') || localStorage.getItem('github-sync-token');
+  
+  document.getElementById('config-repo').value = githubConfig.repo || '';
+  document.getElementById('config-token').value = token || '';
+  
+  // Cargar config visual
+  const visualConfig = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  document.getElementById('config-tema-select').value = visualConfig.tema || 'claro';
+  document.getElementById('config-nombre-input').value = visualConfig.nombre || 'Pablo';
+}
+
+function guardarConfigGitHub() {
+  const repo = document.getElementById('config-repo').value.trim();
+  const token = document.getElementById('config-token').value.trim();
+  
+  if (!repo || !repo.includes('/')) {
+    mostrarStatusGitHub('⚠️ Formato: usuario/repo', 'error');
+    return;
+  }
+  
+  if (!token || !token.startsWith('ghp_')) {
+    mostrarStatusGitHub('⚠️ Token inválido', 'error');
+    return;
+  }
+  
+  // Guardar configuración
+  localStorage.setItem('github-sync-config', JSON.stringify({ 
+    repo, 
+    path: 'agenda.json', 
+    history: 'historial.json', 
+    branch: 'main' 
+  }));
+  localStorage.setItem('github-sync-token', token);
+  
+  mostrarStatusGitHub('✅ Guardado', 'success');
+}
+
+async function probarConexionGitHub() {
+  const repo = document.getElementById('config-repo').value.trim();
+  const token = document.getElementById('config-token').value.trim();
+  
+  if (!repo || !token) {
+    mostrarStatusGitHub('⚠️ Completa repo y token', 'error');
+    return;
+  }
+  
+  mostrarStatusGitHub('🔍 Probando conexión...', 'info');
+  
+  try {
+    const [owner, repoName] = repo.split('/');
+    const testUrl = `https://api.github.com/repos/${owner}/${repoName}`;
+    const response = await fetch(testUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (response.ok) {
+      mostrarStatusGitHub('✅ Conexión exitosa', 'success');
+    } else if (response.status === 404) {
+      mostrarStatusGitHub('❌ Repositorio no encontrado', 'error');
+    } else if (response.status === 401) {
+      mostrarStatusGitHub('❌ Token inválido', 'error');
+    } else {
+      mostrarStatusGitHub(`❌ Error: ${response.status}`, 'error');
+    }
+  } catch (error) {
+    mostrarStatusGitHub('❌ Error de conexión', 'error');
+  }
+}
+
+function mostrarStatusGitHub(mensaje, tipo) {
+  const status = document.getElementById('github-status');
+  status.textContent = mensaje;
+  status.style.display = 'block';
+  
+  if (tipo === 'success') {
+    status.style.background = '#d4edda';
+    status.style.color = '#155724';
+  } else if (tipo === 'error') {
+    status.style.background = '#f8d7da';
+    status.style.color = '#721c24';
+  } else {
+    status.style.background = '#d1ecf1';
+    status.style.color = '#0c5460';
+  }
+  
+  setTimeout(() => {
+    status.style.display = 'none';
+  }, 3000);
+}
+
+function guardarConfigVisualPanel() {
+  const tema = document.getElementById('config-tema-select').value;
+  const nombre = document.getElementById('config-nombre-input').value.trim() || 'Pablo';
+  const tamano = document.getElementById('config-tamano-select').value;
+  
+  const config = { tema, nombre, tamano };
+  localStorage.setItem('config-visual', JSON.stringify(config));
+  
+  aplicarConfigVisual(config);
+  mostrarAlerta('✨ Configuración aplicada', 'success');
+}
+
+function limpiarDatosLocales() {
+  if (confirm('¿Estás seguro de limpiar todos los datos locales?')) {
+    // Limpiar estado de la aplicación
+    appState.agenda = {
+      fecha: new Date().toISOString().slice(0, 10),
+      dia_semana: '',
+      tareas_criticas: [],
+      tareas: [],
+      notas: '',
+      citas: [],
+      personas: []
+    };
+    
+    // Limpiar textarea de notas
+    const notasEl = document.getElementById('notas-texto');
+    if (notasEl) notasEl.value = '';
+    
+    renderizar();
+    mostrarAlerta('🗑️ Datos locales limpiados', 'info');
+  }
+}
+
+function exportarDatos() {
+  const datos = {
+    fecha: new Date().toISOString(),
+    agenda: appState.agenda
+  };
+  
+  const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `agenda_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  mostrarAlerta('📤 Datos exportados', 'success');
+}
+
 // ========== CONFIGURACIÓN VISUAL ==========
 function abrirConfigVisual() {
-  // Cargar configuración actual
-  const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
-  
-  document.getElementById('config-tema').value = config.tema || 'claro';
-  document.getElementById('config-nombre').value = config.nombre || 'Agenda de Pablo';
-  document.getElementById('config-tamano').value = config.tamano || 'normal';
-  
-  abrirModal('modal-config-visual');
+  // Mostrar solo el item visual
+  configItemsVisible = true;
+  cargarConfiguracionesFloating();
+  const visualItem = document.getElementById('config-visual-item');
+  visualItem.classList.add('visible');
 }
 
 function guardarConfigVisual() {
@@ -4135,6 +4543,18 @@ window.onclick = (e) => {
     e.target.style.display = 'none';
   }
 };
+
+// Cerrar elementos flotantes al hacer clic fuera
+document.addEventListener('click', (e) => {
+  const floating = document.getElementById('config-floating');
+  const configBtn = document.getElementById('btn-config');
+  
+  if (configItemsVisible && floating && 
+      !floating.contains(e.target) && 
+      !configBtn.contains(e.target)) {
+    toggleConfigFloating();
+  }
+});
 
 // ========== PANEL DE CITAS ==========
 function renderCitasPanel() {
