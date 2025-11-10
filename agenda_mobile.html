@@ -1,0 +1,5886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Agenda de Pablo 🚆</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4ecdc4">
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8a3 100%);
+  padding: 10px 5px;
+  min-height: 100vh;
+}
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.calendar-weekday {
+  background: #4ecdc4;
+  color: white;
+  padding: 8px 4px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 6px;
+  margin: 15px 0;
+  min-height: 300px;
+}
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.calendar-nav-btn {
+  background: #4ecdc4;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+.calendar-nav-btn:hover {
+  background: #45b7aa;
+  transform: translateY(-1px);
+}
+.calendar-day {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 80px;
+  position: relative;
+  border: 1px solid #f0f3ff;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.day-events {
+  margin-top: 4px;
+  font-size: 9px;
+  line-height: 1.1;
+  color: #4ecdc4;
+  max-height: 45px;
+  overflow: hidden;
+}
+.day-event {
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.calendar-day:hover {
+  background: #f8f9ff;
+  transform: translateY(-2px);
+}
+.calendar-day.selected {
+  border: 2px solid #4ecdc4;
+  background: #e8f8f5;
+}
+.calendar-day.today {
+  background: #fff3e0;
+  border: 2px solid #ff9800;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+.calendar-day.has-events {
+  background: #e3f2fd;
+  border: 2px solid #2196f3;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+.calendar-day.today.has-events {
+  background: #f3e5f5;
+  border: 2px solid #9c27b0;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+.day-num {
+  font-weight: 700;
+  color: #2c3e50;
+}
+.calendar-appointments {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+.dots {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ecdc4;
+}
+.citas-list {
+  margin-top: 6px;
+  max-height: 180px;
+  overflow: auto;
+  padding-right: 6px;
+}
+.cita-item {
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #f7f9ff;
+  border: 1px solid #e6eefc;
+  margin-bottom: 4px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.container {
+  max-width: 95vw;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  padding: 15px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #4ecdc4;
+  flex-wrap: nowrap;
+  gap: 5px;
+}
+.header-center {
+  text-align: center;
+  flex: 1;
+}
+.header h1 {
+  color: #2d5a27;
+  font-size: 32px;
+  margin: 0 0 5px 0;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+.fecha-actual {
+  color: #4ecdc4;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+.boton-guardar {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  transition: all 0.2s;
+}
+.boton-guardar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+}
+.boton-cargar {
+  background: linear-gradient(135deg, #a8e6cf 0%, #7fcdcd 100%);
+  color: #2d5a27;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(168, 230, 207, 0.3);
+  transition: all 0.2s;
+}
+.boton-cargar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 230, 207, 0.4);
+}
+.contenedor-dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .contenedor-dos-columnas {
+    grid-template-columns: 1fr;
+  }
+}
+section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+section h3 {
+  margin: 0 0 15px 0;
+  color: #2d5a27;
+  font-size: 18px;
+  text-align: center;
+}
+.tarea-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0f8ff;
+  border: 2px solid #e3f2fd;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+.tarea-item.urgente {
+  background: #ffebee;
+  border: 2px solid #f44336;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+.tarea-item.completada {
+  background: #e8f5e8;
+  border: 2px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+.tarea-item.migrada {
+  background: #f3e5f5;
+  border: 2px solid #9c27b0;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+.tarea-item.programada {
+  background: #fff8e1;
+  border: 2px solid #ff9800;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+.alerta-urgente {
+  color: #f44336;
+  font-size: 18px;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+.tarea-item:hover {
+  transform: translateX(3px);
+}
+.tarea-simbolo {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  user-select: none;
+  min-width: 25px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.tarea-simbolo:hover {
+  transform: scale(1.3);
+}
+.tarea-texto {
+  flex: 1;
+  color: #2c3e50;
+}
+.tarea-completada {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.boton-eliminar {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.boton-agregar {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #4ecdc4;
+  background: rgba(78, 205, 196, 0.1);
+  color: #4ecdc4;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+.boton-agregar:hover {
+  background: rgba(78, 205, 196, 0.2);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+#notas-texto {
+  width: 100%;
+  min-height: 60px;
+  max-height: 300px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  overflow-y: auto;
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(45, 90, 39, 0.4);
+  backdrop-filter: blur(8px);
+}
+.modal-content {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 252, 248, 0.98) 100%);
+  margin: 5% auto;
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(78, 205, 196, 0.2), 0 8px 25px rgba(45, 90, 39, 0.15);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+  backdrop-filter: blur(20px);
+}
+.modal-content h4 {
+  margin: 0 0 20px 0;
+  color: #2d5a27;
+  text-align: center;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2d5a27;
+  font-weight: 600;
+  font-size: 15px;
+}
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid rgba(78, 205, 196, 0.3);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+}
+.modal-botones {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+.modal-botones button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+.btn-primario {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+.btn-primario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+}
+.btn-secundario {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+.btn-secundario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+}
+
+/* Estilos para filtros colapsables */
+.filtros-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+  overflow: hidden;
+}
+.filtros-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2d5a27;
+  transition: all 0.2s;
+}
+.filtros-toggle:hover {
+  background: rgba(78, 205, 196, 0.1);
+}
+.filtros-content {
+  display: none;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(78, 205, 196, 0.2);
+}
+.filtros-content.visible {
+  display: block;
+}
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+.filtro-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.filtro-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #2d5a27;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.filtro-select {
+  padding: 4px 6px;
+  border: 1px solid #4ecdc4;
+  border-radius: 4px;
+  font-size: 10px;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 70px;
+}
+.filtro-select:focus {
+  outline: none;
+  border-color: #44a08d;
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+.filtro-activo {
+  background: #4ecdc4 !important;
+  color: white !important;
+}
+.btn-limpiar-filtros {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 50px;
+}
+.btn-limpiar-filtros:hover {
+  background: #7f8c8d;
+  transform: translateY(-1px);
+}
+
+/* Control de pantalla activa - Solo móvil/tablet */
+.control-pantalla {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 12px 12px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  border-top: none;
+}
+.btn-pantalla {
+  background: #4ecdc4;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+.btn-pantalla.activo {
+  background: #2e7d32;
+  animation: pulse-green 2s infinite;
+}
+.btn-pantalla:hover {
+  transform: translateY(-1px);
+}
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 5px rgba(46, 125, 50, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(46, 125, 50, 0.8); }
+}
+.slider-tiempo {
+  width: 80px;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.slider-tiempo::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #4ecdc4;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.tiempo-label {
+  font-size: 10px;
+  color: #666;
+  min-width: 35px;
+  text-align: center;
+}
+
+/* Estilos para modal de citas relativas */
+.cita-relativa-item {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.cita-relativa-item .fecha-calculada {
+  font-weight: bold;
+  color: #4ecdc4;
+  font-size: 12px;
+}
+
+.cita-relativa-item .descripcion {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.cita-relativa-item .btn-eliminar {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.offset-preview {
+  font-size: 11px;
+  color: #666;
+  margin-top: 5px;
+  padding: 4px 8px;
+  background: #f0f8ff;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Solo mostrar en móvil/tablet */
+@media (max-width: 1024px) and (pointer: coarse) {
+  .control-pantalla {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .filtros-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .filtro-select {
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+  .control-pantalla {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .btn-pantalla {
+    padding: 6px 8px;
+    font-size: 10px;
+    min-width: 50px;
+  }
+  .slider-tiempo {
+    width: 60px;
+  }
+}
+
+/* Ocultar en desktop */
+@media (min-width: 1025px) {
+  .control-pantalla {
+    display: none !important;
+  }
+}
+
+/* ========== MODO OSCURO ========== */
+body.modo-oscuro {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.modo-oscuro .container {
+  background: rgba(30, 30, 45, 0.95);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.modo-oscuro .header h1 {
+  color: #4ecdc4;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.modo-oscuro .fecha-actual {
+  color: #7fcdcd;
+}
+
+.modo-oscuro section {
+  background: rgba(40, 40, 60, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.1);
+}
+
+.modo-oscuro section h3 {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .tarea-item {
+  background: #2a2a40;
+  border: 2px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.modo-oscuro .tarea-texto {
+  color: #e0e0e0;
+}
+
+.modo-oscuro .tarea-item.urgente {
+  background: #4a1a1a;
+  border: 2px solid #f44336;
+}
+
+.modo-oscuro .tarea-item.completada {
+  background: #1a4a1a;
+  border: 2px solid #4caf50;
+}
+
+.modo-oscuro .tarea-item.migrada {
+  background: #3a1a3a;
+  border: 2px solid #9c27b0;
+}
+
+.modo-oscuro .tarea-item.programada {
+  background: #4a3a1a;
+  border: 2px solid #ff9800;
+}
+
+.modo-oscuro .calendar-day {
+  background: #2a2a40;
+  border: 1px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.modo-oscuro .day-num {
+  color: #e0e0e0;
+}
+
+.modo-oscuro .calendar-day:hover {
+  background: #3a3a55;
+}
+
+.modo-oscuro .calendar-day.today {
+  background: #4a3a1a;
+  border: 2px solid #ff9800;
+}
+
+.modo-oscuro .calendar-day.has-events {
+  background: #1a3a4a;
+  border: 2px solid #2196f3;
+}
+
+.modo-oscuro .cita-item {
+  background: #2a2a40;
+  border: 1px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.modo-oscuro #notas-texto {
+  background: #2a2a40;
+  border: 2px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.modo-oscuro .modal {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.modo-oscuro .modal-content {
+  background: linear-gradient(135deg, rgba(30, 30, 45, 0.95) 0%, rgba(40, 40, 60, 0.98) 100%);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.modo-oscuro .modal-content h4 {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .form-group label {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .form-group input,
+.modo-oscuro .form-group textarea {
+  background: rgba(40, 40, 60, 0.8);
+  border: 2px solid rgba(78, 205, 196, 0.3);
+  color: #e0e0e0;
+}
+
+.modo-oscuro .form-group input:focus,
+.modo-oscuro .form-group textarea:focus {
+  background: rgba(40, 40, 60, 0.95);
+  border-color: #4ecdc4;
+}
+
+.modo-oscuro .filtros-container {
+  background: rgba(40, 40, 60, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.modo-oscuro .filtros-toggle {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .filtros-toggle:hover {
+  background: rgba(78, 205, 196, 0.2);
+}
+
+.modo-oscuro .filtros-content {
+  border-top: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.modo-oscuro .filtro-label {
+  color: #4ecdc4;
+}
+
+.modo-oscuro .filtro-select {
+  background: #2a2a40;
+  border: 1px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.modo-oscuro .control-pantalla {
+  background: rgba(30, 30, 45, 0.95);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.modo-oscuro .tiempo-label {
+  color: #e0e0e0;
+}
+.alert {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+input[type="file"] {
+  display: none;
+}
+
+/* ========== ESTILOS ADAPTATIVOS ========== */
+/* Deshabilitar menú contextual y selección en móvil */
+@media (max-width: 768px) and (pointer: coarse) {
+  .tarea-item {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
+/* MÓVIL - Pantallas táctiles */
+@media (max-width: 768px) and (pointer: coarse) {
+  body { font-size: 16px; padding: 5px; }
+  .container { padding: 20px; border-radius: 15px; }
+  .header h1 { font-size: 28px; }
+  .fecha-actual { font-size: 16px; }
+  .boton-guardar, .boton-cargar { padding: 16px 20px; font-size: 16px; min-height: 48px; }
+  .tarea-item { padding: 16px; margin-bottom: 12px; min-height: 60px; }
+  .tarea-simbolo { font-size: 24px; min-width: 40px; }
+  .tarea-texto { font-size: 16px; line-height: 1.4; }
+  .boton-agregar { padding: 16px; font-size: 16px; min-height: 48px; }
+  section { padding: 20px; }
+  section h3 { font-size: 20px; }
+  .modal-content { width: 95%; margin: 2% auto; padding: 25px; border-radius: 15px; }
+  .form-group input, .form-group textarea { padding: 16px; font-size: 16px; }
+  .modal-botones button { padding: 18px; font-size: 16px; min-height: 48px; }
+  .delete-zone { width: 100px; }
+  .migrate-zone { height: 100px; }
+  .calendar-day { min-height: 60px; padding: 6px; }
+  .calendar-nav-btn { padding: 12px 20px; font-size: 18px; }
+  #notas-texto { min-height: 80px; padding: 16px; font-size: 16px; }
+  .tarea-item.dragging { transform: rotate(3deg) scale(1.1); transition: all 0.8s ease; }
+  .delete-zone::before, .migrate-zone::before { font-size: 50px; }
+  .countdown-popup { width: 90%; padding: 25px; }
+  .countdown-number { font-size: 80px; }
+  .leyenda { flex-wrap: wrap !important; justify-content: center !important; gap: 4px !important; }
+  .leyenda span { font-size: 11px !important; padding: 4px 8px !important; margin: 2px !important; }
+  .subtarea-item { padding: 12px 16px !important; }
+  .boton-subtarea { padding: 8px 12px !important; font-size: 12px !important; }
+}
+
+/* Estilos para tamaños de letra */
+.font-pequeno {
+  font-size: 14px;
+}
+.font-pequeno .tarea-item {
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.font-pequeno .subtarea-item {
+  padding: 2px 6px;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+.font-pequeno .cita-item {
+  padding: 2px 4px;
+  margin-bottom: 2px;
+}
+
+.font-normal {
+  font-size: 16px;
+}
+.font-normal .tarea-item {
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+.font-normal .subtarea-item {
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.font-normal .cita-item {
+  padding: 4px 6px;
+  margin-bottom: 4px;
+}
+
+.font-grande {
+  font-size: 18px;
+}
+.font-grande .tarea-item {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+.font-grande .subtarea-item {
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+.font-grande .cita-item {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+
+/* Estilos para subtareas */
+.subtarea-item {
+  margin-left: 30px;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-left: 3px solid #4ecdc4;
+  border-radius: 6px;
+  font-size: 13px;
+  position: relative;
+}
+.subtarea-item::before {
+  content: '└';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4ecdc4;
+  font-weight: bold;
+}
+.subtarea-item.nivel-2 {
+  margin-left: 50px;
+  border-left-color: #9c27b0;
+}
+.subtarea-item.nivel-2::before {
+  color: #9c27b0;
+  left: -40px;
+}
+.subtarea-item.nivel-3 {
+  margin-left: 70px;
+  border-left-color: #ff9800;
+}
+.subtarea-item.nivel-3::before {
+  color: #ff9800;
+  left: -60px;
+}
+.boton-subtarea {
+  background: rgba(78, 205, 196, 0.1);
+  border: 1px dashed #4ecdc4;
+  color: #4ecdc4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: auto;
+  white-space: nowrap;
+}
+.boton-subtarea:hover {
+  background: rgba(78, 205, 196, 0.2);
+  border-style: solid;
+}
+.tarea-expandible {
+  position: relative;
+}
+.toggle-subtareas {
+  background: none;
+  border: none;
+  color: #4ecdc4;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.toggle-subtareas:hover {
+  background: rgba(78, 205, 196, 0.1);
+}
+.subtareas-container {
+  margin-top: 8px;
+}
+.subtareas-container.collapsed {
+  display: none;
+}
+
+/* DESKTOP - Pantallas con mouse */
+@media (min-width: 769px) and (pointer: fine) {
+  body { padding: 20px; }
+  .container { max-width: 1400px; padding: 25px; }
+  .contenedor-dos-columnas { grid-template-columns: 1fr 1fr; gap: 25px; }
+  .tarea-item:hover { transform: translateX(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+  .tarea-simbolo:hover { transform: scale(1.2); }
+  .boton-agregar:hover { transform: translateY(-2px); }
+  .modal-content { max-width: 450px; }
+  .delete-zone { width: 60px; }
+  .migrate-zone { height: 60px; }
+  .tarea-item.dragging { transition: all 0.3s ease; }
+  .delete-zone::before, .migrate-zone::before { font-size: 35px; }
+}
+
+/* Drag & Drop Styles */
+.tarea-item {
+  cursor: grab;
+}
+.tarea-item:active {
+  cursor: grabbing;
+}
+.tarea-item.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+.drop-zone {
+  transition: all 0.3s ease;
+}
+.drop-zone.drag-over {
+  background: rgba(78, 205, 196, 0.1);
+  border: 2px dashed #4ecdc4;
+  transform: scale(1.02);
+}
+.drop-zone.drag-over h3 {
+  color: #4ecdc4;
+}
+.delete-zone {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 80px;
+  height: 100vh;
+  background: rgba(244, 67, 54, 0.1);
+  border-left: 3px dashed #f44336;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+.delete-zone.active {
+  display: flex;
+  background: rgba(244, 67, 54, 0.3);
+}
+.delete-zone::before {
+  content: '🗑️';
+  font-size: 40px;
+  animation: bounce 1s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.migrate-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 80px;
+  background: rgba(156, 39, 176, 0.1);
+  border-bottom: 3px dashed #9c27b0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+.migrate-zone.active {
+  display: flex;
+  background: rgba(156, 39, 176, 0.3);
+}
+.migrate-zone::before {
+  content: '→';
+  font-size: 40px;
+  color: #9c27b0;
+  animation: bounce 1s infinite;
+}
+.countdown-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1001;
+  text-align: center;
+  border: 3px solid #f44336;
+}
+.countdown-number {
+  font-size: 60px;
+  font-weight: bold;
+  color: #f44336;
+  margin: 20px 0;
+}
+
+/* Tooltips para desktop */
+@media (min-width: 769px) and (pointer: fine) {
+  .tooltip { position: relative; }
+  .tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .boton-subtarea { margin-left: 40px; }
+  .subtarea-item { margin-left: 40px; }
+  .subtarea-item.nivel-2 { margin-left: 60px; }
+  .subtarea-item.nivel-3 { margin-left: 80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div style="width:120px; display: flex; align-items: center; justify-content: flex-start;">
+      <span style="font-size: 40px; color: #2d5a27;">📋</span>
+    </div>
+    <div class="header-center">
+      <h1 id="titulo-agenda">🧠 Agenda de Pablo 🚆</h1>
+      <div class="fecha-actual" id="fecha-actual"></div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; width:250px;">
+      <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+        <button class="boton-guardar tooltip" onclick="guardarJSON()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Guardar en GitHub">💾</button>
+        <button class="boton-cargar tooltip" onclick="openSyncModal()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Configurar GitHub">⚙️</button>
+        <button class="boton-cargar tooltip" onclick="verHistorial()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Ver historial">📜</button>
+        <button class="boton-cargar tooltip" onclick="hacerCopia()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Hacer copia">📋</button>
+        <button id="btn-config-visual" class="boton-cargar tooltip" onclick="abrirConfigVisual()" style="padding:5px 8px;font-size:12px;white-space:nowrap;" data-tooltip="Configuración visual">🎨</button>
+      </div>
+      <div class="leyenda" style="display: flex; gap: 3px; align-items: center; margin-top: 4px; flex-wrap: wrap; justify-content: center;">
+        <span style="background: #f0f8ff; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">● Pendiente</span>
+        <span style="background: #f3e5f5; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">→ Migrada</span>
+        <span style="background: #fff8e1; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">< Programada</span>
+        <span style="background: #e8f5e8; padding: 3px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #333; white-space: nowrap;">✔ Completada</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertas"></div>
+
+  <div class="contenedor-dos-columnas">
+    <div class="columna-izquierda">
+      <section class="drop-zone" data-target="criticas">
+        <h3>🚨 Tareas Críticas 🚨</h3>
+        
+        <!-- Filtros para tareas críticas -->
+        <div class="filtros-container">
+          <button class="filtros-toggle" onclick="toggleFiltros('criticas')">
+            <span>🔍 Filtros</span>
+            <span id="filtros-icon-criticas">▼</span>
+          </button>
+          <div id="filtros-content-criticas" class="filtros-content">
+            <div class="filtros-grid">
+              <div class="filtro-grupo">
+                <label class="filtro-label">Estado</label>
+                <select id="filtro-estado-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="migrada">Migradas</option>
+                  <option value="programada">Programadas</option>
+                  <option value="completada">Completadas</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Fecha</label>
+                <select id="filtro-fecha-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="hoy">Hoy</option>
+                  <option value="pasadas">Pasadas</option>
+                  <option value="proximas">Próximas</option>
+                  <option value="sin-fecha">Sin fecha</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Prioridad</label>
+                <select id="filtro-prioridad-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="urgente">Urgentes</option>
+                  <option value="normal">Normales</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <button class="btn-limpiar-filtros" onclick="limpiarFiltros('criticas')">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="lista-criticas"></div>
+        <button class="boton-agregar tooltip" onclick="nuevaTareaCritica()" data-tooltip="Crear nueva tarea crítica">➕ Añadir tarea crítica</button>
+      </section>
+
+      <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">📅 Calendario</h3>
+          <div style="display: flex; gap: 5px;">
+            <button onclick="abrirModalNuevaCita()" class="boton-cargar" style="padding: 6px 12px; font-size: 12px; background: #4ecdc4; color: white;">➕ Nueva Cita</button>
+            <button onclick="abrirModalCitasRelativas()" class="boton-cargar" style="padding: 6px 12px; font-size: 12px; background: #9c27b0; color: white;">Grupo de Citas</button>
+            <button onclick="abrirCalendario()" class="boton-cargar" style="padding: 6px 12px; font-size: 12px; background: #ff9800; color: white;">📅 Calendario</button>
+          </div>
+        </div>
+        <div id="citas-panel" style="max-height:200px;overflow-y:auto;"></div>
+      </section>
+
+      <section>
+        <h3>📝 Notas / Brain Dump</h3>
+        <textarea id="notas-texto" placeholder="Escribe aquí tus notas, ideas, recordatorios..."></textarea>
+      </section>
+    </div>
+
+    <div class="columna-derecha">
+      <section class="drop-zone" data-target="tareas">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">✅ Lista para hacer</h3>
+          <div style="display: flex; gap: 5px;">
+            <button id="btn-largo-plazo" onclick="toggleLargoPlazo()" class="boton-cargar" style="padding: 6px 12px; font-size: 12px; background: #a8e6cf;">Próximos 15 días</button>
+            <button onclick="abrirCalendarioTareas()" class="boton-cargar" style="padding: 6px 12px; font-size: 12px; background: #ff9800; color: white;">📅 Vista Tareas</button>
+          </div>
+        </div>
+        
+        <!-- Filtros para tareas normales -->
+        <div class="filtros-container">
+          <button class="filtros-toggle" onclick="toggleFiltros('tareas')">
+            <span>🔍 Filtros</span>
+            <span id="filtros-icon-tareas">▼</span>
+          </button>
+          <div id="filtros-content-tareas" class="filtros-content">
+            <div class="filtros-grid">
+              <div class="filtro-grupo">
+                <label class="filtro-label">Estado</label>
+                <select id="filtro-estado-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="migrada">Migradas</option>
+                  <option value="programada">Programadas</option>
+                  <option value="completada">Completadas</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Fecha</label>
+                <select id="filtro-fecha-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="hoy">Hoy</option>
+                  <option value="pasadas">Pasadas</option>
+                  <option value="proximas">Próximas</option>
+                  <option value="sin-fecha">Sin fecha</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Prioridad</label>
+                <select id="filtro-prioridad-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="urgente">Urgentes</option>
+                  <option value="normal">Normales</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <button class="btn-limpiar-filtros" onclick="limpiarFiltros('tareas')">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="lista-metodo"></div>
+        <button class="boton-agregar tooltip" onclick="nuevaTarea()" data-tooltip="Crear nueva tarea">➕ Añadir tarea</button>
+      </section>
+    </div>
+  </div>
+
+</div>
+
+<!-- Control de pantalla activa -->
+<div class="control-pantalla">
+  <button id="btn-pantalla-activa" class="btn-pantalla" onclick="togglePantallaActiva()" title="Mantener pantalla activa">
+    🔒 OFF
+  </button>
+  <input type="range" id="slider-tiempo" class="slider-tiempo" min="1" max="30" value="10" onchange="actualizarTiempo()">
+  <span id="tiempo-label" class="tiempo-label">10m</span>
+</div>
+
+<!-- Zona de borrado -->
+<div id="delete-zone" class="delete-zone"></div>
+
+<!-- Zona de migración -->
+<div id="migrate-zone" class="migrate-zone"></div>
+
+<!-- Modal del Calendario de Tareas -->
+<div id="modal-calendar-tareas" class="modal">
+  <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
+    <h4>📅 Calendario de Tareas</h4>
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:20px;">
+      <!-- Columna izquierda: Todas las tareas con fecha -->
+      <div style="border-right:1px solid #eee;padding-right:15px;">
+        <h5 style="margin:0 0 10px 0;color:#2c3e50;">📝 Todas las tareas</h5>
+        <div id="allTasksList" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+      
+      <!-- Panel principal: Calendario y tareas del día -->
+      <div>
+        <div class="calendar-header">
+          <button id="prevMonthTareas" class="calendar-nav-btn">◀</button>
+          <h3 id="monthYearTareas"></h3>
+          <button id="nextMonthTareas" class="calendar-nav-btn">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">Lun</div>
+          <div class="calendar-weekday">Mar</div>
+          <div class="calendar-weekday">Mié</div>
+          <div class="calendar-weekday">Jue</div>
+          <div class="calendar-weekday">Vie</div>
+          <div class="calendar-weekday">Sáb</div>
+          <div class="calendar-weekday">Dom</div>
+        </div>
+        <div class="calendar-grid" id="calendarGridTareas" style="min-height:300px;"></div>
+        <div class="calendar-appointments">
+          <div id="tasksListDay"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal del Calendario -->
+<div id="modal-calendar" class="modal">
+  <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
+    <h4>📅 Calendario</h4>
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:20px;">
+      <!-- Columna izquierda: Todas las citas -->
+      <div style="border-right:1px solid #eee;padding-right:15px;">
+        <h5 style="margin:0 0 10px 0;color:#2c3e50;">📋 Todas las citas</h5>
+        <div id="allAppointmentsList" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+      
+      <!-- Panel principal: Calendario y citas del día -->
+      <div>
+        <div class="calendar-header">
+          <button id="prevMonth" class="calendar-nav-btn">◀</button>
+          <h3 id="monthYear"></h3>
+          <button id="nextMonth" class="calendar-nav-btn">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">Lun</div>
+          <div class="calendar-weekday">Mar</div>
+          <div class="calendar-weekday">Mié</div>
+          <div class="calendar-weekday">Jue</div>
+          <div class="calendar-weekday">Vie</div>
+          <div class="calendar-weekday">Sáb</div>
+          <div class="calendar-weekday">Dom</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" style="min-height:300px;"></div>
+        <div class="calendar-appointments">
+          <div id="appointmentsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva tarea crítica -->
+<div id="modal-critica" class="modal">
+  <div class="modal-content">
+    <h4>⭐ Nueva Tarea Crítica</h4>
+    <div class="form-group">
+      <label>Título:</label>
+      <input type="text" id="critica-titulo" placeholder="Ej: Revisar informe">
+    </div>
+    <div class="form-group">
+      <label>Fecha límite (opcional):</label>
+      <input type="date" id="critica-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="agregarTareaCritica()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva tarea normal -->
+<div id="modal-tarea" class="modal">
+  <div class="modal-content">
+    <h4>✅ Nueva Tarea</h4>
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="tarea-texto" placeholder="Ej: Llamar al proveedor">
+    </div>
+    <div class="form-group">
+      <label>Fecha límite (opcional):</label>
+      <input type="date" id="tarea-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="agregarTarea()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-tarea')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+    <!-- Modal para migrar/delegar -->
+    <div id="modal-migrar" class="modal">
+      <div class="modal-content">
+        <h4>Reprogramar / Delegar</h4>
+        <div class="form-group">
+          <label>📅 Nueva fecha:</label>
+          <input type="date" id="migrar-fecha" onkeydown="return false;" onclick="this.showPicker();">
+        </div>
+        <div class="form-group">
+          <label>👤 Delegar a:</label>
+          <div style="position: relative;">
+            <input type="text" id="migrar-persona" placeholder="Nombre (opcional)" autocomplete="off">
+            <div id="personas-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 150px; overflow-y: auto; z-index: 1000;"></div>
+          </div>
+        </div>
+        <div class="modal-botones">
+          <button class="btn-primario" onclick="guardarMigracion()">Aceptar</button>
+          <button class="btn-secundario" onclick="cerrarModal('modal-migrar')">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para sincronización remota (GitHub) -->
+    <div id="modal-sync" class="modal">
+      <div class="modal-content">
+        <h4>Sincronización remota (GitHub)</h4>
+        <div class="form-group">
+          <label>Owner/Repo (ej: usuario/repo):</label>
+          <input type="text" id="sync-repo" placeholder="usuario/repo">
+        </div>
+        <div class="form-group">
+          <label>Ruta en repo (ej: agenda.xml):</label>
+          <input type="text" id="sync-path" placeholder="agenda.xml">
+        </div>
+        <div class="form-group">
+          <label>Archivo historial (ej: historial.json):</label>
+          <input type="text" id="sync-history" placeholder="historial.json">
+        </div>
+        <div class="form-group">
+          <label>Branch (ej: main):</label>
+          <input type="text" id="sync-branch" placeholder="main">
+        </div>
+        <div class="form-group">
+          <label>Token (Personal Access Token):</label>
+          <input type="password" id="sync-token" placeholder="ghp_...">
+          <small style="display: block; margin-top: 5px; color: #666;">
+            Para crear el token:
+            <ol style="margin-top: 5px;">
+              <li>Ve a GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</li>
+              <li>Click en "Generate new token (classic)"</li>
+              <li>Nombre: "Agenda XML"</li>
+              <li>✅ Marca el checkbox "repo" completo (acceso a repositorios privados)</li>
+              <li>Click en "Generate token" y copia el token</li>
+            </ol>
+          </small>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="checkbox" id="sync-remember"><label for="sync-remember">Recordar token en este navegador</label>
+        </div>
+        <div class="modal-botones">
+          <button class="btn-primario" onclick="saveSyncConfig()">Guardar configuración</button>
+          <button class="btn-secundario" onclick="cerrarModal('modal-sync')">Cerrar</button>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button class="boton-cargar" onclick="githubPull()">🔁 Traer desde GitHub</button>
+          <button class="boton-guardar" onclick="githubPush()">⬆️ Subir a GitHub</button>
+          <button class="boton-cargar" id="toggle-autosync" onclick="toggleAutoSync()">Auto-sync: OFF</button>
+        </div>
+        <div id="sync-status" style="margin-top:10px;font-size:13px;color:#444"></div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal para seleccionar hora -->
+<div id="modal-hora" class="modal">
+  <div class="modal-content" style="max-width:280px;padding:15px;">
+    <h4 style="margin:0 0 10px 0;text-align:center;">🕰️ Seleccionar Hora</h4>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0;">
+      <select id="hora-select" style="padding:6px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14" selected>14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+      </select>
+      <span style="font-size:16px;font-weight:bold;">:</span>
+      <select id="minuto-select" style="padding:6px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+        <option value="00" selected>00</option>
+        <option value="15">15</option>
+        <option value="30">30</option>
+        <option value="45">45</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px;">
+      <input type="text" id="cita-descripcion" placeholder="¿Qué hacer?" style="width:100%;padding:8px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primario" onclick="confirmarCita()" style="flex:1;padding:8px;font-size:13px;">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-hora')" style="flex:1;padding:8px;font-size:13px;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver historial -->
+<div id="modal-historial" class="modal">
+  <div class="modal-content" style="max-width:800px;width:95%;max-height:90vh;">
+    <h4>📜 Historial de Elementos Eliminados</h4>
+    <div id="historial-contenido" style="max-height:70vh;overflow-y:auto;padding:10px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9;"></div>
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="cerrarModal('modal-historial')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva cita única -->
+<div id="modal-nueva-cita" class="modal">
+  <div class="modal-content" style="max-width:350px;">
+    <h4>📅 Nueva Cita</h4>
+    
+    <div class="form-group">
+      <label>Fecha:</label>
+      <input type="date" id="nueva-cita-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="nueva-cita-desc" placeholder="¿Qué hacer?">
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+      <div>
+        <label style="font-size:12px;">Hora:</label>
+        <select id="nueva-cita-hora" style="width:100%;padding:6px;">
+          <option value="08">08:00</option>
+          <option value="09">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12">12:00</option>
+          <option value="13">13:00</option>
+          <option value="14" selected>14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+          <option value="19">19:00</option>
+          <option value="20">20:00</option>
+          <option value="21">21:00</option>
+          <option value="22">22:00</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;">Minutos:</label>
+        <select id="nueva-cita-minutos" style="width:100%;padding:6px;">
+          <option value="00" selected>00</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarNuevaCita()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-nueva-cita')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para configuración visual -->
+<div id="modal-config-visual" class="modal">
+  <div class="modal-content" style="max-width:400px;">
+    <h4>🎨 Configuración Visual</h4>
+    
+    <div class="form-group">
+      <label>Tema:</label>
+      <select id="config-tema" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+        <option value="claro">Claro</option>
+        <option value="oscuro">Oscuro</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Nombre de la agenda:</label>
+      <input type="text" id="config-nombre" placeholder="Ej: Agenda de Juan" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+    </div>
+    
+    <div class="form-group">
+      <label>Tamaño de letra:</label>
+      <select id="config-tamano" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+        <option value="pequeno">Pequeño</option>
+        <option value="normal">Normal</option>
+        <option value="grande">Grande</option>
+      </select>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarConfigVisual()">Guardar</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-config-visual')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para citas con fechas relativas -->
+<div id="modal-citas-relativas" class="modal">
+  <div class="modal-content" style="max-width:450px;">
+    <h4>📅 Conjunto de Citas</h4>
+    
+    <!-- Selector de fecha base -->
+    <div class="form-group">
+      <label>Fecha base:</label>
+      <input type="date" id="fecha-base-citas" onkeydown="return false;" onclick="this.showPicker();" onchange="actualizarPreviewFecha()">
+    </div>
+    
+    <!-- Lista de citas a agregar -->
+    <div class="form-group">
+      <label>Citas a agregar:</label>
+      <div id="lista-citas-relativas" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:10px;background:#f9f9f9;">
+        <!-- Las citas se agregarán aquí dinámicamente -->
+      </div>
+    </div>
+    
+    <!-- Formulario para nueva cita -->
+    <div style="border-top:1px solid #eee;padding-top:15px;margin-top:15px;">
+      <div class="form-group">
+        <label>Nueva cita:</label>
+        <input type="text" id="nueva-cita-descripcion" placeholder="Descripción de la cita">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:12px;">Días:</label>
+          <input type="number" id="dias-offset" value="0" min="-365" max="365" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Meses:</label>
+          <input type="number" id="meses-offset" value="0" min="-12" max="12" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Años:</label>
+          <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+      </div>
+      
+      <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <div>
+          <label style="font-size:12px;">Hora:</label>
+          <select id="hora-cita-relativa" style="width:100%;padding:6px;">
+            <option value="08">08:00</option>
+            <option value="09">09:00</option>
+            <option value="10">10:00</option>
+            <option value="11">11:00</option>
+            <option value="12">12:00</option>
+            <option value="13">13:00</option>
+            <option value="14" selected>14:00</option>
+            <option value="15">15:00</option>
+            <option value="16">16:00</option>
+            <option value="17">17:00</option>
+            <option value="18">18:00</option>
+            <option value="19">19:00</option>
+            <option value="20">20:00</option>
+            <option value="21">21:00</option>
+            <option value="22">22:00</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Minutos:</label>
+          <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
+            <option value="00" selected>00</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="45">45</option>
+          </select>
+        </div>
+      </div>
+      
+      <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir cita</button>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DETECCIÓN DE DISPOSITIVO ==========
+const isMobile = () => {
+  return window.innerWidth <= 1024 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+};
+
+const isTabletOrMobile = () => {
+  return window.innerWidth <= 1024 && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+};
+
+const isDesktop = () => {
+  return !isMobile() && window.matchMedia('(pointer: fine)').matches;
+};
+
+// Aplicar clases adaptativas
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.classList.add(isMobile() ? 'mobile-device' : 'desktop-device');
+});
+
+// ========== OPTIMIZACIONES PARA TABLET ==========
+// Prevenir bloqueos y mejorar rendimiento
+const performanceOptimizer = {
+  // Debounce para evitar múltiples ejecuciones
+  debounce: (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+  
+  // Throttle para limitar frecuencia de ejecución
+  throttle: (func, limit) => {
+    let inThrottle;
+    return function() {
+      const args = arguments;
+      const context = this;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    }
+  },
+  
+  // Ejecutar tareas pesadas en chunks para no bloquear UI
+  processInChunks: async (items, processor, chunkSize = 10) => {
+    for (let i = 0; i < items.length; i += chunkSize) {
+      const chunk = items.slice(i, i + chunkSize);
+      await new Promise(resolve => {
+        chunk.forEach(processor);
+        setTimeout(resolve, 0); // Yield control back to browser
+      });
+    }
+  },
+  
+  // Limpiar memoria y optimizar
+  cleanup: () => {
+    // Limpiar timers no utilizados
+    if (window.gcTimer) clearInterval(window.gcTimer);
+    
+    // Forzar garbage collection si está disponible
+    if (window.gc) {
+      try { window.gc(); } catch(e) {}
+    }
+    
+    // Limpiar event listeners huérfanos
+    document.querySelectorAll('[data-cleanup]').forEach(el => {
+      el.remove();
+    });
+  }
+};
+
+// Optimizar renderizado con debounce
+const renderizarOptimizado = performanceOptimizer.debounce(() => {
+  requestAnimationFrame(() => {
+    renderizar();
+  });
+}, 100);
+
+// Optimizar guardado con throttle
+const guardarOptimizado = performanceOptimizer.throttle((silent) => {
+  guardarJSON(silent);
+}, 2000);
+
+// Monitor de memoria y rendimiento
+const performanceMonitor = {
+  start: () => {
+    // Limpiar memoria cada 5 minutos
+    window.gcTimer = setInterval(() => {
+      performanceOptimizer.cleanup();
+      console.log('🧹 Limpieza de memoria ejecutada');
+    }, 300000);
+    
+    // Detectar si la tablet está bajo estrés
+    if ('memory' in performance) {
+      setInterval(() => {
+        const memory = performance.memory;
+        const usedPercent = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
+        
+        if (usedPercent > 80) {
+          console.warn('⚠️ Memoria alta, ejecutando limpieza');
+          performanceOptimizer.cleanup();
+          mostrarAlerta('🔧 Optimizando rendimiento...', 'info');
+        }
+      }, 30000);
+    }
+  },
+  
+  stop: () => {
+    if (window.gcTimer) clearInterval(window.gcTimer);
+  }
+};
+
+// Prevenir zoom accidental en tablet
+if (isMobile()) {
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+}
+
+// ========== CONTROL DE PANTALLA ACTIVA ==========
+let wakeLock = null;
+let pantallaActivaEnabled = false;
+let tiempoMinutos = 10;
+let activityTimer = null;
+
+const mantenerPantallaActiva = async () => {
+  if ('wakeLock' in navigator && pantallaActivaEnabled) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('🔆 Pantalla mantenida activa');
+      return true;
+    } catch (err) {
+      console.log('No se pudo mantener pantalla activa:', err);
+      return false;
+    }
+  }
+  return false;
+};
+
+const liberarPantallaActiva = () => {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+    console.log('🔒 Wake lock liberado');
+  }
+};
+
+const simularActividad = () => {
+  // Simular actividad moviendo un pixel invisible
+  const dot = document.createElement('div');
+  dot.style.position = 'fixed';
+  dot.style.top = '0px';
+  dot.style.left = '0px';
+  dot.style.width = '1px';
+  dot.style.height = '1px';
+  dot.style.opacity = '0';
+  dot.style.pointerEvents = 'none';
+  document.body.appendChild(dot);
+  
+  setTimeout(() => {
+    dot.style.left = '1px';
+    setTimeout(() => {
+      dot.remove();
+    }, 100);
+  }, 50);
+};
+
+const iniciarTimerActividad = () => {
+  if (activityTimer) clearInterval(activityTimer);
+  
+  if (pantallaActivaEnabled) {
+    // Simular actividad cada minuto para mantener pantalla activa
+    activityTimer = setInterval(() => {
+      simularActividad();
+      // También intentar renovar wake lock
+      if (!wakeLock) {
+        mantenerPantallaActiva();
+      }
+    }, 60000); // Cada minuto
+    
+    // Timer principal según tiempo configurado
+    setTimeout(() => {
+      if (pantallaActivaEnabled) {
+        togglePantallaActiva(); // Auto-desactivar
+        mostrarAlerta(`⏰ Pantalla activa desactivada tras ${tiempoMinutos} minutos`, 'info');
+      }
+    }, tiempoMinutos * 60000);
+  }
+};
+
+const togglePantallaActiva = async () => {
+  pantallaActivaEnabled = !pantallaActivaEnabled;
+  const btn = document.getElementById('btn-pantalla-activa');
+  
+  if (pantallaActivaEnabled) {
+    const success = await mantenerPantallaActiva();
+    if (success || isMobile()) {
+      btn.textContent = '🔓 ON';
+      btn.classList.add('activo');
+      btn.title = `Pantalla activa por ${tiempoMinutos} min`;
+      iniciarTimerActividad();
+      mostrarAlerta(`🔓 Pantalla activa por ${tiempoMinutos} minutos`, 'success');
+    } else {
+      // Fallback para navegadores que no soportan Wake Lock
+      btn.textContent = '🔓 ON';
+      btn.classList.add('activo');
+      btn.title = `Simulando actividad por ${tiempoMinutos} min`;
+      iniciarTimerActividad();
+      mostrarAlerta(`🔓 Simulando actividad por ${tiempoMinutos} minutos`, 'info');
+    }
+  } else {
+    liberarPantallaActiva();
+    if (activityTimer) {
+      clearInterval(activityTimer);
+      activityTimer = null;
+    }
+    btn.textContent = '🔒 OFF';
+    btn.classList.remove('activo');
+    btn.title = 'Mantener pantalla activa';
+    mostrarAlerta('🔒 Pantalla activa desactivada', 'info');
+  }
+};
+
+const actualizarTiempo = () => {
+  const slider = document.getElementById('slider-tiempo');
+  const label = document.getElementById('tiempo-label');
+  tiempoMinutos = parseInt(slider.value);
+  label.textContent = tiempoMinutos + 'm';
+  
+  // Actualizar título del botón si está activo
+  const btn = document.getElementById('btn-pantalla-activa');
+  if (pantallaActivaEnabled) {
+    btn.title = `Pantalla activa por ${tiempoMinutos} min`;
+  }
+};
+
+// Liberar wake lock cuando se minimiza
+document.addEventListener('visibilitychange', () => {
+  if (wakeLock !== null && document.visibilityState === 'hidden') {
+    liberarPantallaActiva();
+  } else if (document.visibilityState === 'visible' && pantallaActivaEnabled) {
+    mantenerPantallaActiva();
+  }
+});
+
+// Detectar actividad del usuario para resetear timer
+let userActivityTimeout;
+const resetUserActivity = () => {
+  if (userActivityTimeout) clearTimeout(userActivityTimeout);
+  
+  if (pantallaActivaEnabled) {
+    userActivityTimeout = setTimeout(() => {
+      simularActividad();
+    }, 30000); // Simular actividad cada 30 segundos de inactividad
+  }
+};
+
+// Escuchar eventos de actividad del usuario
+['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+  document.addEventListener(event, resetUserActivity, { passive: true });
+});
+
+// ========== ESTADO GLOBAL ==========
+const appState = {
+  agenda: {
+    fecha: new Date().toISOString().slice(0, 10),
+    dia_semana: '',
+    tareas_criticas: [],
+    tareas: [],
+    notas: '',
+    citas: [],
+    personas: []
+  },
+  calendar: {
+    currentDate: new Date(),
+    selectedDate: null
+  },
+  sync: {
+    autoSaveTimer: null,
+    githubAutoSync: false,
+    githubAutoTimer: null,
+    saveQueue: [],
+    isSaving: false
+  },
+  ui: {
+    tareaSeleccionada: null,
+    tareaEditando: null,
+    criticaEditando: null,
+    mostrarLargoPlazo: false
+  },
+  filtros: {
+    criticas: {
+      estado: '',
+      fecha: '',
+      prioridad: ''
+    },
+    tareas: {
+      estado: '',
+      fecha: '',
+      prioridad: ''
+    }
+  }
+};
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Add modal functionality
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', e => {
+    if (e.target === modal) {
+      closeModal(modal.id);
+    }
+  });
+});
+
+// ========== SINCRONIZACIÓN GITHUB ==========
+function loadSyncConfig() {
+  const cfg = JSON.parse(localStorage.getItem('github-sync-config') || '{}');
+  // token puede guardarse en sessionStorage por seguridad
+  const token = sessionStorage.getItem('github-sync-token') || localStorage.getItem('github-sync-token');
+  if (cfg.repo) document.getElementById('sync-repo').value = cfg.repo;
+  if (cfg.path) document.getElementById('sync-path').value = cfg.path;
+  if (cfg.history) document.getElementById('sync-history').value = cfg.history;
+  if (cfg.branch) document.getElementById('sync-branch').value = cfg.branch;
+  if (token) document.getElementById('sync-token').value = token;
+  document.getElementById('sync-remember').checked = !!localStorage.getItem('github-sync-token');
+}
+
+function saveSyncConfig() {
+  const repo = document.getElementById('sync-repo').value.trim();
+  const path = document.getElementById('sync-path').value.trim() || 'agenda.xml';
+  const history = document.getElementById('sync-history').value.trim() || 'historial.json';
+  const branch = document.getElementById('sync-branch').value.trim() || 'main';
+  const token = document.getElementById('sync-token').value.trim();
+  const remember = document.getElementById('sync-remember').checked;
+
+  // Validar el formato del repositorio
+  if (!repo || !repo.includes('/')) {
+    mostrarAlerta('⚠️ El formato del repo debe ser "usuario/repositorio"', 'info');
+    return;
+  }
+  
+  // Validar que se haya configurado el archivo de historial
+  if (!history) {
+    mostrarAlerta('⚠️ Configura también el archivo de historial', 'info');
+    return;
+  }
+
+  // Validar el token
+  if (!token || !token.startsWith('ghp_')) {
+    mostrarAlerta('⚠️ El token debe comenzar con "ghp_"', 'info');
+    return;
+  }
+
+  // Guardar la configuración
+  localStorage.setItem('github-sync-config', JSON.stringify({ repo, path, history, branch }));
+  if (remember) {
+    localStorage.setItem('github-sync-token', token);
+    sessionStorage.removeItem('github-sync-token');
+  } else {
+    sessionStorage.setItem('github-sync-token', token);
+    localStorage.removeItem('github-sync-token');
+  }
+
+  mostrarAlerta('🔧 Configuración de GitHub guardada en este navegador', 'success');
+  cerrarModal('modal-sync');
+
+  // Intentar sincronizar inmediatamente para verificar la configuración
+  githubPull().catch(err => {
+    mostrarAlerta('⚠️ Error al verificar la configuración: ' + err.message, 'info');
+  });
+}
+
+function openSyncModal() {
+  loadSyncConfig();
+  abrirModal('modal-sync');
+}
+
+function getSyncConfig() {
+  const cfg = JSON.parse(localStorage.getItem('github-sync-config') || '{}');
+  const token = sessionStorage.getItem('github-sync-token') || localStorage.getItem('github-sync-token');
+  return { repo: cfg.repo, path: cfg.path || 'agenda.xml', history: cfg.history || 'historial.json', branch: cfg.branch || 'main', token };
+}
+
+async function githubPull() {
+  const { repo, path, history, branch, token } = getSyncConfig();
+  if (!repo || !path || !token) {
+    mostrarAlerta('Configura repo/path/token primero', 'info');
+    return;
+  }
+  const status = document.getElementById('sync-status');
+  status.textContent = '⏳ Verificando GitHub...';
+  try {
+    const [ghOwner, ghRepo] = repo.split('/');
+    if (!ghOwner || !ghRepo) {
+      throw new Error('Formato de repositorio inválido. Debe ser "usuario/repositorio"');
+    }
+    const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+    
+    // Obtener el archivo con metadatos
+    const metaR = await fetch(url, { 
+      headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Accept': 'application/vnd.github.v3+json'
+      } 
+    });
+    
+    if (metaR.status === 404) {
+      mostrarAlerta('📝 Creando nuevo archivo en GitHub...', 'info');
+      // Crear JSON inicial
+      const jsonInicial = {
+        fecha: new Date().toISOString().slice(0, 10),
+        dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
+        tareas_criticas: [],
+        tareas: [],
+        notas: []
+      };
+      
+      const createR = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify({
+          message: 'Creación inicial de agenda',
+          content: btoa(JSON.stringify(jsonInicial, null, 2)),
+          branch: branch
+        })
+      });
+      
+      if (!createR.ok) throw new Error('Error al crear archivo: HTTP ' + createR.status);
+      procesarJSON(jsonInicial);
+      status.textContent = '✅ Nueva agenda creada en GitHub';
+      mostrarAlerta('✨ Nueva agenda creada y sincronizada', 'success');
+      return;
+    }
+
+    if (!metaR.ok) {
+      throw new Error('HTTP ' + metaR.status);
+    }
+
+    // Obtener los metadatos y contenido
+    const response = await metaR.json();
+    console.log('SHA del archivo:', response.sha);
+    
+    // Decodificar correctamente UTF-8 desde base64
+    let content;
+    if (response.content && response.encoding === 'base64') {
+      const base64Content = response.content.replace(/\n/g, '');
+      const binaryString = atob(base64Content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      content = new TextDecoder('utf-8').decode(bytes);
+    } else {
+      throw new Error('No se pudo obtener el contenido del archivo');
+    }
+    
+    console.log('Contenido recibido:', content);
+    
+    // VERIFICAR SI EL ARCHIVO ESTÁ VACÍO Y CREAR DATOS DE EJEMPLO
+    if (content.trim().includes('<mit>\n  </mit>') && content.trim().includes('<notas>\n  </notas>')) {
+      console.warn('⚠️ El archivo XML está vacío. Creando datos de ejemplo.');
+      mostrarAlerta('⚠️ Archivo vacío. Creando datos de ejemplo.', 'info');
+      
+      // Crear datos de ejemplo
+      const datosEjemplo = {
+        fecha: new Date().toISOString().slice(0, 10),
+        dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
+        tareas_criticas: [
+          {
+            id: Date.now().toString(),
+            titulo: 'Tarea crítica de ejemplo',
+            razon: 'Esta es una tarea importante',
+            fecha_fin: new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0, 10),
+            completada: false,
+            estado: 'pendiente'
+          }
+        ],
+        tareas: [
+          {
+            id: Date.now().toString() + '1',
+            texto: 'Tarea normal de ejemplo',
+            fecha_fin: new Date(Date.now() + 3*24*60*60*1000).toISOString().slice(0, 10),
+            completada: false,
+            estado: 'pendiente',
+            persona: null,
+            fecha_migrar: null
+          }
+        ],
+        notas: ['Nota de ejemplo 1', 'Nota de ejemplo 2'],
+        citas: []
+      };
+      
+      procesarJSON(datosEjemplo);
+      mostrarAlerta('✨ Datos de ejemplo creados.', 'success');
+      return;
+    }
+    
+    let data;
+    // Detectar si es XML o JSON
+    if (content.trim().startsWith('<?xml') || content.trim().startsWith('<agenda')) {
+      // Es XML, convertir a JSON
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(content, 'text/xml');
+      data = convertXMLtoJSON(xmlDoc);
+      console.log('XML convertido a JSON:', data);
+    } else {
+      // Es JSON
+      try {
+        data = JSON.parse(content);
+      } catch (parseError) {
+        console.error('Error al parsear JSON:', parseError, 'Contenido recibido:', content);
+        throw new Error('El archivo no contiene JSON válido: ' + parseError.message);
+      }
+    }
+    
+    // Almacenar el SHA actual del archivo
+    if (response && response.sha) {
+      window.currentSHA = response.sha;
+      console.log('SHA actualizado:', window.currentSHA);
+    }
+    
+    procesarJSON(data);
+    status.textContent = '✅ Agenda sincronizada desde GitHub';
+    mostrarAlerta('🔄 Datos cargados desde GitHub', 'success');
+  } catch (e) {
+    console.error(e);
+    status.textContent = '❌ Error de sincronización: ' + (e.message || e);
+    mostrarAlerta('⚠️ Error al sincronizar con GitHub', 'info');
+  }
+}
+
+async function githubPush() {
+  const { repo, path, history, branch, token } = getSyncConfig();
+  if (!repo || !path || !token) {
+    mostrarAlerta('⚠️ Configura GitHub primero (falta repo, path o token)', 'info');
+    return false;
+  }
+  if (!repo.includes('/')) {
+    mostrarAlerta('⚠️ El formato del repo debe ser "usuario/repositorio"', 'info');
+    return false;
+  }
+  
+  const status = document.getElementById('sync-status');
+  status.textContent = '⏳ Verificando conexión con GitHub...';
+  
+  try {
+    const [repoUser, repoProject] = repo.split('/');
+    const testUrl = `https://api.github.com/repos/${repoUser}/${repoProject}`;
+    const testR = await fetch(testUrl, { 
+      headers: { 
+        Authorization: 'token ' + token,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (testR.status === 404) {
+      mostrarAlerta(`⚠️ No se encontró el repositorio ${repo}. Verifica que existe y tienes acceso.`, 'info');
+      status.textContent = '❌ Repositorio no encontrado';
+      return false;
+    }
+    
+    if (testR.status === 401) {
+      mostrarAlerta('⚠️ Token inválido o expirado. Genera uno nuevo con permisos "repo".', 'info');
+      status.textContent = '❌ Token inválido';
+      return false;
+    }
+    
+    if (!testR.ok) {
+      throw new Error(`Error al verificar repo: ${testR.status}`);
+    }
+    
+    status.textContent = '⏳ Sincronizando con GitHub...';
+    
+    const xml = (function() {
+      // Generar el XML igual que guardarXML (sin forzar descarga)
+      appState.agenda.notas = document.getElementById('notas-texto').value;
+      let x = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      x += '<agenda>\n';
+      x += `  <dia fecha="${appState.agenda.fecha}" dia_semana="${appState.agenda.dia_semana}" />\n\n`;
+      x += '  <mit>\n';
+      appState.agenda.tareas_criticas.forEach(t => {
+        x += `    <tarea id="${t.id}" completada="${t.completada}"${t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : ''}>\n`;
+        x += `      <titulo>${escapeXml(t.titulo)}</titulo>\n`;
+        x += `      <razon>${escapeXml(t.razon)}</razon>\n`;
+        x += '    </tarea>\n';
+      });
+      x += '  </mit>\n\n';
+      x += '  <metodo_1_3_5>\n    <medianas>\n';
+      appState.agenda.tareas.forEach(t => {
+        const persona = t.persona ? ` persona="${escapeXml(t.persona)}"` : '';
+        const fechaMigrar = t.fecha_migrar ? ` fecha="${t.fecha_migrar}"` : '';
+        const fechaFin = t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : '';
+        x += `      <tarea completada="${t.completada}"${fechaFin}${persona}${fechaMigrar}>${escapeXml(t.texto)}</tarea>\n`;
+      });
+      x += '    </medianas>\n    <pequenas>\n    </pequenas>\n  </metodo_1_3_5>\n\n';
+      x += '  <notas>\n';
+      appState.agenda.notas.split('\n').forEach(nota => { if (nota.trim()) x += `    <nota>${escapeXml(nota.trim())}</nota>\n`; });
+      x += '  </notas>\n';
+      x += '</agenda>';
+      return x;
+    })();
+
+    const [owner, repository] = repo.split('/');
+    const apiUrl = `https://api.github.com/repos/${owner}/${repository}/contents/${encodeURIComponent(path)}`;
+    // Obtener sha si existe
+    const getR = await fetch(apiUrl + `?ref=${encodeURIComponent(branch)}`, { headers: { Authorization: 'token ' + token } });
+    let sha = null;
+    if (getR.ok) {
+      const meta = await getR.json();
+      sha = meta.sha;
+    }
+    const body = {
+      message: 'Actualización desde agenda web',
+      content: btoa(unescape(encodeURIComponent(xml))),
+      branch: branch
+    };
+    if (sha) body.sha = sha;
+    const putR = await fetch(apiUrl, { method: 'PUT', headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!putR.ok) throw new Error('HTTP ' + putR.status);
+    status.textContent = '✅ Sincronizado con GitHub correctamente';
+    mostrarAlerta('🌐 Sincronización exitosa con GitHub', 'success');
+    return true;
+  } catch (e) {
+    console.error(e);
+    status.textContent = '❌ Error de sincronización: ' + (e.message || e);
+    mostrarAlerta('⚠️ Error de sincronización con GitHub', 'info');
+    return false;
+  }
+}
+
+function toggleAutoSync() {
+  appState.sync.githubAutoSync = !appState.sync.githubAutoSync;
+  const btn = document.getElementById('toggle-autosync');
+  btn.textContent = 'Auto-sync: ' + (appState.sync.githubAutoSync ? 'ON' : 'OFF');
+  if (appState.sync.githubAutoSync) startAutoSync(); else stopAutoSync();
+}
+
+function startAutoSync() {
+  if (appState.sync.githubAutoTimer) clearInterval(appState.sync.githubAutoTimer);
+  appState.sync.githubAutoTimer = setInterval(() => { githubPush(); }, 60000); // cada 60s para evitar conflictos
+}
+
+function stopAutoSync() {
+  if (appState.sync.githubAutoTimer) clearInterval(appState.sync.githubAutoTimer);
+  appState.sync.githubAutoTimer = null;
+}
+
+// ========== INICIALIZACIÓN DEL CALENDARIO ==========
+function initializeCalendar() {
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+  const addApptBtn = document.getElementById('addApptBtn');
+  
+  if (prevMonthBtn) {
+    prevMonthBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+  }
+  
+  if (nextMonthBtn) {
+    nextMonthBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+  }
+  
+  // Botón de añadir cita eliminado - ahora se hace clic en el día
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  const monthYearEl = document.getElementById('monthYear');
+  if (monthYearEl) {
+    monthYearEl.textContent = appState.calendar.currentDate.toLocaleString('es-ES', {month:'long', year:'numeric'});
+  }
+  
+  const year = appState.calendar.currentDate.getFullYear();
+  const month = appState.calendar.currentDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  // Crear exactamente 42 celdas (6 semanas x 7 días)
+  for (let i = 0; i < 42; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    
+    // Calcular qué día corresponde a esta celda (empezando en lunes)
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // Convertir domingo=0 a lunes=0
+    const dayOffset = i - firstDayOfWeek;
+    const dayNumber = dayOffset + 1;
+    
+    if (dayOffset >= 0 && dayOffset < lastDay.getDate()) {
+      // Día del mes actual
+      const dayNum = document.createElement('div');
+      dayNum.className = 'day-num';
+      dayNum.textContent = dayNumber;
+      cell.appendChild(dayNum);
+      
+      // Crear fecha correcta usando el año, mes y día específicos
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+      console.log('Celda calendario:', i, 'día:', dayNumber, 'fecha generada:', dateStr);
+      
+      // Verificar si es hoy
+      const hoy = new Date().toISOString().slice(0, 10);
+      const esHoy = dateStr === hoy;
+      
+      // Add events preview for appointments on this day
+      const appointments = appState.agenda.citas.filter(cita => cita.fecha === dateStr);
+      const tieneCitas = appointments.length > 0;
+      
+      // Aplicar clases CSS especiales
+      if (esHoy && tieneCitas) {
+        cell.classList.add('today', 'has-events');
+      } else if (esHoy) {
+        cell.classList.add('today');
+      } else if (tieneCitas) {
+        cell.classList.add('has-events');
+      }
+      
+      if (tieneCitas) {
+        const eventsDiv = document.createElement('div');
+        eventsDiv.className = 'day-events';
+        
+        appointments.slice(0, 3).forEach(cita => {
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'day-event';
+          // Extraer solo la descripción después de la hora
+          const descripcion = cita.nombre.includes(' - ') ? cita.nombre.split(' - ')[1] : cita.nombre;
+          eventDiv.textContent = descripcion.length > 12 ? descripcion.substring(0, 12) + '...' : descripcion;
+          eventsDiv.appendChild(eventDiv);
+        });
+        
+        if (appointments.length > 3) {
+          const moreDiv = document.createElement('div');
+          moreDiv.className = 'day-event';
+          moreDiv.textContent = `+${appointments.length - 3} más`;
+          moreDiv.style.fontStyle = 'italic';
+          eventsDiv.appendChild(moreDiv);
+        }
+        
+        cell.appendChild(eventsDiv);
+      }
+      
+      cell.addEventListener('click', () => {
+        console.log('Click en día:', dayNumber, 'fecha:', dateStr);
+        appState.calendar.selectedDate = dateStr;
+        promptAddAppointmentForDay(dateStr);
+        showAppointments(dateStr);
+      });
+      
+      cell.dataset.date = dateStr;
+    } else {
+      // Celda vacía (días de otros meses)
+      cell.style.opacity = '0.3';
+    }
+    
+    grid.appendChild(cell);
+  }
+}
+
+function showAppointments(date) {
+  const appointments = appState.agenda.citas.filter(cita => cita.fecha === date);
+  const list = document.getElementById('appointmentsList');
+  list.innerHTML = '';
+  
+  appointments.forEach(cita => {
+    const appt = document.createElement('div');
+    appt.className = 'cita-item';
+    appt.innerHTML = `
+      <span>${cita.nombre}</span>
+      <button onclick="deleteCita('${date}', '${cita.nombre}')" class="boton-eliminar">🗑️</button>
+    `;
+    list.appendChild(appt);
+  });
+}
+
+function promptAddAppointmentForDay(dateStr) {
+  appState.calendar.tempDate = dateStr;
+  openModal('modal-hora');
+  document.getElementById('cita-descripcion').focus();
+}
+
+function confirmarCita() {
+  const hora = document.getElementById('hora-select').value;
+  const minuto = document.getElementById('minuto-select').value;
+  const descripcion = document.getElementById('cita-descripcion').value.trim();
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  const citaCompleta = `${hora}:${minuto} - ${descripcion}`;
+  appState.agenda.citas.push({ fecha: appState.calendar.tempDate, nombre: citaCompleta });
+  
+  // Limpiar modal
+  document.getElementById('cita-descripcion').value = '';
+  document.getElementById('hora-select').value = '14';
+  document.getElementById('minuto-select').value = '00';
+  
+  cerrarModal('modal-hora');
+  renderCalendar();
+  renderAllAppointmentsList();
+  showAppointments(appState.calendar.tempDate);
+  renderCitasPanel();
+  guardarJSON(true);
+}
+
+function deleteCita(fecha, nombre) {
+  const index = appState.agenda.citas.findIndex(c => c.fecha === fecha && c.nombre === nombre);
+  if (index > -1) {
+    appState.agenda.citas.splice(index, 1);
+    renderCalendar();
+    showAppointments(fecha);
+    scheduleAutoSave();
+  }
+}
+
+
+
+function renderAllAppointmentsList() {
+  const list = document.getElementById('allAppointmentsList');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  if(!appState.agenda.citas || appState.agenda.citas.length === 0) {
+    list.innerHTML = '<div style="color:#777;padding:6px;font-size:12px;">No hay citas</div>';
+    return;
+  }
+  
+  const sortedCitas = appState.agenda.citas
+    .slice()
+    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+    
+  sortedCitas.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    div.style.fontSize = '12px';
+    div.style.cursor = 'pointer';
+    
+    // Obtener día de la semana
+    const fecha = new Date(c.fecha + 'T00:00:00');
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaSemana = diasSemana[fecha.getDay()];
+    
+    div.innerHTML = `
+      <span>${diaSemana}, ${c.fecha}<br><small>${c.nombre}</small></span>
+      <button onclick="deleteCita('${c.fecha}', '${c.nombre}')" class="boton-eliminar" style="font-size:10px;padding:2px 4px;">🗑️</button>
+    `;
+    div.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') {
+        focusCalendarOn(c.fecha);
+        appState.calendar.selectedDate = c.fecha;
+        showAppointments(c.fecha);
+      }
+    });
+    list.appendChild(div);
+  });
+}
+
+function renderAppointmentsList() {
+  const list = document.getElementById('appointmentsList');
+  if (!list) return;
+  
+  // Si hay una fecha seleccionada, mostrar solo las citas de ese día
+  if (appState.calendar.selectedDate) {
+    showAppointments(appState.calendar.selectedDate);
+    return;
+  }
+  
+  list.innerHTML = '';
+}
+
+// ========== INICIALIZACIÓN PRINCIPAL ==========
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Iniciando aplicación...');
+  
+  // Iniciar optimizaciones de rendimiento
+  performanceMonitor.start();
+  
+  // Inicializar control de pantalla
+  actualizarTiempo();
+  
+  // Cargar configuración visual guardada
+  cargarConfigVisual();
+  
+  actualizarFecha();
+  initializeCalendar();
+  renderCalendar();
+  
+  // Renderizar estado inicial (puede estar vacío)
+  renderizar();
+
+  // Intentar cargar desde GitHub solo si está configurado
+  (async () => {
+    try {
+      const { repo, path, history, branch, token } = getSyncConfig();
+      if (!repo || !path || !token) {
+        console.log('GitHub no configurado, manteniendo datos locales');
+        return;
+      }
+      
+      // Validar formato del repo
+      if (!repo.includes('/')) {
+        console.log('Formato de repo inválido, manteniendo datos locales');
+        return;
+      }
+
+      console.log('Cargando desde GitHub:', repo, path);
+      const [repoOwner, repoName] = repo.split('/');
+      const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+      const r = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
+      
+      if (!r.ok) {
+        throw new Error(`Error GitHub (${r.status}): ${await r.text()}`);
+      }
+
+      const response = await r.json();
+      console.log('Respuesta de GitHub:', response);
+      
+      // Para archivos grandes, usar la URL de descarga directa
+      let text;
+      if (response.download_url) {
+        const downloadR = await fetch(response.download_url);
+        if (!downloadR.ok) throw new Error('Error al descargar archivo');
+        text = await downloadR.text();
+      } else if (response.content && response.encoding === 'base64') {
+        // Decodificar correctamente UTF-8 desde base64
+        const base64Content = response.content.replace(/\n/g, '');
+        const binaryString = atob(base64Content);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        text = new TextDecoder('utf-8').decode(bytes);
+      } else {
+        throw new Error('No se pudo obtener el contenido del archivo');
+      }
+      
+      console.log('Contenido decodificado:', text);
+      
+      // VERIFICAR SI EL ARCHIVO ESTÁ VACÍO Y CREAR DATOS DE EJEMPLO
+      if (text.trim().includes('<mit>\n  </mit>') && text.trim().includes('<notas>\n  </notas>')) {
+        console.warn('⚠️ El archivo XML está vacío. Creando datos de ejemplo.');
+        mostrarAlerta('⚠️ Archivo vacío. Creando datos de ejemplo para que puedas empezar.', 'info');
+        
+        // Crear datos de ejemplo
+        const datosEjemplo = {
+          fecha: new Date().toISOString().slice(0, 10),
+          dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
+          tareas_criticas: [
+            {
+              id: Date.now().toString(),
+              titulo: 'Tarea crítica de ejemplo',
+              razon: 'Esta es una tarea importante que debes completar',
+              fecha_fin: new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0, 10),
+              completada: false,
+              estado: 'pendiente'
+            }
+          ],
+          tareas: [
+            {
+              id: Date.now().toString() + '1',
+              texto: 'Tarea normal de ejemplo',
+              fecha_fin: new Date(Date.now() + 3*24*60*60*1000).toISOString().slice(0, 10),
+              completada: false,
+              estado: 'pendiente',
+              persona: null,
+              fecha_migrar: null
+            }
+          ],
+          notas: ['Esta es una nota de ejemplo', 'Puedes escribir tus ideas aquí', 'Edita o borra estas notas'],
+          citas: []
+        };
+        
+        procesarJSON(datosEjemplo);
+        mostrarAlerta('✨ Datos de ejemplo creados. ¡Ahora puedes usar tu agenda!', 'success');
+        return;
+      }
+      
+      let data;
+      
+      // Detectar si es XML o JSON
+      if (text.trim().startsWith('<?xml') || text.trim().startsWith('<agenda')) {
+        // Es XML, convertir a JSON
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, 'text/xml');
+        data = convertXMLtoJSON(xmlDoc);
+        console.log('XML convertido a JSON:', data);
+      } else {
+        // Es JSON
+        data = JSON.parse(text);
+      }
+      
+      console.log('Datos parseados:', data);
+      procesarJSON(data);
+      mostrarAlerta('✅ Agenda cargada desde GitHub', 'success');
+      
+      // NO activar auto-sync por defecto para evitar conflictos
+      appState.sync.githubAutoSync = false;
+      const btn = document.getElementById('toggle-autosync');
+      if (btn) {
+        btn.textContent = 'Auto-sync: OFF';
+      }
+    } catch (err) {
+      console.error('Error al cargar desde GitHub:', err);
+      mostrarAlerta('⚠️ No se pudo cargar desde GitHub, usando datos locales', 'info');
+    }
+  })();
+  
+  // Listener optimizado para cambios en notas
+  const notasEl = document.getElementById('notas-texto');
+  if (notasEl) {
+    const optimizedHandler = performanceOptimizer.debounce(() => {
+      autoResizeTextarea(notasEl);
+      autoCapitalize(notasEl);
+      scheduleAutoSave();
+    }, 300);
+    
+    notasEl.addEventListener('input', optimizedHandler);
+    // Ajustar altura inicial
+    autoResizeTextarea(notasEl);
+  }
+  
+  // Configurar auto-capitalización
+  setupAutoCapitalize();
+  
+  // Iniciar auto-guardado optimizado cada minuto
+  setInterval(() => {
+    guardarOptimizado(true);
+  }, 60000);
+  
+  // Limpiar recursos al cerrar
+  window.addEventListener('beforeunload', () => {
+    performanceMonitor.stop();
+    liberarPantallaActiva();
+    if (activityTimer) clearInterval(activityTimer);
+    if (userActivityTimeout) clearTimeout(userActivityTimeout);
+  });
+});
+
+function actualizarFecha() {
+  const hoy = new Date();
+  const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('fecha-actual').textContent = hoy.toLocaleDateString('es-ES', opciones);
+}
+
+// ========== CARGAR DATOS ==========
+async function cargarDatos() {
+  try {
+    const { repo, path, history, branch, token } = getSyncConfig();
+    if (!repo || !path || !token) {
+      mostrarAlerta('⚠️ Configura GitHub primero (botón Configurar GitHub)', 'info');
+      renderizar(); // Iniciar con agenda vacía
+      return;
+    }
+    
+    // Validar formato del repo
+    if (!repo.includes('/')) {
+      mostrarAlerta('⚠️ El formato del repo debe ser "usuario/repositorio"', 'info');
+      renderizar();
+      return;
+    }
+
+    const [repoOwner, repoName] = repo.split('/');
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+    const r = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3.raw'
+      }
+    });
+    
+    if (!r.ok) {
+      throw new Error(`Error GitHub (${r.status}): ${await r.text()}`);
+    }
+
+    const text = await r.text();
+    const data = JSON.parse(text);
+    procesarJSON(data);
+    mostrarAlerta('✅ Agenda cargada desde GitHub', 'success');
+  } catch (err) {
+    console.error('Error al cargar desde GitHub:', err);
+    mostrarAlerta('❌ Error al cargar: ' + (err.message || 'Verifica tu configuración de GitHub'), 'info');
+    renderizar(); // Iniciar con agenda vacía
+  }
+}
+
+// ========== PROCESAR JSON ==========
+function procesarJSON(data) {
+  // Solo procesar si hay datos válidos
+  if (!data || Object.keys(data).length === 0) {
+    console.log('No hay datos para procesar, manteniendo estado actual');
+    return;
+  }
+  
+  console.log('Procesando datos recibidos:', data);
+  
+  // Actualizar datos básicos
+  if (data.fecha) appState.agenda.fecha = data.fecha;
+  if (data.dia_semana) appState.agenda.dia_semana = data.dia_semana;
+  
+  // Actualizar citas del calendario (incluso si está vacío para limpiar)
+  if (data.citas !== undefined) {
+    appState.agenda.citas = Array.isArray(data.citas) ? data.citas.map(c => ({
+      fecha: c.fecha,
+      nombre: c.nombre || ''
+    })) : [];
+  }
+  
+  // Actualizar personas
+  if (data.personas !== undefined) {
+    appState.agenda.personas = Array.isArray(data.personas) ? data.personas : [];
+  }
+  
+  // Actualizar tareas críticas (incluso si está vacío para limpiar)
+  if (data.tareas_criticas !== undefined) {
+    appState.agenda.tareas_criticas = Array.isArray(data.tareas_criticas) ? data.tareas_criticas.map(t => ({
+      id: t.id || Date.now().toString(),
+      titulo: t.titulo || '',
+      razon: t.razon || '',
+      fecha_fin: t.fecha_fin || '',
+      completada: Boolean(t.completada),
+      estado: t.estado || (t.completada ? 'completada' : 'pendiente'),
+      persona: t.persona || null,
+      fecha_migrar: t.fecha_migrar || null,
+      subtareas: t.subtareas || [],
+      subtareasCollapsed: t.subtareasCollapsed || false
+    })) : [];
+  }
+
+  // Actualizar tareas normales (incluso si está vacío para limpiar)
+  if (data.tareas !== undefined) {
+    appState.agenda.tareas = Array.isArray(data.tareas) ? data.tareas.map(t => ({
+      id: t.id || Date.now().toString() + Math.random(),
+      texto: t.texto || '',
+      fecha_fin: t.fecha_fin || '',
+      completada: Boolean(t.completada),
+      estado: t.estado || (t.completada ? 'completada' : 'pendiente'),
+      persona: t.persona || null,
+      fecha_migrar: t.fecha_migrar || null,
+      subtareas: t.subtareas || [],
+      subtareasCollapsed: t.subtareasCollapsed || false
+    })) : [];
+  }
+
+  // Actualizar notas (incluso si está vacío para limpiar)
+  if (data.notas !== undefined) {
+    const notasTexto = Array.isArray(data.notas) ? data.notas.join('\n') : (data.notas || '');
+    appState.agenda.notas = notasTexto;
+    const notasEl = document.getElementById('notas-texto');
+    if (notasEl) {
+      notasEl.value = appState.agenda.notas;
+      autoResizeTextarea(notasEl);
+    }
+  }
+
+  console.log('Estado actualizado:', appState.agenda);
+  renderizar();
+}
+
+// ========== FUNCIONES DEL CALENDARIO ==========
+function showAppointments(date) {
+  const appointments = appState.agenda.citas.filter(cita => cita.fecha === date);
+  const list = document.getElementById('appointmentsList');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  if (appointments.length === 0) {
+    list.innerHTML = '<div style="color:#777;padding:6px">No hay citas para este día</div>';
+    return;
+  }
+  
+  appointments.forEach(cita => {
+    const appt = document.createElement('div');
+    appt.className = 'cita-item';
+    appt.innerHTML = `
+      <span>${cita.nombre}</span>
+      <button onclick="deleteCita('${date}', '${cita.nombre}')" class="boton-eliminar">🗑️</button>
+    `;
+    list.appendChild(appt);
+  });
+}
+
+async function deleteCita(fecha, nombre) {
+  const index = appState.agenda.citas.findIndex(c => c.fecha === fecha && c.nombre === nombre);
+  if (index > -1) {
+    console.log('Usuario eliminó cita manualmente');
+    const citaEliminada = appState.agenda.citas[index];
+    
+    // Eliminar la cita del array
+    appState.agenda.citas.splice(index, 1);
+    
+    // Guardar en historial
+    await guardarEnHistorial({
+      tipo: 'cita',
+      contenido: citaEliminada,
+      fecha_borrado: new Date().toISOString()
+    });
+    
+    // Actualizar todas las vistas
+    renderCalendar();
+    renderAllAppointmentsList();
+    showAppointments(fecha);
+    renderCitasPanel();
+    
+    // Guardar cambios inmediatamente
+    await guardarJSON(true);
+  }
+}
+
+// ========== RENDERIZAR ==========
+function renderizar() {
+  // Usar renderizado optimizado para evitar bloqueos
+  requestAnimationFrame(() => {
+    renderizarCriticas();
+    renderizarTareas();
+    renderCitasPanel();
+    
+    // Solo renderizar calendario si el modal está abierto
+    const calendarModal = document.getElementById('modal-calendar');
+    if (calendarModal && calendarModal.style.display === 'flex') {
+      renderCalendar();
+      renderAllAppointmentsList();
+      renderAppointmentsList();
+    }
+  });
+}
+
+
+
+
+function renderizarCriticas() {
+  const lista = document.getElementById('lista-criticas');
+  if (!lista) return;
+  
+  lista.innerHTML = '';
+  
+  if (!appState.agenda.tareas_criticas || appState.agenda.tareas_criticas.length === 0) {
+    lista.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas críticas</div>';
+    return;
+  }
+  
+  // Aplicar filtros
+  const tareasFiltradas = filtrarTareas(appState.agenda.tareas_criticas, 'criticas');
+  
+  if (tareasFiltradas.length === 0) {
+    lista.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas que coincidan con los filtros</div>';
+    return;
+  }
+  
+  tareasFiltradas.forEach((tarea, index) => {
+    // Encontrar el índice real en el array original
+    const realIndex = appState.agenda.tareas_criticas.findIndex(t => t.id === tarea.id);
+    const div = document.createElement('div');
+    div.className = 'tarea-item';
+    if (tarea.completada) div.classList.add('tarea-completada');
+    
+    // Verificar si es urgente (fecha límite es hoy o pasada)
+    const esUrgente = esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin);
+    console.log('Tarea crítica:', tarea.titulo, 'fecha_fin:', tarea.fecha_fin, 'esUrgente:', esUrgente, 'completada:', tarea.completada);
+    if (esUrgente && !tarea.completada) {
+      div.classList.add('urgente');
+      console.log('Aplicando clase urgente a tarea crítica:', tarea.titulo);
+    } else if (tarea.estado === 'completada') {
+      div.classList.add('completada');
+    } else if (tarea.estado === 'migrada') {
+      div.classList.add('migrada');
+    } else if (tarea.estado === 'programada') {
+      div.classList.add('programada');
+    }
+    
+    const simbolo = document.createElement('span');
+    simbolo.className = 'tarea-simbolo';
+    simbolo.textContent = obtenerSimbolo(tarea);
+    simbolo.onclick = () => cambiarEstadoCritica(realIndex);
+    
+    const texto = document.createElement('div');
+    texto.className = 'tarea-texto';
+    texto.style.cursor = 'pointer';
+    let contenido = `<strong>${escapeHtml(tarea.titulo)}</strong>`;
+    if (tarea.fecha_fin) {
+      const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
+      contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${tarea.fecha_fin}</small>`;
+    }
+    // Mostrar información de migración/delegación para tareas críticas
+    if (tarea.persona || tarea.fecha_migrar) {
+      contenido += ' <span style="font-size: 12px; color: #9c27b0; font-weight: bold;">→ ';
+      if (tarea.persona) {
+        contenido += `<span style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; margin-right: 5px;">👤 ${escapeHtml(tarea.persona)}</span>`;
+      }
+      if (tarea.fecha_migrar) {
+        const colorMigrar = esFechaHoy(tarea.fecha_migrar) ? '#ff1744' : '#666';
+        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${tarea.fecha_migrar}</span>`;
+      }
+      contenido += '</span>';
+    }
+    texto.innerHTML = contenido;
+    texto.onclick = () => editarTareaCritica(realIndex);
+    
+    div.appendChild(simbolo);
+    div.appendChild(texto);
+    
+    // Agregar alerta si es urgente o pasada
+    if (!tarea.completada) {
+      if (esFechaPasada(tarea.fecha_fin)) {
+        const alerta = document.createElement('span');
+        alerta.className = 'alerta-urgente';
+        alerta.textContent = '⚠️⚠️⚠️ Fecha pasada';
+        alerta.title = '¡Fecha pasada!';
+        div.appendChild(alerta);
+      } else if (esUrgente) {
+        const alerta = document.createElement('span');
+        alerta.className = 'alerta-urgente';
+        alerta.textContent = '⚠️ Vence hoy';
+        alerta.title = '¡Vence hoy!';
+        div.appendChild(alerta);
+      }
+    }
+    
+    // Botón para añadir subtarea dentro de la tarea (al final)
+    const btnSubtarea = document.createElement('button');
+    btnSubtarea.className = 'boton-subtarea';
+    btnSubtarea.textContent = '➕';
+    btnSubtarea.title = 'Añadir subtarea';
+    btnSubtarea.onclick = (e) => {
+      e.stopPropagation();
+      nuevaSubtarea('critica', realIndex);
+    };
+    div.appendChild(btnSubtarea);
+    
+    // Drag & Drop / Touch
+    div.draggable = !isMobile();
+    div.dataset.tipo = 'critica';
+    div.dataset.index = realIndex;
+    
+    if (isMobile()) {
+      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+      div.addEventListener('touchmove', handleTouchMove, { passive: false });
+      div.addEventListener('touchend', handleTouchEnd, { passive: false });
+    } else {
+      div.addEventListener('dragstart', handleDragStart);
+      div.addEventListener('dragend', handleDragEnd);
+    }
+    
+    lista.appendChild(div);
+    
+    // Renderizar subtareas
+    if (tarea.subtareas && tarea.subtareas.length > 0) {
+      const subtareasContainer = document.createElement('div');
+      subtareasContainer.className = 'subtareas-container';
+      subtareasContainer.id = `subtareas-critica-${realIndex}`;
+      if (tarea.subtareasCollapsed) {
+        subtareasContainer.classList.add('collapsed');
+      }
+      
+      renderSubtareas(tarea.subtareas, subtareasContainer, 'critica', realIndex, 1);
+      lista.appendChild(subtareasContainer);
+    }
+  });
+}
+
+function renderizarTareas() {
+  const lista = document.getElementById('lista-metodo');
+  if (!lista) return;
+  
+  lista.innerHTML = '';
+  
+  if (!appState.agenda.tareas || appState.agenda.tareas.length === 0) {
+    lista.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas</div>';
+    return;
+  }
+  
+  // Filtrar tareas según la vista de largo plazo
+  let tareasFiltradas = appState.agenda.tareas.filter(tarea => {
+    if (appState.ui.mostrarLargoPlazo) {
+      return true; // Mostrar todas las tareas
+    }
+    // Ocultar tareas de largo plazo (más de 15 días)
+    const esLargoFin = esLargoPlazo(tarea.fecha_fin);
+    const esLargoMigrar = esLargoPlazo(tarea.fecha_migrar);
+    return !esLargoFin && !esLargoMigrar;
+  });
+  
+  // Aplicar filtros adicionales
+  tareasFiltradas = filtrarTareas(tareasFiltradas, 'tareas');
+  
+  if (tareasFiltradas.length === 0) {
+    const mensaje = appState.filtros.tareas.estado || appState.filtros.tareas.fecha || appState.filtros.tareas.prioridad ?
+      'No hay tareas que coincidan con los filtros' :
+      'No hay tareas (algunas pueden estar ocultas en largo plazo)';
+    lista.innerHTML = `<div style="color:#777;padding:10px;text-align:center;">${mensaje}</div>`;
+    return;
+  }
+  
+  tareasFiltradas.forEach((tarea, index) => {
+    // Encontrar el índice real en el array original
+    const realIndex = appState.agenda.tareas.findIndex(t => t.id === tarea.id);
+    const div = document.createElement('div');
+    div.className = 'tarea-item';
+    if (tarea.completada) div.classList.add('tarea-completada');
+    
+    // Verificar si es urgente (fecha límite o migración es hoy o pasada)
+    const esUrgente = esFechaHoy(tarea.fecha_fin) || esFechaHoy(tarea.fecha_migrar) || esFechaPasada(tarea.fecha_fin) || esFechaPasada(tarea.fecha_migrar);
+    console.log('Tarea normal:', tarea.texto, 'fecha_fin:', tarea.fecha_fin, 'fecha_migrar:', tarea.fecha_migrar, 'esUrgente:', esUrgente, 'completada:', tarea.completada);
+    if (esUrgente && !tarea.completada) {
+      div.classList.add('urgente');
+      console.log('Aplicando clase urgente a tarea normal:', tarea.texto);
+    } else if (tarea.estado === 'completada') {
+      div.classList.add('completada');
+    } else if (tarea.estado === 'migrada') {
+      div.classList.add('migrada');
+    } else if (tarea.estado === 'programada') {
+      div.classList.add('programada');
+    }
+    
+    const simbolo = document.createElement('span');
+    simbolo.className = 'tarea-simbolo';
+    simbolo.textContent = obtenerSimbolo(tarea);
+    simbolo.onclick = () => cambiarEstadoTarea(realIndex);
+    
+    const texto = document.createElement('div');
+    texto.className = 'tarea-texto';
+    texto.style.cursor = 'pointer';
+    let contenido = escapeHtml(tarea.texto);
+    if (tarea.fecha_fin) {
+      const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
+      contenido += ` <small style="background: ${esFechaHoy(tarea.fecha_fin) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esFechaHoy(tarea.fecha_fin) ? 'bold' : 'normal'}; font-size: 10px;">hacer antes de 📅 ${tarea.fecha_fin}</small>`;
+    }
+    // Mostrar información de migración/delegación
+    if (tarea.persona || tarea.fecha_migrar) {
+      contenido += ' <span style="font-size: 12px; color: #9c27b0; font-weight: bold;">→ ';
+      if (tarea.persona) {
+        contenido += `<span style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; margin-right: 5px;">👤 ${escapeHtml(tarea.persona)}</span>`;
+      }
+      if (tarea.fecha_migrar) {
+        const colorMigrar = esFechaHoy(tarea.fecha_migrar) ? '#ff1744' : '#666';
+        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${tarea.fecha_migrar}</span>`;
+      }
+      contenido += '</span>';
+    }
+    texto.innerHTML = contenido;
+    texto.onclick = () => editarTarea(realIndex);
+    
+    div.appendChild(simbolo);
+    div.appendChild(texto);
+    
+    // Agregar alerta si es urgente o pasada
+    if (!tarea.completada) {
+      if (esFechaPasada(tarea.fecha_fin) || esFechaPasada(tarea.fecha_migrar)) {
+        const alerta = document.createElement('span');
+        alerta.className = 'alerta-urgente';
+        alerta.textContent = '⚠️⚠️⚠️ Fecha pasada';
+        alerta.title = '¡Fecha pasada!';
+        div.appendChild(alerta);
+      } else if (esUrgente) {
+        const alerta = document.createElement('span');
+        alerta.className = 'alerta-urgente';
+        alerta.textContent = esFechaHoy(tarea.fecha_fin) ? '⚠️ Vence hoy' : '⚠️ Programada para hoy';
+        alerta.title = esFechaHoy(tarea.fecha_fin) ? '¡Vence hoy!' : '¡Programada para hoy!';
+        div.appendChild(alerta);
+      }
+    }
+    
+    // Botón para añadir subtarea dentro de la tarea (al final)
+    const btnSubtarea = document.createElement('button');
+    btnSubtarea.className = 'boton-subtarea';
+    btnSubtarea.textContent = '➕';
+    btnSubtarea.title = 'Añadir subtarea';
+    btnSubtarea.onclick = (e) => {
+      e.stopPropagation();
+      nuevaSubtarea('tarea', realIndex);
+    };
+    div.appendChild(btnSubtarea);
+    
+    // Drag & Drop / Touch
+    div.draggable = !isMobile();
+    div.dataset.tipo = 'tarea';
+    div.dataset.index = realIndex;
+    
+    if (isMobile()) {
+      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+      div.addEventListener('touchmove', handleTouchMove, { passive: false });
+      div.addEventListener('touchend', handleTouchEnd, { passive: false });
+    } else {
+      div.addEventListener('dragstart', handleDragStart);
+      div.addEventListener('dragend', handleDragEnd);
+    }
+    
+    lista.appendChild(div);
+    
+    // Renderizar subtareas
+    if (tarea.subtareas && tarea.subtareas.length > 0) {
+      const subtareasContainer = document.createElement('div');
+      subtareasContainer.className = 'subtareas-container';
+      subtareasContainer.id = `subtareas-tarea-${realIndex}`;
+      if (tarea.subtareasCollapsed) {
+        subtareasContainer.classList.add('collapsed');
+      }
+      
+      renderSubtareas(tarea.subtareas, subtareasContainer, 'tarea', realIndex, 1);
+      lista.appendChild(subtareasContainer);
+    }
+  });
+}
+
+// ========== SÍMBOLOS ==========
+function obtenerSimbolo(tarea) {
+  if (tarea.estado === 'completada') return '✔';
+  if (tarea.estado === 'migrada') return '→';
+  if (tarea.estado === 'programada') return '<';
+  return '●';
+}
+
+// ========== CAMBIAR ESTADO ==========
+function cambiarEstadoCritica(index) {
+  const tarea = appState.agenda.tareas_criticas[index];
+  
+  if (tarea.estado === 'pendiente') {
+    tarea.estado = 'migrada';
+    tarea.completada = false;
+    appState.ui.tareaSeleccionada = { tipo: 'critica', index };
+    abrirModal('modal-migrar');
+    return;
+  } else if (tarea.estado === 'migrada') {
+    // Si tiene persona asignada, mantener como migrada, sino pasar a programada
+    if (tarea.persona) {
+      tarea.estado = 'completada';
+      tarea.completada = true;
+    } else {
+      tarea.estado = 'programada';
+      tarea.completada = false;
+    }
+  } else if (tarea.estado === 'programada') {
+    tarea.estado = 'completada';
+    tarea.completada = true;
+  } else {
+    tarea.estado = 'pendiente';
+    tarea.completada = false;
+    delete tarea.persona;
+    delete tarea.fecha_migrar;
+  }
+  
+  renderizar();
+  syncAfterAction();
+}
+
+
+function cambiarEstadoTarea(index) {
+  const tarea = appState.agenda.tareas[index];
+  
+  if (tarea.estado === 'pendiente') {
+    tarea.estado = 'migrada';
+    tarea.completada = false;
+    appState.ui.tareaSeleccionada = { tipo: 'tarea', index };
+    abrirModal('modal-migrar');
+    return;
+  } else if (tarea.estado === 'migrada') {
+    // Si tiene persona asignada, mantener como migrada, sino pasar a programada
+    if (tarea.persona) {
+      tarea.estado = 'completada';
+      tarea.completada = true;
+    } else {
+      tarea.estado = 'programada';
+      tarea.completada = false;
+    }
+  } else if (tarea.estado === 'programada') {
+    tarea.estado = 'completada';
+    tarea.completada = true;
+  } else {
+    tarea.estado = 'pendiente';
+    tarea.completada = false;
+    delete tarea.persona;
+    delete tarea.fecha_migrar;
+  }
+  
+  renderizar();
+  guardarJSON(true);
+}
+
+// ========== MODALES ==========
+function abrirModal(id) {
+  document.getElementById(id).style.display = 'block';
+  // Poner foco en el primer input del modal
+  setTimeout(() => {
+    const modal = document.getElementById(id);
+    const firstInput = modal.querySelector('input[type="text"], textarea');
+    if (firstInput) {
+      firstInput.focus();
+      // Configurar auto-capitalización para inputs del modal
+      setupAutoCapitalize();
+    }
+    // Configurar autocompletado para el campo de persona
+    if (id === 'modal-migrar') {
+      setupPersonasAutocomplete();
+    }
+  }, 100);
+}
+
+function cerrarModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.style.display = 'none';
+    // Ocultar dropdown de personas
+    const dropdown = document.getElementById('personas-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    // Limpiar campos
+    modal.querySelectorAll('input, textarea').forEach(el => el.value = '');
+  }
+}
+
+// Add close functionality to all modals
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', e => {
+    if (e.target === modal) {
+      cerrarModal(modal.id);
+    }
+  });
+});
+
+function nuevaTareaCritica() {
+  abrirModal('modal-critica');
+  setTimeout(() => document.getElementById('critica-titulo').focus(), 100);
+}
+
+async function agregarTareaCritica() {
+  const titulo = document.getElementById('critica-titulo').value.trim();
+  const fecha = document.getElementById('critica-fecha').value;
+  
+  if (!titulo) {
+    alert('Por favor, ingresa un título');
+    return;
+  }
+  
+  if (appState.ui.criticaEditando !== null) {
+    // Editando tarea crítica existente
+    const tarea = appState.agenda.tareas_criticas[appState.ui.criticaEditando];
+    tarea.titulo = titulo;
+    tarea.fecha_fin = fecha;
+    appState.ui.criticaEditando = null;
+    console.log('Tarea crítica editada:', tarea);
+  } else {
+    // Nueva tarea crítica
+    appState.agenda.tareas_criticas.push({
+      id: Date.now().toString(),
+      titulo,
+      razon: '',
+      fecha_fin: fecha,
+      completada: false,
+      estado: 'pendiente'
+    });
+  }
+  
+  cerrarModal('modal-critica');
+  renderizar();
+  await guardarJSON(true);
+}
+
+function nuevaTarea() {
+  abrirModal('modal-tarea');
+  setTimeout(() => document.getElementById('tarea-texto').focus(), 100);
+}
+
+async function agregarTarea() {
+  const texto = document.getElementById('tarea-texto').value.trim();
+  const fecha = document.getElementById('tarea-fecha').value;
+  
+  if (!texto) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  if (appState.ui.tareaEditando !== null) {
+    // Editando tarea existente
+    const tarea = appState.agenda.tareas[appState.ui.tareaEditando];
+    tarea.texto = texto;
+    tarea.fecha_fin = fecha;
+    appState.ui.tareaEditando = null;
+    console.log('Tarea editada:', tarea);
+  } else {
+    // Nueva tarea
+    appState.agenda.tareas.push({
+      id: Date.now().toString(),
+      texto,
+      fecha_fin: fecha,
+      completada: false,
+      estado: 'pendiente'
+    });
+  }
+  
+  cerrarModal('modal-tarea');
+  renderizar();
+  await guardarJSON(true);
+}
+
+function editarTarea(index) {
+  const tarea = appState.agenda.tareas[index];
+  appState.ui.tareaEditando = index;
+  
+  document.getElementById('tarea-texto').value = tarea.texto;
+  document.getElementById('tarea-fecha').value = tarea.fecha_fin || '';
+  
+  abrirModal('modal-tarea');
+}
+
+function editarTareaCritica(index) {
+  const tarea = appState.agenda.tareas_criticas[index];
+  appState.ui.criticaEditando = index;
+  
+  document.getElementById('critica-titulo').value = tarea.titulo;
+  document.getElementById('critica-fecha').value = tarea.fecha_fin || '';
+  
+  abrirModal('modal-critica');
+}
+
+function guardarMigracion() {
+  const fecha = document.getElementById('migrar-fecha').value;
+  const persona = document.getElementById('migrar-persona').value.trim();
+  
+  // Guardar nueva persona si no existe
+  if (persona && !appState.agenda.personas.includes(persona)) {
+    appState.agenda.personas.push(persona);
+  }
+  
+  if (!appState.ui.tareaSeleccionada) {
+    cerrarModal('modal-migrar');
+    return;
+  }
+  
+  const seleccion = appState.ui.tareaSeleccionada;
+  
+  if (seleccion.tipo === 'subtarea') {
+    // Es una subtarea
+    const tareaParent = seleccion.tipoParent === 'critica' ? 
+      appState.agenda.tareas_criticas[seleccion.indexParent] : 
+      appState.agenda.tareas[seleccion.indexParent];
+    const subtarea = tareaParent.subtareas[seleccion.indexSubtarea];
+    
+    subtarea.fecha_migrar = fecha || null;
+    subtarea.persona = persona || null;
+    // Si hay persona, mantener como migrada, si solo hay fecha, programada
+    subtarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
+  } else {
+    // Es una tarea principal
+    const { tipo, index } = seleccion;
+    const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[index] : appState.agenda.tareas[index];
+    
+    tarea.fecha_migrar = fecha || null;
+    tarea.persona = persona || null;
+    // Si hay persona, mantener como migrada, si solo hay fecha, programada
+    tarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
+  }
+  
+  appState.ui.tareaSeleccionada = null;
+  cerrarModal('modal-migrar');
+  
+  // Forzar re-renderizado inmediato
+  setTimeout(() => {
+    renderizar();
+  }, 100);
+  
+  guardarJSON(true);
+  
+  // Mostrar confirmación
+  if (persona) {
+    mostrarAlerta(`→ Tarea delegada a ${persona}`, 'success');
+  } else if (fecha) {
+    mostrarAlerta(`→ Tarea reprogramada para ${fecha}`, 'success');
+  }
+}
+
+function nuevaSubSubtarea(tipoParent, indexParent, indexSubtarea, nivel) {
+  const texto = prompt('¿Qué sub-subtarea quieres añadir?');
+  if (!texto || !texto.trim()) return;
+  
+  const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  const subtarea = tareaParent.subtareas[indexSubtarea];
+  
+  if (!subtarea.subtareas) {
+    subtarea.subtareas = [];
+  }
+  
+  subtarea.subtareas.push({
+    id: Date.now().toString() + Math.random(),
+    texto: texto.trim(),
+    completada: false,
+    estado: 'pendiente',
+    subtareas: [],
+    fecha_fin: '',
+    persona: null,
+    fecha_migrar: null
+  });
+  
+  renderizar();
+  guardarJSON(true);
+}
+
+// ========== ELIMINAR ==========
+async function eliminarCritica(index) {
+  if (confirm('¿Eliminar esta tarea crítica?')) {
+    console.log('Usuario eliminó tarea crítica manualmente');
+    const tareaEliminada = appState.agenda.tareas_criticas[index];
+    await guardarEnHistorial({
+      tipo: 'tarea_critica',
+      contenido: tareaEliminada,
+      fecha_borrado: new Date().toISOString()
+    });
+    appState.agenda.tareas_criticas.splice(index, 1);
+    renderizar();
+    guardarJSON(true);
+  }
+}
+
+async function eliminarTarea(index) {
+  if (confirm('¿Eliminar esta tarea?')) {
+    console.log('Usuario eliminó tarea manualmente');
+    const tareaEliminada = appState.agenda.tareas[index];
+    await guardarEnHistorial({
+      tipo: 'tarea',
+      contenido: tareaEliminada,
+      fecha_borrado: new Date().toISOString()
+    });
+    appState.agenda.tareas.splice(index, 1);
+    renderizar();
+    guardarJSON(true);
+  }
+}
+
+// ========== GUARDAR JSON ==========
+async function guardarJSON(silent = false) {
+  // Si ya hay un guardado en proceso, agregar a la cola
+  if (appState.sync.isSaving) {
+    appState.sync.saveQueue.push({ silent });
+    return;
+  }
+  
+  appState.sync.isSaving = true;
+  
+  try {
+    // Actualizar notas y preparar JSON
+    appState.agenda.notas = document
+      .getElementById('notas-texto')
+      .value.split('\n')
+      .filter(nota => nota.trim());
+
+    // Crear objeto JSON para guardar
+    const jsonData = {
+      fecha: appState.agenda.fecha,
+      dia_semana: appState.agenda.dia_semana,
+      tareas_criticas: appState.agenda.tareas_criticas.map(t => ({
+        id: t.id,
+        titulo: t.titulo,
+        razon: t.razon,
+        fecha_fin: t.fecha_fin || null,
+        completada: t.completada,
+        estado: t.estado,
+        persona: t.persona || null,
+        fecha_migrar: t.fecha_migrar || null,
+        subtareas: t.subtareas || [],
+        subtareasCollapsed: t.subtareasCollapsed || false
+      })),
+      tareas: appState.agenda.tareas.map(t => ({
+        id: t.id,
+        texto: t.texto,
+        fecha_fin: t.fecha_fin || null,
+        completada: t.completada,
+        estado: t.estado,
+        persona: t.persona || null,
+        fecha_migrar: t.fecha_migrar || null,
+        subtareas: t.subtareas || [],
+        subtareasCollapsed: t.subtareasCollapsed || false
+      })),
+      notas: appState.agenda.notas,
+      citas: appState.agenda.citas,
+      personas: appState.agenda.personas || []
+    };
+
+    // Obtener configuración de sincronización
+    const { repo, path, history, branch, token } = getSyncConfig();
+    if (!repo || !path || !token) {
+      mostrarAlerta('⚠️ Configura GitHub primero (botón Sincronizar)', 'info');
+      return;
+    }
+
+    const [repoOwner, repoName] = repo.split('/');
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}`;
+
+    let sha = null;
+
+    // Intentar obtener metadatos del archivo existente
+    try {
+      console.log('Verificando archivo existente:', apiUrl);
+      const getR = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (getR.status === 404) {
+        console.log('El archivo no existe, se creará uno nuevo.');
+      } else if (getR.ok) {
+        const meta = await getR.json();
+        if (meta && meta.sha) {
+          sha = meta.sha;
+          console.log('SHA obtenido:', sha);
+        } else {
+          console.warn('No se encontró SHA en la respuesta de metadatos.');
+        }
+      } else {
+        throw new Error(`Error al obtener metadatos (${getR.status})`);
+      }
+    } catch (error) {
+      console.error('Error al verificar el archivo en GitHub:', error);
+      throw new Error('Error al verificar el archivo en GitHub: ' + error.message);
+    }
+
+    // Función auxiliar para intentar guardar con reintentos
+    const tryPut = async (retryCount = 0) => {
+      // Obtener SHA más reciente antes de cada intento
+      let currentSha = sha;
+      if (retryCount > 0) {
+        try {
+          const refreshR = await fetch(apiUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+          if (refreshR.ok) {
+            const meta = await refreshR.json();
+            currentSha = meta.sha;
+            console.log(`Reintento ${retryCount}: SHA actualizado a ${currentSha}`);
+          }
+        } catch (e) {
+          console.warn('Error al obtener SHA actualizado:', e);
+        }
+      }
+      
+      // Codificar correctamente UTF-8 para caracteres españoles
+      const jsonString = JSON.stringify(jsonData, null, 2);
+      const utf8Bytes = new TextEncoder().encode(jsonString);
+      const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+      
+      const body = {
+        message: `Actualización desde agenda web (intento ${retryCount + 1})`,
+        content: base64Content,
+        branch: branch
+      };
+      
+      if (currentSha) {
+        body.sha = currentSha;
+      }
+
+      const putR = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (putR.status === 409 && retryCount < 5) {
+        console.warn(`Conflicto 409 en intento ${retryCount + 1}, reintentando...`);
+        return tryPut(retryCount + 1);
+      }
+
+      if (!putR.ok) {
+        const errorText = await putR.text();
+        throw new Error(`Error al guardar (${putR.status}): ${errorText}`);
+      }
+
+      // Actualizar SHA global si el guardado fue exitoso
+      const result = await putR.json();
+      if (result.content && result.content.sha) {
+        window.currentSHA = result.content.sha;
+        sha = result.content.sha; // Actualizar también el SHA local
+        console.log('SHA actualizado tras guardado exitoso:', window.currentSHA);
+      }
+
+      return putR;
+    };
+
+    // Ejecutar guardado con control de conflictos
+    await tryPut();
+
+    if (!silent) {
+      mostrarAlerta('💾 Guardado en GitHub', 'success');
+    }
+
+  } catch (err) {
+    console.error('Error al guardar en GitHub:', err);
+    mostrarAlerta(
+      '❌ Error al guardar: ' + (err.message || 'Verifica tu configuración de GitHub'),
+      'info'
+    );
+  } finally {
+    appState.sync.isSaving = false;
+    
+    // Procesar siguiente elemento de la cola si existe
+    if (appState.sync.saveQueue.length > 0) {
+      const nextSave = appState.sync.saveQueue.shift();
+      guardarJSON(nextSave.silent);
+    }
+  }
+}
+
+// Auto-save optimizado con sincronización inmediata
+function scheduleAutoSave() {
+  if (appState.sync.autoSaveTimer) clearTimeout(appState.sync.autoSaveTimer);
+  appState.sync.autoSaveTimer = setTimeout(() => {
+    guardarJSON(true);
+  }, 2000); // Guardar inmediatamente tras 2 segundos
+}
+
+// Sincronización inmediata tras acciones
+function syncAfterAction() {
+  guardarJSON(true).catch(err => console.error('Sync after action failed:', err));
+}
+
+// Función para verificar si una fecha es hoy
+function esFechaHoy(fecha) {
+  if (!fecha) return false;
+  const hoy = new Date().toISOString().slice(0, 10);
+  console.log('Comparando fecha:', fecha, 'con hoy:', hoy, 'resultado:', fecha === hoy);
+  return fecha === hoy;
+}
+
+// Función para verificar si una fecha ya pasó
+function esFechaPasada(fecha) {
+  if (!fecha) return false;
+  const hoy = new Date().toISOString().slice(0, 10);
+  return fecha < hoy;
+}
+
+// Función para verificar si una fecha es de largo plazo (más de 15 días)
+function esLargoPlazo(fecha) {
+  if (!fecha) return false;
+  const hoy = new Date();
+  const fechaTarea = new Date(fecha);
+  const diferenciaDias = Math.ceil((fechaTarea - hoy) / (1000 * 60 * 60 * 24));
+  return diferenciaDias > 15;
+}
+
+// Función para alternar vista de largo plazo
+function toggleLargoPlazo() {
+  appState.ui.mostrarLargoPlazo = !appState.ui.mostrarLargoPlazo;
+  const btn = document.getElementById('btn-largo-plazo');
+  if (btn) {
+    btn.textContent = appState.ui.mostrarLargoPlazo ? 'Mostrar todas' : 'Próximos 15 días';
+    btn.style.background = appState.ui.mostrarLargoPlazo ? '#4caf50' : '#a8e6cf';
+  }
+  renderizar();
+}
+
+// ========== FUNCIONES DE FILTROS ==========
+function filtrarTareas(tareas, tipo) {
+  const filtros = appState.filtros[tipo];
+  
+  return tareas.filter(tarea => {
+    // Filtro por estado
+    if (filtros.estado && tarea.estado !== filtros.estado) {
+      return false;
+    }
+    
+    // Filtro por fecha
+    if (filtros.fecha) {
+      const fechaTarea = tarea.fecha_fin || tarea.fecha_migrar;
+      
+      switch (filtros.fecha) {
+        case 'hoy':
+          if (!esFechaHoy(fechaTarea)) return false;
+          break;
+        case 'pasadas':
+          if (!esFechaPasada(fechaTarea)) return false;
+          break;
+        case 'proximas':
+          if (!fechaTarea || esFechaHoy(fechaTarea) || esFechaPasada(fechaTarea)) return false;
+          break;
+        case 'sin-fecha':
+          if (fechaTarea) return false;
+          break;
+      }
+    }
+    
+    // Filtro por prioridad
+    if (filtros.prioridad) {
+      const esUrgente = esFechaHoy(tarea.fecha_fin) || esFechaHoy(tarea.fecha_migrar) || esFechaPasada(tarea.fecha_fin) || esFechaPasada(tarea.fecha_migrar);
+      
+      switch (filtros.prioridad) {
+        case 'urgente':
+          if (!esUrgente || tarea.completada) return false;
+          break;
+        case 'normal':
+          if (esUrgente && !tarea.completada) return false;
+          break;
+      }
+    }
+    
+    return true;
+  });
+}
+
+function aplicarFiltros() {
+  // Obtener valores de filtros para críticas
+  appState.filtros.criticas.estado = document.getElementById('filtro-estado-criticas')?.value || '';
+  appState.filtros.criticas.fecha = document.getElementById('filtro-fecha-criticas')?.value || '';
+  appState.filtros.criticas.prioridad = document.getElementById('filtro-prioridad-criticas')?.value || '';
+  
+  // Obtener valores de filtros para tareas
+  appState.filtros.tareas.estado = document.getElementById('filtro-estado-tareas')?.value || '';
+  appState.filtros.tareas.fecha = document.getElementById('filtro-fecha-tareas')?.value || '';
+  appState.filtros.tareas.prioridad = document.getElementById('filtro-prioridad-tareas')?.value || '';
+  
+  // Actualizar estilos visuales de filtros activos
+  actualizarEstilosFiltros();
+  
+  // Re-renderizar optimizado
+  renderizarOptimizado();
+}
+
+function actualizarEstilosFiltros() {
+  // Filtros de críticas
+  const filtrosCriticas = ['filtro-estado-criticas', 'filtro-fecha-criticas', 'filtro-prioridad-criticas'];
+  filtrosCriticas.forEach(id => {
+    const select = document.getElementById(id);
+    if (select) {
+      if (select.value) {
+        select.classList.add('filtro-activo');
+      } else {
+        select.classList.remove('filtro-activo');
+      }
+    }
+  });
+  
+  // Filtros de tareas
+  const filtrosTareas = ['filtro-estado-tareas', 'filtro-fecha-tareas', 'filtro-prioridad-tareas'];
+  filtrosTareas.forEach(id => {
+    const select = document.getElementById(id);
+    if (select) {
+      if (select.value) {
+        select.classList.add('filtro-activo');
+      } else {
+        select.classList.remove('filtro-activo');
+      }
+    }
+  });
+}
+
+function limpiarFiltros(tipo) {
+  // Limpiar filtros del estado
+  appState.filtros[tipo] = {
+    estado: '',
+    fecha: '',
+    prioridad: ''
+  };
+  
+  // Limpiar selects del DOM
+  const prefijo = tipo === 'criticas' ? 'filtro-estado-criticas' : 'filtro-estado-tareas';
+  const filtros = [
+    `filtro-estado-${tipo}`,
+    `filtro-fecha-${tipo}`,
+    `filtro-prioridad-${tipo}`
+  ];
+  
+  filtros.forEach(id => {
+    const select = document.getElementById(id);
+    if (select) {
+      select.value = '';
+      select.classList.remove('filtro-activo');
+    }
+  });
+  
+  // Re-renderizar
+  renderizar();
+  
+  mostrarAlerta(`🔄 Filtros de ${tipo} limpiados`, 'info');
+}
+
+// ========== CONFIGURACIÓN VISUAL ==========
+function abrirConfigVisual() {
+  // Cargar configuración actual
+  const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  
+  document.getElementById('config-tema').value = config.tema || 'claro';
+  document.getElementById('config-nombre').value = config.nombre || 'Agenda de Pablo';
+  document.getElementById('config-tamano').value = config.tamano || 'normal';
+  
+  abrirModal('modal-config-visual');
+}
+
+function guardarConfigVisual() {
+  const tema = document.getElementById('config-tema').value;
+  const nombre = document.getElementById('config-nombre').value.trim() || 'Agenda de Pablo';
+  const tamano = document.getElementById('config-tamano').value;
+  
+  const config = { tema, nombre, tamano };
+  localStorage.setItem('config-visual', JSON.stringify(config));
+  
+  aplicarConfigVisual(config);
+  cerrarModal('modal-config-visual');
+  mostrarAlerta('✨ Configuración guardada', 'success');
+}
+
+function aplicarConfigVisual(config) {
+  // Aplicar tema
+  if (config.tema === 'oscuro') {
+    document.body.classList.add('modo-oscuro');
+  } else {
+    document.body.classList.remove('modo-oscuro');
+  }
+  
+  // Aplicar nombre
+  document.getElementById('titulo-agenda').textContent = `🧠 ${config.nombre} 🚆`;
+  
+  // Aplicar tamaño de letra
+  document.body.classList.remove('font-pequeno', 'font-normal', 'font-grande');
+  document.body.classList.add(`font-${config.tamano}`);
+}
+
+function cargarConfigVisual() {
+  const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  const configDefault = {
+    tema: config.tema || 'claro',
+    nombre: config.nombre || 'Pablo',
+    tamano: config.tamano || 'normal'
+  };
+  aplicarConfigVisual(configDefault);
+}
+
+// ========== TOGGLE FILTROS ==========
+function toggleFiltros(tipo) {
+  const content = document.getElementById(`filtros-content-${tipo}`);
+  const icon = document.getElementById(`filtros-icon-${tipo}`);
+  
+  if (content.classList.contains('visible')) {
+    content.classList.remove('visible');
+    icon.textContent = '▼';
+  } else {
+    content.classList.add('visible');
+    icon.textContent = '▲';
+  }
+}
+
+
+
+
+
+// ========== HISTORIAL DE ELEMENTOS BORRADOS ==========
+async function guardarEnHistorial(elementoBorrado) {
+  try {
+    const { repo, history, branch, token } = getSyncConfig();
+    if (!repo || !history || !token) return;
+
+    const [repoOwner, repoName] = repo.split('/');
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(history)}`;
+
+    let historialActual = [];
+    let sha = null;
+    
+    try {
+      const getR = await fetch(apiUrl, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      
+      if (getR.ok) {
+        const meta = await getR.json();
+        sha = meta.sha;
+        if (meta.content) {
+          // Decodificar correctamente UTF-8
+          const base64Content = meta.content.replace(/\n/g, '');
+          const binaryString = atob(base64Content);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const content = new TextDecoder('utf-8').decode(bytes);
+          historialActual = content.trim() ? JSON.parse(content) : [];
+        }
+      }
+    } catch (e) {
+      console.log('Error al leer historial:', e);
+    }
+
+    historialActual.push(elementoBorrado);
+
+    const putR = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Historial: ${elementoBorrado.tipo}`,
+        content: btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(historialActual, null, 2)))),
+        branch: branch,
+        ...(sha && { sha })
+      })
+    });
+
+    if (putR.ok) {
+      console.log('Guardado en historial:', elementoBorrado.tipo);
+    }
+  } catch (error) {
+    console.log('Error historial:', error);
+  }
+}
+
+// ========== UTILIDADES ==========
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function escapeXml(text) {
+  return escapeHtml(text);
+}
+
+function mostrarAlerta(mensaje, tipo) {
+  const alertas = document.getElementById('alertas');
+  const div = document.createElement('div');
+  div.className = `alert alert-${tipo}`;
+  div.textContent = mensaje;
+  alertas.appendChild(div);
+  
+  setTimeout(() => {
+    div.remove();
+  }, 3000);
+}
+
+// Cerrar modal al hacer clic fuera
+window.onclick = (e) => {
+  if (e.target.classList.contains('modal')) {
+    e.target.style.display = 'none';
+  }
+};
+
+// ========== PANEL DE CITAS ==========
+function renderCitasPanel() {
+  const panel = document.getElementById('citas-panel');
+  if (!panel) return;
+  
+  panel.innerHTML = '';
+  
+  if(!appState.agenda.citas || appState.agenda.citas.length === 0) {
+    panel.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay citas</div>';
+    return;
+  }
+  
+  const sortedCitas = appState.agenda.citas
+    .slice()
+    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+    
+  sortedCitas.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    div.style.fontSize = '12px';
+    div.style.cursor = 'pointer';
+    
+    // Obtener día de la semana
+    const fecha = new Date(c.fecha + 'T00:00:00');
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaSemana = diasSemana[fecha.getDay()];
+    
+    // Verificar si la cita es hoy o pasada
+    const esHoy = esFechaHoy(c.fecha);
+    const esPasada = esFechaPasada(c.fecha);
+    console.log('Cita:', c.nombre, 'fecha:', c.fecha, 'esHoy:', esHoy, 'esPasada:', esPasada);
+    
+    if (esPasada || esHoy) {
+      div.style.background = '#ffebee';
+      div.style.border = '2px solid #f44336';
+      div.style.boxShadow = '0 2px 8px rgba(244, 67, 54, 0.3)';
+      console.log('Aplicando estilo urgente a cita:', c.nombre);
+    }
+    
+    let alertaHtml = '';
+    if (esPasada) {
+      alertaHtml = '<span class="alerta-urgente" title="¡Cita pasada!">⚠️⚠️⚠️ Fecha pasada</span>';
+    } else if (esHoy) {
+      alertaHtml = '<span class="alerta-urgente" title="¡Cita hoy!">⚠️ Vence hoy</span>';
+    }
+    
+    div.innerHTML = `
+      <span style="${(esHoy || esPasada) ? 'color: #d32f2f; font-weight: bold;' : ''}">${diaSemana}, ${c.fecha}<br><small>${c.nombre}</small></span>
+      ${alertaHtml}
+      <button onclick="deleteCita('${c.fecha}', '${c.nombre}')" class="boton-eliminar" style="font-size:10px;padding:2px 4px;">🗑️</button>
+    `;
+    
+    div.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') {
+        openModal('modal-calendar');
+        focusCalendarOn(c.fecha);
+        appState.calendar.selectedDate = c.fecha;
+        renderCalendar();
+        renderAllAppointmentsList();
+        showAppointments(c.fecha);
+      }
+    });
+    panel.appendChild(div);
+  });
+}
+
+// ========== CONVERTIR XML A JSON ==========
+function convertXMLtoJSON(xmlDoc) {
+  const data = {
+    fecha: new Date().toISOString().slice(0, 10),
+    dia_semana: '',
+    tareas_criticas: [],
+    tareas: [],
+    notas: '',
+    citas: []
+  };
+  
+  // Obtener fecha del día
+  const dia = xmlDoc.querySelector('dia');
+  if (dia) {
+    data.fecha = dia.getAttribute('fecha') || data.fecha;
+    data.dia_semana = dia.getAttribute('dia_semana') || '';
+  }
+  
+  // Obtener tareas críticas (MIT)
+  const mitTareas = xmlDoc.querySelectorAll('mit > tarea');
+  data.tareas_criticas = Array.from(mitTareas).map(t => ({
+    id: t.getAttribute('id') || Date.now().toString(),
+    titulo: t.querySelector('titulo')?.textContent || '',
+    razon: t.querySelector('razon')?.textContent || '',
+    fecha_fin: t.getAttribute('fecha_fin') || '',
+    completada: t.getAttribute('completada') === 'true',
+    estado: t.getAttribute('completada') === 'true' ? 'completada' : 'pendiente'
+  }));
+  
+  // Obtener tareas normales (medianas)
+  const medianas = xmlDoc.querySelectorAll('medianas > tarea');
+  data.tareas = Array.from(medianas).map(t => ({
+    id: Date.now().toString() + Math.random(),
+    texto: t.textContent.trim(),
+    fecha_fin: t.getAttribute('fecha_fin') || '',
+    completada: t.getAttribute('completada') === 'true',
+    estado: t.getAttribute('completada') === 'true' ? 'completada' : 'pendiente',
+    persona: t.getAttribute('persona') || null,
+    fecha_migrar: t.getAttribute('fecha') || null
+  }));
+  
+  // Obtener notas
+  const notas = xmlDoc.querySelectorAll('notas > nota');
+  data.notas = Array.from(notas).map(n => n.textContent).join('\n');
+  
+  // Obtener citas
+  const citas = xmlDoc.querySelectorAll('citas > cita');
+  data.citas = Array.from(citas).map(c => ({
+    fecha: c.getAttribute('fecha'),
+    nombre: c.getAttribute('nombre') || c.textContent || ''
+  }));
+  
+  return data;
+}
+
+// ========== FUNCIONES ADICIONALES DEL CALENDARIO ==========
+function focusCalendarOn(dateStr) {
+  const parts = dateStr.split('-');
+  if(parts.length === 3) {
+    appState.calendar.currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, 1);
+    renderCalendar();
+    highlightDate(dateStr);
+  }
+}
+
+function highlightDate(dateStr) {
+  const cell = document.querySelector(`.calendar-day[data-date="${dateStr}"]`);
+  if(cell) {
+    cell.classList.add('selected');
+    setTimeout(() => cell.classList.remove('selected'), 1200);
+  }
+}
+
+// ========== AUTO-RESIZE TEXTAREA ==========
+function autoResizeTextarea(textarea) {
+  if (!textarea) return;
+  
+  // Resetear altura para calcular correctamente
+  textarea.style.height = 'auto';
+  
+  // Calcular nueva altura basada en el contenido
+  const scrollHeight = textarea.scrollHeight;
+  const minHeight = 60; // min-height del CSS
+  const maxHeight = 300; // max-height del CSS
+  
+  // Si no hay contenido, usar altura mínima
+  if (!textarea.value.trim()) {
+    textarea.style.height = minHeight + 'px';
+    return;
+  }
+  
+  // Ajustar altura entre min y max
+  const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+  textarea.style.height = newHeight + 'px';
+}
+
+// ========== AUTO-CAPITALIZE ==========
+function autoCapitalize(input) {
+  const cursorPos = input.selectionStart;
+  const value = input.value;
+  
+  // Solo capitalizar la primera letra del texto completo
+  if (value.length > 0 && cursorPos === 1) {
+    const newValue = value[0].toUpperCase() + value.substring(1);
+    input.value = newValue;
+    input.setSelectionRange(cursorPos, cursorPos);
+  }
+}
+
+function setupAutoCapitalize() {
+  // Aplicar a todos los inputs de texto y textareas
+  document.querySelectorAll('input[type="text"], textarea, #cita-descripcion').forEach(input => {
+    input.addEventListener('input', () => autoCapitalize(input));
+  });
+}
+
+// ========== AUTOCOMPLETADO DE PERSONAS ==========
+function setupPersonasAutocomplete() {
+  const input = document.getElementById('migrar-persona');
+  const dropdown = document.getElementById('personas-dropdown');
+  
+  if (!input || !dropdown) return;
+  
+  input.addEventListener('input', () => {
+    const value = input.value.trim().toLowerCase();
+    
+    if (value.length === 0) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    
+    const matches = appState.agenda.personas.filter(persona => 
+      persona.toLowerCase().includes(value)
+    );
+    
+    if (matches.length === 0) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    
+    dropdown.innerHTML = '';
+    matches.forEach(persona => {
+      const item = document.createElement('div');
+      item.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;';
+      item.textContent = persona;
+      item.addEventListener('mouseenter', () => {
+        item.style.background = '#f0f8ff';
+      });
+      item.addEventListener('mouseleave', () => {
+        item.style.background = 'white';
+      });
+      item.addEventListener('click', () => {
+        input.value = persona;
+        dropdown.style.display = 'none';
+        input.focus();
+      });
+      dropdown.appendChild(item);
+    });
+    
+    dropdown.style.display = 'block';
+  });
+  
+  // Ocultar dropdown al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+  
+  // Navegación con teclado
+  input.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('div');
+    if (items.length === 0) return;
+    
+    let selected = dropdown.querySelector('.selected');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!selected) {
+        items[0].classList.add('selected');
+        items[0].style.background = '#4ecdc4';
+        items[0].style.color = 'white';
+      } else {
+        selected.classList.remove('selected');
+        selected.style.background = 'white';
+        selected.style.color = 'black';
+        const next = selected.nextElementSibling || items[0];
+        next.classList.add('selected');
+        next.style.background = '#4ecdc4';
+        next.style.color = 'white';
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!selected) {
+        items[items.length - 1].classList.add('selected');
+        items[items.length - 1].style.background = '#4ecdc4';
+        items[items.length - 1].style.color = 'white';
+      } else {
+        selected.classList.remove('selected');
+        selected.style.background = 'white';
+        selected.style.color = 'black';
+        const prev = selected.previousElementSibling || items[items.length - 1];
+        prev.classList.add('selected');
+        prev.style.background = '#4ecdc4';
+        prev.style.color = 'white';
+      }
+    } else if (e.key === 'Enter' && selected) {
+      e.preventDefault();
+      input.value = selected.textContent;
+      dropdown.style.display = 'none';
+    } else if (e.key === 'Escape') {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+// ========== VER HISTORIAL ==========
+async function verHistorial() {
+  const { repo, history, branch, token } = getSyncConfig();
+  if (!repo || !history || !token) {
+    mostrarAlerta('⚠️ Configura GitHub primero para ver el historial', 'info');
+    return;
+  }
+  
+  try {
+    const [repoOwner, repoName] = repo.split('/');
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(history)}`;
+    
+    const getR = await fetch(apiUrl + `?ref=${encodeURIComponent(branch)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3.raw'
+      }
+    });
+    
+    if (getR.status === 404) {
+      document.getElementById('historial-contenido').innerHTML = '<div style="text-align:center;color:#777;padding:20px;">No hay elementos eliminados en el historial</div>';
+    } else if (getR.ok) {
+      const content = await getR.text();
+      const historial = JSON.parse(content);
+      
+      let html = '';
+      if (historial.length === 0) {
+        html = '<div style="text-align:center;color:#777;padding:20px;">No hay elementos eliminados en el historial</div>';
+      } else {
+        html += `<div style="text-align:center;color:#666;margin-bottom:15px;font-size:14px;">Total de elementos eliminados: ${historial.length}</div>`;
+        historial.reverse().forEach((item, index) => {
+          const fecha = new Date(item.fecha_borrado).toLocaleString('es-ES');
+          const numero = historial.length - index;
+          html += `
+            <div style="background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:8px;border-left:4px solid #4ecdc4;position:relative;">
+              <div style="position:absolute;top:8px;right:12px;background:#4ecdc4;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${numero}</div>
+              <div style="font-weight:bold;color:#2d5a27;margin-bottom:4px;padding-right:30px;">${item.tipo.toUpperCase()}</div>
+              <div style="color:#666;font-size:12px;margin-bottom:8px;">Eliminado: ${fecha}</div>
+              <div style="background:white;padding:8px;border-radius:4px;font-size:13px;">
+                ${item.tipo === 'tarea_critica' ? `<strong>${escapeHtml(item.contenido.titulo)}</strong>` : 
+                  item.tipo === 'tarea' ? escapeHtml(item.contenido.texto) : 
+                  item.tipo === 'cita' ? `${item.contenido.fecha} - ${escapeHtml(item.contenido.nombre)}` : 
+                  JSON.stringify(item.contenido)}
+              </div>
+            </div>
+          `;
+        });
+      }
+      
+      document.getElementById('historial-contenido').innerHTML = html;
+    } else {
+      throw new Error('Error al obtener historial: ' + getR.status);
+    }
+    
+    abrirModal('modal-historial');
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    mostrarAlerta('⚠️ Error al cargar el historial', 'info');
+  }
+}
+
+// ========== HACER COPIA ==========
+async function hacerCopia() {
+  const { repo, path, branch, token } = getSyncConfig();
+  if (!repo || !path || !token) {
+    mostrarAlerta('⚠️ Configura GitHub primero para hacer copia', 'info');
+    return;
+  }
+  
+  try {
+    const hoy = new Date();
+    const fechaStr = `${String(hoy.getDate()).padStart(2, '0')}_${String(hoy.getMonth() + 1).padStart(2, '0')}_${String(hoy.getFullYear()).slice(-2)}`;
+    const nombreCopia = path.replace('.xml', `_${fechaStr}.xml`).replace('.json', `_${fechaStr}.json`);
+    
+    // Obtener contenido actual
+    const [repoOwner, repoName] = repo.split('/');
+    const apiUrlOriginal = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}`;
+    
+    const getR = await fetch(apiUrlOriginal + `?ref=${encodeURIComponent(branch)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!getR.ok) {
+      throw new Error('No se pudo obtener el archivo original');
+    }
+    
+    const originalData = await getR.json();
+    
+    // Verificar si ya existe una copia con el mismo nombre
+    const apiUrlCopia = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(nombreCopia)}`;
+    
+    let shaCopia = null;
+    const checkR = await fetch(apiUrlCopia + `?ref=${encodeURIComponent(branch)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (checkR.ok) {
+      const existingData = await checkR.json();
+      shaCopia = existingData.sha;
+    }
+    
+    // Crear o actualizar copia
+    const body = {
+      message: `Copia de seguridad - ${fechaStr}`,
+      content: originalData.content,
+      branch: branch
+    };
+    
+    if (shaCopia) {
+      body.sha = shaCopia;
+    }
+    
+    const putR = await fetch(apiUrlCopia, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (putR.ok) {
+      mostrarAlerta(`📋 Copia ${shaCopia ? 'actualizada' : 'creada'}: ${nombreCopia}`, 'success');
+    } else {
+      throw new Error('Error al crear la copia: ' + putR.status);
+    }
+  } catch (error) {
+    console.error('Error al hacer copia:', error);
+    mostrarAlerta('⚠️ Error al crear la copia', 'info');
+  }
+}
+
+// ========== DRAG & DROP / TOUCH ==========
+let draggedElement = null;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchCurrentX = 0;
+let touchCurrentY = 0;
+let isDragging = false;
+let longPressTimer = null;
+
+function handleDragStart(e) {
+  draggedElement = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.target.outerHTML);
+  
+  // Mostrar zonas de borrado y migración
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.add('active');
+  migrateZone.classList.add('active');
+  
+  // Feedback háptico en móvil
+  if (isMobile() && navigator.vibrate) {
+    navigator.vibrate(50);
+  }
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove('dragging');
+  draggedElement = null;
+  
+  // Ocultar zonas de borrado y migración
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.remove('active');
+  migrateZone.classList.remove('active');
+}
+
+// Configurar drop zones
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZones = document.querySelectorAll('.drop-zone');
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', handleDragOver);
+    zone.addEventListener('drop', handleDrop);
+    zone.addEventListener('dragenter', handleDragEnter);
+    zone.addEventListener('dragleave', handleDragLeave);
+  });
+  
+  // Configurar zona de borrado
+  if (!isMobile()) {
+    deleteZone.addEventListener('dragover', handleDragOver);
+    deleteZone.addEventListener('drop', handleDeleteDrop);
+    deleteZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      deleteZone.style.background = 'rgba(244, 67, 54, 0.5)';
+    });
+    deleteZone.addEventListener('dragleave', (e) => {
+      deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+    });
+  }
+  
+  // Configurar zona de migración
+  if (!isMobile()) {
+    migrateZone.addEventListener('dragover', handleDragOver);
+    migrateZone.addEventListener('drop', handleMigrateDrop);
+    migrateZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      migrateZone.style.background = 'rgba(156, 39, 176, 0.5)';
+    });
+    migrateZone.addEventListener('dragleave', (e) => {
+      migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+    });
+  }
+});
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  
+  if (!draggedElement) return;
+  
+  const sourceType = draggedElement.dataset.tipo;
+  const sourceIndex = parseInt(draggedElement.dataset.index);
+  const targetType = e.currentTarget.dataset.target;
+  
+  // No hacer nada si se suelta en la misma zona
+  if ((sourceType === 'critica' && targetType === 'criticas') || 
+      (sourceType === 'tarea' && targetType === 'tareas')) {
+    return;
+  }
+  
+  // Mover tarea entre arrays
+  if (sourceType === 'critica' && targetType === 'tareas') {
+    // De crítica a normal
+    const tarea = appState.agenda.tareas_criticas[sourceIndex];
+    const nuevaTarea = {
+      id: tarea.id,
+      texto: tarea.titulo,
+      fecha_fin: tarea.fecha_fin,
+      completada: tarea.completada,
+      estado: tarea.estado,
+      persona: null,
+      fecha_migrar: null
+    };
+    appState.agenda.tareas.push(nuevaTarea);
+    appState.agenda.tareas_criticas.splice(sourceIndex, 1);
+  } else if (sourceType === 'tarea' && targetType === 'criticas') {
+    // De normal a crítica
+    const tarea = appState.agenda.tareas[sourceIndex];
+    const nuevaCritica = {
+      id: tarea.id,
+      titulo: tarea.texto,
+      razon: '',
+      fecha_fin: tarea.fecha_fin,
+      completada: tarea.completada,
+      estado: tarea.estado
+    };
+    appState.agenda.tareas_criticas.push(nuevaCritica);
+    appState.agenda.tareas.splice(sourceIndex, 1);
+  }
+  
+  renderizar();
+  guardarJSON(true);
+  mostrarAlerta('✨ Tarea movida correctamente', 'success');
+  
+  // Feedback háptico en móvil
+  if (isMobile() && navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+}
+
+function handleDeleteDrop(e) {
+  e.preventDefault();
+  const deleteZone = document.getElementById('delete-zone');
+  deleteZone.classList.remove('active');
+  
+  if (!draggedElement) return;
+  
+  const sourceType = draggedElement.dataset.tipo;
+  const sourceIndex = parseInt(draggedElement.dataset.index);
+  
+  // Obtener el elemento a borrar
+  let elementoABorrar;
+  if (sourceType === 'subtarea') {
+    const tipoParent = draggedElement.dataset.tipoParent;
+    const indexParent = parseInt(draggedElement.dataset.indexParent);
+    const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+    elementoABorrar = tareaParent.subtareas[sourceIndex];
+    showDeleteCountdownSubtarea(tipoParent, indexParent, sourceIndex, elementoABorrar);
+  } else {
+    if (sourceType === 'critica') {
+      elementoABorrar = appState.agenda.tareas_criticas[sourceIndex];
+    } else {
+      elementoABorrar = appState.agenda.tareas[sourceIndex];
+    }
+    showDeleteCountdown(sourceType, sourceIndex, elementoABorrar);
+  }
+}
+
+function showDeleteCountdown(tipo, index, elemento) {
+  // Crear popup de cuenta atrás
+  const popup = document.createElement('div');
+  popup.className = 'countdown-popup';
+  popup.innerHTML = `
+    <h3>🗑️ Se va a borrar</h3>
+    <p><strong>${tipo === 'critica' ? elemento.titulo : elemento.texto}</strong></p>
+    <div class="countdown-number" id="countdown">3</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="cancelDelete()" class="btn-secundario">NO</button>
+      <button onclick="confirmDelete('${tipo}', ${index})" class="btn-primario" style="background:#f44336;">OK</button>
+    </div>
+  `;
+  
+  document.body.appendChild(popup);
+  
+  // Cuenta atrás
+  let countdown = 3;
+  const countdownEl = document.getElementById('countdown');
+  
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdownEl) countdownEl.textContent = countdown;
+    
+    if (countdown <= 0) {
+      clearInterval(timer);
+      confirmDelete(tipo, index);
+    }
+  }, 1000);
+  
+  // Guardar timer para poder cancelarlo
+  popup.dataset.timer = timer;
+}
+
+function cancelDelete() {
+  const popup = document.querySelector('.countdown-popup');
+  if (popup) {
+    clearInterval(popup.dataset.timer);
+    popup.remove();
+  }
+}
+
+async function confirmDelete(tipo, index) {
+  const popup = document.querySelector('.countdown-popup');
+  if (popup) {
+    clearInterval(popup.dataset.timer);
+    popup.remove();
+  }
+  
+  // Borrar elemento
+  if (tipo === 'critica') {
+    const tareaEliminada = appState.agenda.tareas_criticas[index];
+    await guardarEnHistorial({
+      tipo: 'tarea_critica',
+      contenido: tareaEliminada,
+      fecha_borrado: new Date().toISOString()
+    });
+    appState.agenda.tareas_criticas.splice(index, 1);
+  } else {
+    const tareaEliminada = appState.agenda.tareas[index];
+    await guardarEnHistorial({
+      tipo: 'tarea',
+      contenido: tareaEliminada,
+      fecha_borrado: new Date().toISOString()
+    });
+    appState.agenda.tareas.splice(index, 1);
+  }
+  
+  renderizar();
+  guardarJSON(true);
+  mostrarAlerta('🗑️ Tarea eliminada', 'info');
+  
+  // Feedback háptico en móvil
+  if (isMobile() && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+
+function handleMigrateDrop(e) {
+  e.preventDefault();
+  const migrateZone = document.getElementById('migrate-zone');
+  migrateZone.classList.remove('active');
+  
+  if (!draggedElement) return;
+  
+  const sourceType = draggedElement.dataset.tipo;
+  const sourceIndex = parseInt(draggedElement.dataset.index);
+  
+  // Configurar tarea seleccionada para migración
+  if (sourceType === 'subtarea') {
+    const tipoParent = draggedElement.dataset.tipoParent;
+    const indexParent = parseInt(draggedElement.dataset.indexParent);
+    appState.ui.tareaSeleccionada = { tipo: 'subtarea', tipoParent, indexParent, indexSubtarea: sourceIndex };
+  } else {
+    appState.ui.tareaSeleccionada = { tipo: sourceType, index: sourceIndex };
+  }
+  
+  // Abrir modal de migración
+  abrirModal('modal-migrar');
+}
+
+// ========== EVENTOS TOUCH PARA MÓVIL ==========
+function handleTouchStart(e) {
+  if (!isMobile()) return;
+  
+  e.preventDefault();
+  draggedElement = e.currentTarget;
+  
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchCurrentX = touch.clientX;
+  touchCurrentY = touch.clientY;
+  
+  // Timer para long press
+  longPressTimer = setTimeout(() => {
+    isDragging = true;
+    draggedElement.classList.add('dragging');
+    
+    // Mostrar zonas
+    const deleteZone = document.getElementById('delete-zone');
+    const migrateZone = document.getElementById('migrate-zone');
+    deleteZone.classList.add('active');
+    migrateZone.classList.add('active');
+    
+    // Feedback háptico
+    if (navigator.vibrate) {
+      navigator.vibrate(100);
+    }
+  }, 500); // 500ms para activar drag
+}
+
+function handleTouchMove(e) {
+  if (!isMobile() || !isDragging) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    return;
+  }
+  
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchCurrentX = touch.clientX;
+  touchCurrentY = touch.clientY;
+  
+  // Actualizar posición visual del elemento
+  const deltaX = touchCurrentX - touchStartX;
+  const deltaY = touchCurrentY - touchStartY;
+  
+  draggedElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(5deg) scale(1.05)`;
+  
+  // Detectar zonas
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  
+  // Zona de borrado (derecha)
+  if (touchCurrentX > window.innerWidth - 100) {
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.5)';
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+  }
+  // Zona de migración (arriba)
+  else if (touchCurrentY < 100) {
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.5)';
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+  }
+  // Zona normal
+  else {
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!isMobile()) return;
+  
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  
+  if (!isDragging) return;
+  
+  e.preventDefault();
+  
+  // Ocultar zonas
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.remove('active');
+  migrateZone.classList.remove('active');
+  
+  // Resetear estilos
+  draggedElement.classList.remove('dragging');
+  draggedElement.style.transform = '';
+  
+  const sourceType = draggedElement.dataset.tipo;
+  const sourceIndex = parseInt(draggedElement.dataset.index);
+  
+  // Determinar acción según posición final
+  if (touchCurrentX > window.innerWidth - 100) {
+    // Borrar
+    let elementoABorrar;
+    if (sourceType === 'critica') {
+      elementoABorrar = appState.agenda.tareas_criticas[sourceIndex];
+    } else {
+      elementoABorrar = appState.agenda.tareas[sourceIndex];
+    }
+    showDeleteCountdown(sourceType, sourceIndex, elementoABorrar);
+  } else if (touchCurrentY < 100) {
+    // Migrar
+    if (sourceType === 'subtarea') {
+      const tipoParent = draggedElement.dataset.tipoParent;
+      const indexParent = parseInt(draggedElement.dataset.indexParent);
+      appState.ui.tareaSeleccionada = { tipo: 'subtarea', tipoParent, indexParent, indexSubtarea: sourceIndex };
+    } else {
+      appState.ui.tareaSeleccionada = { tipo: sourceType, index: sourceIndex };
+    }
+    abrirModal('modal-migrar');
+  } else {
+    // Verificar si se movió entre columnas
+    const targetElement = document.elementFromPoint(touchCurrentX, touchCurrentY);
+    const targetZone = targetElement?.closest('.drop-zone');
+    
+    if (targetZone) {
+      const targetType = targetZone.dataset.target;
+      
+      if ((sourceType === 'critica' && targetType === 'tareas') || 
+          (sourceType === 'tarea' && targetType === 'criticas')) {
+        // Mover entre columnas
+        if (sourceType === 'critica' && targetType === 'tareas') {
+          const tarea = appState.agenda.tareas_criticas[sourceIndex];
+          const nuevaTarea = {
+            id: tarea.id,
+            texto: tarea.titulo,
+            fecha_fin: tarea.fecha_fin,
+            completada: tarea.completada,
+            estado: tarea.estado,
+            persona: null,
+            fecha_migrar: null
+          };
+          appState.agenda.tareas.push(nuevaTarea);
+          appState.agenda.tareas_criticas.splice(sourceIndex, 1);
+        } else if (sourceType === 'tarea' && targetType === 'criticas') {
+          const tarea = appState.agenda.tareas[sourceIndex];
+          const nuevaCritica = {
+            id: tarea.id,
+            titulo: tarea.texto,
+            razon: '',
+            fecha_fin: tarea.fecha_fin,
+            completada: tarea.completada,
+            estado: tarea.estado
+          };
+          appState.agenda.tareas_criticas.push(nuevaCritica);
+          appState.agenda.tareas.splice(sourceIndex, 1);
+        }
+        
+        renderizar();
+        guardarJSON(true);
+        mostrarAlerta('✨ Tarea movida correctamente', 'success');
+        
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+      }
+    }
+  }
+  
+  // Reset
+  isDragging = false;
+  draggedElement = null;
+  touchStartX = 0;
+  touchStartY = 0;
+  touchCurrentX = 0;
+  touchCurrentY = 0;
+}
+
+// ========== FUNCIONES DE SUBTAREAS ==========
+function renderSubtareas(subtareas, container, tipoParent, indexParent) {
+  subtareas.forEach((subtarea, index) => {
+    const div = document.createElement('div');
+    div.className = 'subtarea-item tarea-item';
+    if (subtarea.completada) div.classList.add('tarea-completada');
+    
+    // Añadir clases de estado
+    if (subtarea.estado === 'completada') div.classList.add('completada');
+    else if (subtarea.estado === 'migrada') div.classList.add('migrada');
+    else if (subtarea.estado === 'programada') div.classList.add('programada');
+    
+    const simbolo = document.createElement('span');
+    simbolo.className = 'tarea-simbolo';
+    simbolo.textContent = obtenerSimbolo(subtarea);
+    simbolo.onclick = () => cambiarEstadoSubtarea(tipoParent, indexParent, index);
+    
+    const texto = document.createElement('div');
+    texto.className = 'tarea-texto';
+    let contenido = escapeHtml(subtarea.texto);
+    if (subtarea.fecha_fin) {
+      contenido += ` <small style="background: #ffe5e5; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_fin}</small>`;
+    }
+    // Mostrar información de migración/delegación para subtareas
+    if (subtarea.persona || subtarea.fecha_migrar) {
+      contenido += ' <span style="font-size: 11px; color: #9c27b0; font-weight: bold;">→ ';
+      if (subtarea.persona) {
+        contenido += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 11px; margin-right: 3px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
+      }
+      if (subtarea.fecha_migrar) {
+        contenido += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 11px;">📅 ${subtarea.fecha_migrar}</span>`;
+      }
+      contenido += '</span>';
+    }
+    texto.innerHTML = contenido;
+    texto.style.cursor = 'pointer';
+    texto.onclick = () => editarSubtarea(tipoParent, indexParent, index);
+    
+    div.appendChild(simbolo);
+    div.appendChild(texto);
+    
+
+    
+    // Drag & Drop / Touch para subtareas
+    div.draggable = !isMobile();
+    div.dataset.tipo = 'subtarea';
+    div.dataset.tipoParent = tipoParent;
+    div.dataset.indexParent = indexParent;
+    div.dataset.index = index;
+    
+    if (isMobile()) {
+      div.addEventListener('touchstart', handleTouchStart, { passive: false });
+      div.addEventListener('touchmove', handleTouchMove, { passive: false });
+      div.addEventListener('touchend', handleTouchEnd, { passive: false });
+    } else {
+      div.addEventListener('dragstart', handleDragStart);
+      div.addEventListener('dragend', handleDragEnd);
+    }
+    
+    container.appendChild(div);
+  });
+}
+
+function toggleSubtareas(tipo, index) {
+  const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[index] : appState.agenda.tareas[index];
+  tarea.subtareasCollapsed = !tarea.subtareasCollapsed;
+  
+  const container = document.getElementById(`subtareas-${tipo}-${index}`);
+  if (container) {
+    container.classList.toggle('collapsed');
+  }
+  
+  // Actualizar botón
+  const toggleBtn = container?.previousElementSibling?.querySelector('.toggle-subtareas');
+  if (toggleBtn) {
+    toggleBtn.textContent = tarea.subtareasCollapsed ? '▶' : '▼';
+  }
+}
+
+function nuevaSubtarea(tipo, indexParent) {
+  const texto = prompt('¿Qué subtarea quieres añadir?');
+  if (!texto || !texto.trim()) return;
+  
+  const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  
+  if (!tarea.subtareas) {
+    tarea.subtareas = [];
+  }
+  
+  tarea.subtareas.push({
+    id: Date.now().toString() + Math.random(),
+    texto: texto.trim(),
+    completada: false,
+    estado: 'pendiente',
+    fecha_fin: '',
+    persona: null,
+    fecha_migrar: null
+  });
+  
+  renderizar();
+  guardarJSON(true);
+}
+
+function showDeleteCountdownSubtarea(tipoParent, indexParent, indexSubtarea, subtarea) {
+  const popup = document.createElement('div');
+  popup.className = 'countdown-popup';
+  popup.innerHTML = `
+    <h3>🗑️ Se va a borrar subtarea</h3>
+    <p><strong>${subtarea.texto}</strong></p>
+    <div class="countdown-number" id="countdown">3</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="cancelDelete()" class="btn-secundario">NO</button>
+      <button onclick="confirmDeleteSubtarea('${tipoParent}', ${indexParent}, ${indexSubtarea})" class="btn-primario" style="background:#f44336;">OK</button>
+    </div>
+  `;
+  
+  document.body.appendChild(popup);
+  
+  let countdown = 3;
+  const countdownEl = document.getElementById('countdown');
+  
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdownEl) countdownEl.textContent = countdown;
+    
+    if (countdown <= 0) {
+      clearInterval(timer);
+      confirmDeleteSubtarea(tipoParent, indexParent, indexSubtarea);
+    }
+  }, 1000);
+  
+  popup.dataset.timer = timer;
+}
+
+async function confirmDeleteSubtarea(tipoParent, indexParent, indexSubtarea) {
+  const popup = document.querySelector('.countdown-popup');
+  if (popup) {
+    clearInterval(popup.dataset.timer);
+    popup.remove();
+  }
+  
+  const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  const subtareaEliminada = tareaParent.subtareas[indexSubtarea];
+  
+  await guardarEnHistorial({
+    tipo: 'subtarea',
+    contenido: subtareaEliminada,
+    fecha_borrado: new Date().toISOString(),
+    parent: { tipo: tipoParent, index: indexParent }
+  });
+  
+  tareaParent.subtareas.splice(indexSubtarea, 1);
+  
+  renderizar();
+  guardarJSON(true);
+  mostrarAlerta('🗑️ Subtarea eliminada', 'info');
+  
+  if (isMobile() && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+
+function cambiarEstadoSubtarea(tipoParent, indexParent, indexSubtarea) {
+  const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  const subtarea = tareaParent.subtareas[indexSubtarea];
+  
+  if (subtarea.estado === 'pendiente') {
+    subtarea.estado = 'migrada';
+    subtarea.completada = false;
+    appState.ui.tareaSeleccionada = { tipo: 'subtarea', tipoParent, indexParent, indexSubtarea };
+    abrirModal('modal-migrar');
+    return;
+  } else if (subtarea.estado === 'migrada') {
+    subtarea.estado = 'programada';
+    subtarea.completada = false;
+  } else if (subtarea.estado === 'programada') {
+    subtarea.estado = 'completada';
+    subtarea.completada = true;
+  } else {
+    subtarea.estado = 'pendiente';
+    subtarea.completada = false;
+    delete subtarea.persona;
+    delete subtarea.fecha_migrar;
+  }
+  
+  renderizar();
+  guardarJSON(true);
+}
+
+function editarSubtarea(tipoParent, indexParent, indexSubtarea) {
+  const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  const subtarea = tareaParent.subtareas[indexSubtarea];
+  
+  const nuevoTexto = prompt('Editar subtarea:', subtarea.texto);
+  if (nuevoTexto !== null && nuevoTexto.trim()) {
+    subtarea.texto = nuevoTexto.trim();
+    renderizar();
+    guardarJSON(true);
+  }
+}
+
+// ========== NUEVA CITA ÚNICA ==========
+function abrirModalNuevaCita() {
+  // Establecer fecha como hoy por defecto
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('nueva-cita-fecha').value = hoy;
+  
+  // Limpiar campos
+  document.getElementById('nueva-cita-desc').value = '';
+  document.getElementById('nueva-cita-hora').value = '14';
+  document.getElementById('nueva-cita-minutos').value = '00';
+  
+  abrirModal('modal-nueva-cita');
+  setTimeout(() => document.getElementById('nueva-cita-desc').focus(), 100);
+}
+
+function guardarNuevaCita() {
+  const fecha = document.getElementById('nueva-cita-fecha').value;
+  const descripcion = document.getElementById('nueva-cita-desc').value.trim();
+  const hora = document.getElementById('nueva-cita-hora').value;
+  const minutos = document.getElementById('nueva-cita-minutos').value;
+  
+  if (!fecha) {
+    alert('Por favor, selecciona una fecha');
+    return;
+  }
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  
+  // Agregar la cita
+  appState.agenda.citas.push({
+    fecha: fecha,
+    nombre: citaCompleta
+  });
+  
+  // Cerrar modal
+  cerrarModal('modal-nueva-cita');
+  
+  // Actualizar vistas
+  renderCitasPanel();
+  renderCalendar();
+  renderAllAppointmentsList();
+  
+  // Guardar
+  guardarJSON(true);
+  
+  mostrarAlerta('✅ Cita agregada correctamente', 'success');
+}
+
+function abrirCalendario() {
+  openModal('modal-calendar');
+  renderCalendar();
+  renderAllAppointmentsList();
+  renderAppointmentsList();
+}
+
+function abrirCalendarioTareas() {
+  openModal('modal-calendar-tareas');
+  initializeTasksCalendar();
+  renderTasksCalendar();
+  renderAllTasksList();
+}
+
+function initializeTasksCalendar() {
+  const prevBtn = document.getElementById('prevMonthTareas');
+  const nextBtn = document.getElementById('nextMonthTareas');
+  
+  if (prevBtn && !prevBtn.hasAttribute('data-initialized')) {
+    prevBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() - 1);
+      renderTasksCalendar();
+    });
+    prevBtn.setAttribute('data-initialized', 'true');
+  }
+  
+  if (nextBtn && !nextBtn.hasAttribute('data-initialized')) {
+    nextBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() + 1);
+      renderTasksCalendar();
+    });
+    nextBtn.setAttribute('data-initialized', 'true');
+  }
+}
+
+function renderTasksCalendar() {
+  const grid = document.getElementById('calendarGridTareas');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  const monthYearEl = document.getElementById('monthYearTareas');
+  if (monthYearEl) {
+    monthYearEl.textContent = appState.calendar.currentDate.toLocaleString('es-ES', {month:'long', year:'numeric'});
+  }
+  
+  const year = appState.calendar.currentDate.getFullYear();
+  const month = appState.calendar.currentDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  // Crear exactamente 42 celdas (6 semanas x 7 días)
+  for (let i = 0; i < 42; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7;
+    const dayOffset = i - firstDayOfWeek;
+    const dayNumber = dayOffset + 1;
+    
+    if (dayOffset >= 0 && dayOffset < lastDay.getDate()) {
+      const dayNum = document.createElement('div');
+      dayNum.className = 'day-num';
+      dayNum.textContent = dayNumber;
+      cell.appendChild(dayNum);
+      
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+      
+      const hoy = new Date().toISOString().slice(0, 10);
+      const esHoy = dateStr === hoy;
+      
+      // Obtener tareas para este día
+      const tareasDelDia = obtenerTareasConFecha(dateStr);
+      const tieneTareas = tareasDelDia.length > 0;
+      
+      if (esHoy && tieneTareas) {
+        cell.classList.add('today', 'has-events');
+      } else if (esHoy) {
+        cell.classList.add('today');
+      } else if (tieneTareas) {
+        cell.classList.add('has-events');
+      }
+      
+      if (tieneTareas) {
+        const eventsDiv = document.createElement('div');
+        eventsDiv.className = 'day-events';
+        
+        tareasDelDia.slice(0, 3).forEach(tarea => {
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'day-event';
+          const texto = tarea.tipo === 'critica' ? tarea.titulo : tarea.texto;
+          eventDiv.textContent = texto.length > 12 ? texto.substring(0, 12) + '...' : texto;
+          eventsDiv.appendChild(eventDiv);
+        });
+        
+        if (tareasDelDia.length > 3) {
+          const moreDiv = document.createElement('div');
+          moreDiv.className = 'day-event';
+          moreDiv.textContent = `+${tareasDelDia.length - 3} más`;
+          moreDiv.style.fontStyle = 'italic';
+          eventsDiv.appendChild(moreDiv);
+        }
+        
+        cell.appendChild(eventsDiv);
+      }
+      
+      cell.addEventListener('click', () => {
+        appState.calendar.selectedDate = dateStr;
+        showTasksForDay(dateStr);
+      });
+      
+      cell.dataset.date = dateStr;
+    } else {
+      cell.style.opacity = '0.3';
+    }
+    
+    grid.appendChild(cell);
+  }
+}
+
+function obtenerTareasConFecha(fecha) {
+  const tareas = [];
+  
+  // Tareas críticas
+  appState.agenda.tareas_criticas.forEach(tarea => {
+    if (tarea.fecha_fin === fecha || tarea.fecha_migrar === fecha) {
+      tareas.push({ ...tarea, tipo: 'critica' });
+    }
+  });
+  
+  // Tareas normales
+  appState.agenda.tareas.forEach(tarea => {
+    if (tarea.fecha_fin === fecha || tarea.fecha_migrar === fecha) {
+      tareas.push({ ...tarea, tipo: 'normal' });
+    }
+  });
+  
+  return tareas;
+}
+
+function showTasksForDay(fecha) {
+  const tareas = obtenerTareasConFecha(fecha);
+  const list = document.getElementById('tasksListDay');
+  if (!list) return;
+  
+  list.innerHTML = `<h5>Tareas para ${fecha}</h5>`;
+  
+  if (tareas.length === 0) {
+    list.innerHTML += '<div style="color:#777;padding:6px">No hay tareas para este día</div>';
+    return;
+  }
+  
+  tareas.forEach(tarea => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    const texto = tarea.tipo === 'critica' ? tarea.titulo : tarea.texto;
+    const tipoTexto = tarea.tipo === 'critica' ? '🚨' : '✅';
+    const fechaTipo = tarea.fecha_fin === fecha ? 'Vence' : 'Programada';
+    
+    div.innerHTML = `
+      <span>${tipoTexto} ${texto}<br><small>${fechaTipo} - ${tarea.persona ? '👤 ' + tarea.persona : 'Sin asignar'}</small></span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function renderAllTasksList() {
+  const list = document.getElementById('allTasksList');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  const todasLasTareas = [];
+  
+  // Recopilar todas las tareas con fecha
+  appState.agenda.tareas_criticas.forEach(tarea => {
+    if (tarea.fecha_fin || tarea.fecha_migrar) {
+      todasLasTareas.push({ ...tarea, tipo: 'critica' });
+    }
+  });
+  
+  appState.agenda.tareas.forEach(tarea => {
+    if (tarea.fecha_fin || tarea.fecha_migrar) {
+      todasLasTareas.push({ ...tarea, tipo: 'normal' });
+    }
+  });
+  
+  if (todasLasTareas.length === 0) {
+    list.innerHTML = '<div style="color:#777;padding:6px;font-size:12px;">No hay tareas con fecha</div>';
+    return;
+  }
+  
+  // Ordenar por fecha
+  todasLasTareas.sort((a, b) => {
+    const fechaA = a.fecha_fin || a.fecha_migrar;
+    const fechaB = b.fecha_fin || b.fecha_migrar;
+    return fechaA.localeCompare(fechaB);
+  });
+  
+  todasLasTareas.forEach(tarea => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    div.style.fontSize = '12px';
+    div.style.cursor = 'pointer';
+    
+    const fecha = tarea.fecha_fin || tarea.fecha_migrar;
+    const fechaObj = new Date(fecha + 'T00:00:00');
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaSemana = diasSemana[fechaObj.getDay()];
+    const texto = tarea.tipo === 'critica' ? tarea.titulo : tarea.texto;
+    const tipoTexto = tarea.tipo === 'critica' ? '🚨' : '✅';
+    const fechaTipo = tarea.fecha_fin ? 'Vence' : 'Programada';
+    
+    div.innerHTML = `
+      <span>${diaSemana}, ${fecha}<br><small>${tipoTexto} ${texto} - ${fechaTipo}</small></span>
+    `;
+    
+    div.addEventListener('click', () => {
+      focusTasksCalendarOn(fecha);
+      showTasksForDay(fecha);
+    });
+    
+    list.appendChild(div);
+  });
+}
+
+function focusTasksCalendarOn(dateStr) {
+  const parts = dateStr.split('-');
+  if(parts.length === 3) {
+    appState.calendar.currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, 1);
+    renderTasksCalendar();
+  }
+}
+
+// ========== CITAS CON FECHAS RELATIVAS ==========
+let citasRelativasTemporal = [];
+
+function abrirModalCitasRelativas() {
+  // Limpiar datos temporales
+  citasRelativasTemporal = [];
+  
+  // Establecer fecha base como hoy
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('fecha-base-citas').value = hoy;
+  
+  // Limpiar formulario
+  document.getElementById('nueva-cita-descripcion').value = '';
+  document.getElementById('dias-offset').value = '0';
+  document.getElementById('meses-offset').value = '0';
+  document.getElementById('anos-offset').value = '0';
+  document.getElementById('hora-cita-relativa').value = '14';
+  document.getElementById('minutos-cita-relativa').value = '00';
+  
+  // Actualizar lista y preview
+  actualizarListaCitasRelativas();
+  actualizarPreviewFecha();
+  
+  abrirModal('modal-citas-relativas');
+}
+
+function actualizarPreviewFecha() {
+  const fechaBase = document.getElementById('fecha-base-citas').value;
+  const diasOffset = parseInt(document.getElementById('dias-offset').value) || 0;
+  const mesesOffset = parseInt(document.getElementById('meses-offset').value) || 0;
+  const anosOffset = parseInt(document.getElementById('anos-offset').value) || 0;
+  const preview = document.getElementById('preview-fecha');
+  
+  if (!fechaBase) {
+    preview.textContent = 'Fecha resultante: Selecciona una fecha base';
+    preview.style.color = '#999';
+    return;
+  }
+  
+  try {
+    const fechaCalculada = calcularFechaRelativa(fechaBase, diasOffset, mesesOffset, anosOffset);
+    const fecha = new Date(fechaCalculada + 'T00:00:00');
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaSemana = diasSemana[fecha.getDay()];
+    
+    preview.textContent = `Fecha resultante: ${diaSemana}, ${fechaCalculada}`;
+    preview.style.color = '#4ecdc4';
+    preview.style.fontWeight = 'bold';
+  } catch (error) {
+    preview.textContent = 'Fecha resultante: Error en el cálculo';
+    preview.style.color = '#e74c3c';
+  }
+}
+
+function calcularFechaRelativa(fechaBase, diasOffset, mesesOffset, anosOffset) {
+  const fecha = new Date(fechaBase + 'T00:00:00');
+  
+  // Agregar años
+  if (anosOffset !== 0) {
+    fecha.setFullYear(fecha.getFullYear() + anosOffset);
+  }
+  
+  // Agregar meses
+  if (mesesOffset !== 0) {
+    fecha.setMonth(fecha.getMonth() + mesesOffset);
+  }
+  
+  // Agregar días
+  if (diasOffset !== 0) {
+    fecha.setDate(fecha.getDate() + diasOffset);
+  }
+  
+  return fecha.toISOString().slice(0, 10);
+}
+
+function agregarCitaRelativa() {
+  const fechaBase = document.getElementById('fecha-base-citas').value;
+  const descripcion = document.getElementById('nueva-cita-descripcion').value.trim();
+  const diasOffset = parseInt(document.getElementById('dias-offset').value) || 0;
+  const mesesOffset = parseInt(document.getElementById('meses-offset').value) || 0;
+  const anosOffset = parseInt(document.getElementById('anos-offset').value) || 0;
+  const hora = document.getElementById('hora-cita-relativa').value;
+  const minutos = document.getElementById('minutos-cita-relativa').value;
+  
+  if (!fechaBase) {
+    alert('Por favor, selecciona una fecha base');
+    return;
+  }
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción para la cita');
+    return;
+  }
+  
+  // Calcular fecha final
+  const fechaCalculada = calcularFechaRelativa(fechaBase, diasOffset, mesesOffset, anosOffset);
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  
+  // Agregar a lista temporal
+  citasRelativasTemporal.push({
+    fecha: fechaCalculada,
+    nombre: citaCompleta,
+    descripcion: descripcion,
+    offset: { dias: diasOffset, meses: mesesOffset, anos: anosOffset },
+    hora: hora,
+    minutos: minutos
+  });
+  
+  // Limpiar formulario
+  document.getElementById('nueva-cita-descripcion').value = '';
+  document.getElementById('dias-offset').value = '0';
+  document.getElementById('meses-offset').value = '0';
+  document.getElementById('anos-offset').value = '0';
+  
+  // Actualizar lista
+  actualizarListaCitasRelativas();
+}
+
+function actualizarListaCitasRelativas() {
+  const lista = document.getElementById('lista-citas-relativas');
+  
+  if (citasRelativasTemporal.length === 0) {
+    lista.innerHTML = '<div style="text-align:center;color:#777;padding:20px;">No hay citas agregadas</div>';
+    return;
+  }
+  
+  // Ordenar por fecha
+  const citasOrdenadas = citasRelativasTemporal.slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+  
+  let html = '';
+  citasOrdenadas.forEach((cita, index) => {
+    const realIndex = citasRelativasTemporal.findIndex(c => c === cita);
+    const offsetText = [];
+    if (cita.offset.anos !== 0) offsetText.push(`${cita.offset.anos} año${Math.abs(cita.offset.anos) !== 1 ? 's' : ''}`);
+    if (cita.offset.meses !== 0) offsetText.push(`${cita.offset.meses} mes${Math.abs(cita.offset.meses) !== 1 ? 'es' : ''}`);
+    if (cita.offset.dias !== 0) offsetText.push(`${cita.offset.dias} día${Math.abs(cita.offset.dias) !== 1 ? 's' : ''}`);
+    
+    const offsetStr = offsetText.length > 0 ? ` (${offsetText.join(', ')})` : ' (mismo día)';
+    
+    html += `
+      <div class="cita-relativa-item">
+        <div>
+          <div class="fecha-calculada">${cita.fecha}</div>
+          <div style="font-size:10px;color:#999;">${offsetStr}</div>
+        </div>
+        <div class="descripcion">${escapeHtml(cita.nombre)}</div>
+        <button class="btn-eliminar" onclick="eliminarCitaRelativa(${realIndex})">🗑️</button>
+      </div>
+    `;
+  });
+  
+  lista.innerHTML = html;
+}
+
+function eliminarCitaRelativa(index) {
+  citasRelativasTemporal.splice(index, 1);
+  actualizarListaCitasRelativas();
+}
+
+function guardarCitasRelativas() {
+  if (citasRelativasTemporal.length === 0) {
+    alert('No hay citas para guardar');
+    return;
+  }
+  
+  const cantidadCitas = citasRelativasTemporal.length;
+  
+  // Agregar todas las citas al array principal
+  citasRelativasTemporal.forEach(cita => {
+    appState.agenda.citas.push({
+      fecha: cita.fecha,
+      nombre: cita.nombre
+    });
+  });
+  
+  // Limpiar temporal
+  citasRelativasTemporal = [];
+  
+  // Cerrar modal
+  cerrarModal('modal-citas-relativas');
+  
+  // Actualizar vistas
+  renderCitasPanel();
+  renderCalendar();
+  renderAllAppointmentsList();
+  
+  // Guardar
+  guardarJSON(true);
+  
+  mostrarAlerta(`✅ ${cantidadCitas} cita${cantidadCitas !== 1 ? 's' : ''} agregada${cantidadCitas !== 1 ? 's' : ''} correctamente`, 'success');
+}
+
+// ========== DRAG & DROP PARA SUBTAREAS ==========
+function handleDragStartSubtarea(e) {
+  draggedElement = e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  
+  // Mostrar zonas
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.add('active');
+  migrateZone.classList.add('active');
+}
+
+function handleDragEndSubtarea(e) {
+  e.target.classList.remove('dragging');
+  draggedElement = null;
+  
+  // Ocultar zonas
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.remove('active');
+  migrateZone.classList.remove('active');
+}
+
+function handleTouchStartSubtarea(e) {
+  if (!isMobile()) return;
+  
+  e.preventDefault();
+  draggedElement = e.currentTarget;
+  
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchCurrentX = touch.clientX;
+  touchCurrentY = touch.clientY;
+  
+  longPressTimer = setTimeout(() => {
+    isDragging = true;
+    draggedElement.classList.add('dragging');
+    
+    const deleteZone = document.getElementById('delete-zone');
+    const migrateZone = document.getElementById('migrate-zone');
+    deleteZone.classList.add('active');
+    migrateZone.classList.add('active');
+    
+    if (navigator.vibrate) {
+      navigator.vibrate(100);
+    }
+  }, 500);
+}
+
+function handleTouchMoveSubtarea(e) {
+  if (!isMobile() || !isDragging) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    return;
+  }
+  
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchCurrentX = touch.clientX;
+  touchCurrentY = touch.clientY;
+  
+  const deltaX = touchCurrentX - touchStartX;
+  const deltaY = touchCurrentY - touchStartY;
+  
+  draggedElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(5deg) scale(1.05)`;
+  
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  
+  if (touchCurrentX > window.innerWidth - 100) {
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.5)';
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+  } else if (touchCurrentY < 100) {
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.5)';
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+  } else {
+    deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+    migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+  }
+}
+
+function handleTouchEndSubtarea(e) {
+  if (!isMobile()) return;
+  
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  
+  if (!isDragging) return;
+  
+  e.preventDefault();
+  
+  const deleteZone = document.getElementById('delete-zone');
+  const migrateZone = document.getElementById('migrate-zone');
+  deleteZone.classList.remove('active');
+  migrateZone.classList.remove('active');
+  
+  draggedElement.classList.remove('dragging');
+  draggedElement.style.transform = '';
+  
+  const tipoParent = draggedElement.dataset.tipoParent;
+  const indexParent = parseInt(draggedElement.dataset.indexParent);
+  const indexSubtarea = parseInt(draggedElement.dataset.index);
+  const nivel = parseInt(draggedElement.dataset.nivel);
+  
+  if (touchCurrentX > window.innerWidth - 100) {
+    // Borrar subtarea
+    const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+    const subtareaEliminada = tareaParent.subtareas[indexSubtarea];
+    
+    showDeleteCountdownSubtarea(tipoParent, indexParent, indexSubtarea, subtareaEliminada);
+  } else if (touchCurrentY < 100) {
+    // Migrar subtarea
+    appState.ui.tareaSeleccionada = { tipo: 'subtarea', tipoParent, indexParent, indexSubtarea, nivel };
+    abrirModal('modal-migrar');
+  }
+  
+  isDragging = false;
+  draggedElement = null;
+  touchStartX = 0;
+  touchStartY = 0;
+  touchCurrentX = 0;
+  touchCurrentY = 0;
+}
+
+function showDeleteCountdownSubtarea(tipoParent, indexParent, indexSubtarea, subtarea) {
+  const popup = document.createElement('div');
+  popup.className = 'countdown-popup';
+  popup.innerHTML = `
+    <h3>🗑️ Se va a borrar subtarea</h3>
+    <p><strong>${subtarea.texto}</strong></p>
+    <div class="countdown-number" id="countdown">3</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="cancelDelete()" class="btn-secundario">NO</button>
+      <button onclick="confirmDeleteSubtarea('${tipoParent}', ${indexParent}, ${indexSubtarea})" class="btn-primario" style="background:#f44336;">OK</button>
+    </div>
+  `;
+  
+  document.body.appendChild(popup);
+  
+  let countdown = 3;
+  const countdownEl = document.getElementById('countdown');
+  
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdownEl) countdownEl.textContent = countdown;
+    
+    if (countdown <= 0) {
+      clearInterval(timer);
+      confirmDeleteSubtarea(tipoParent, indexParent, indexSubtarea);
+    }
+  }, 1000);
+  
+  popup.dataset.timer = timer;
+}
+
+async function confirmDeleteSubtarea(tipoParent, indexParent, indexSubtarea) {
+  const popup = document.querySelector('.countdown-popup');
+  if (popup) {
+    clearInterval(popup.dataset.timer);
+    popup.remove();
+  }
+  
+  const tareaParent = tipoParent === 'critica' ? appState.agenda.tareas_criticas[indexParent] : appState.agenda.tareas[indexParent];
+  const subtareaEliminada = tareaParent.subtareas[indexSubtarea];
+  
+  await guardarEnHistorial({
+    tipo: 'subtarea',
+    contenido: subtareaEliminada,
+    fecha_borrado: new Date().toISOString(),
+    parent: { tipo: tipoParent, index: indexParent }
+  });
+  
+  tareaParent.subtareas.splice(indexSubtarea, 1);
+  
+  renderizar();
+  guardarJSON(true);
+  mostrarAlerta('🗑️ Subtarea eliminada', 'info');
+  
+  if (isMobile() && navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+</script>
+
+
+
+</body>
+</html>

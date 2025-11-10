@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agenda>
+  <dia fecha="2025-11-04" dia_semana="Martes" />
+
+  <mit>
+    <tarea id="1" completada="false" fecha_fin="2025-11-05">
+      <titulo>Revisar informe de patrimonio</titulo>
+      <razon>Reunión con Patrimonio mañana</razon>
+    </tarea>
+    <tarea id="2" completada="false" fecha_fin="2025-11-06">
+      <titulo>Coordinar con subcontrata</titulo>
+      <razon>Permisos RENFE urgentes</razon>
+    </tarea>
+    <tarea id="3" completada="false">
+      <titulo>Actualizar planning mensual</titulo>
+      <razon>Presentación fin de semana</razon>
+    </tarea>
+  </mit>
+
+  <metodo_1_3_5>
+    <medianas>
+      <tarea completada="false" fecha_fin="2025-11-05">Revisar cláusulas del contrato</tarea>
+      <tarea completada="false">Enviar presupuesto actualizado</tarea>
+      <tarea completada="false" fecha_fin="2025-11-07">Coordinar reunión equipo técnico</tarea>
+      <tarea completada="false" fecha_fin="2025-11-04">Comprar tarjetas transporte</tarea>
+      <tarea completada="false">Imprimir documentación obra</tarea>
+      <tarea completada="false">Actualizar calendario compartido</tarea>
+      <tarea completada="false">Revisar emails pendientes</tarea>
+      <tarea completada="true">Archivar facturas octubre</tarea>
+    </medianas>
+    <pequenas>
+    </pequenas>
+  </metodo_1_3_5>
+
+  <notas>
+    <nota>Recordar actualizar plantillas Word con nuevo logo</nota>
+    <nota>Comprobar renovación contrato limpieza - vence 15 nov</nota>
+    <nota>Solicitar informe técnico a ingeniería antes del viernes</nota>
+    <nota>Pendiente: revisar sistema backup servidor</nota>
+  </notas>
+</agenda>
