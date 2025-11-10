@@ -1,14 +1,21 @@
 {
-  "name": "Mi Agenda",
+  "name": "Agenda Git Syncro",
   "short_name": "Agenda",
-  "start_url": "/",
+  "description": "Mi agenda personal con sincronización GitHub",
+  "start_url": "./agenda_mobile.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4ecdc4",
+  "theme_color": "#007bff",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512", 
       "type": "image/png"
     }
   ]
