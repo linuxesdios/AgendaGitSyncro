@@ -556,38 +556,50 @@ section h3 {
   transform: translateY(-1px);
 }
 
-/* Control de pantalla activa - Solo móvil/tablet */
+/* Control de pantalla activa - Barra lateral izquierda */
 .control-pantalla {
   position: fixed;
-  top: 10px;
-  left: 10px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  padding: 6px 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 0 12px 12px 0;
+  padding: 8px 4px;
+  box-shadow: 2px 0 15px rgba(0,0,0,0.1);
   z-index: 999;
   display: none;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   backdrop-filter: blur(10px);
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  min-height: 120px;
+  justify-content: center;
 }
 .control-pantalla.auto-hide {
-  opacity: 0.3;
+  opacity: 0.2;
+  transform: translateY(-50%) translateX(-50%);
 }
 .control-pantalla:hover {
   opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+.control-pantalla.scrolling {
+  opacity: 0.1;
+  transform: translateY(-50%) translateX(-70%);
 }
 .btn-pantalla {
   background: #4ecdc4;
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 60px;
+  min-width: 45px;
+  writing-mode: horizontal-tb;
+  text-align: center;
 }
 .btn-pantalla.activo {
   background: #2e7d32;
@@ -601,12 +613,13 @@ section h3 {
   50% { box-shadow: 0 0 15px rgba(46, 125, 50, 0.8); }
 }
 .slider-tiempo {
-  width: 80px;
+  width: 60px;
   height: 4px;
   background: #ddd;
   border-radius: 2px;
   outline: none;
   cursor: pointer;
+  transform: rotate(0deg);
 }
 .slider-tiempo::-webkit-slider-thumb {
   appearance: none;
@@ -617,10 +630,11 @@ section h3 {
   cursor: pointer;
 }
 .tiempo-label {
-  font-size: 10px;
+  font-size: 9px;
   color: #666;
-  min-width: 35px;
+  min-width: 30px;
   text-align: center;
+  writing-mode: horizontal-tb;
 }
 
 /* Estilos para modal de citas relativas */
@@ -687,19 +701,20 @@ section h3 {
     padding: 5px 6px;
   }
   .control-pantalla {
-    padding: 4px 6px;
-    gap: 4px;
+    padding: 6px 3px;
+    gap: 6px;
+    min-height: 100px;
   }
   .btn-pantalla {
     padding: 4px 6px;
-    font-size: 9px;
-    min-width: 40px;
+    font-size: 8px;
+    min-width: 35px;
   }
   .slider-tiempo {
-    width: 50px;
+    width: 40px;
   }
   .tiempo-label {
-    font-size: 9px;
+    font-size: 8px;
   }
 }
 
@@ -2928,23 +2943,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializar control de pantalla
   actualizarTiempo();
   
-  // Auto-hide control de pantalla en móvil
+  // Auto-hide control de pantalla en móvil con detección de scroll
   if (isMobile()) {
     let hideTimer;
+    let scrollTimer;
     const controlPantalla = document.querySelector('.control-pantalla');
     
     const showControl = () => {
       if (controlPantalla) {
-        controlPantalla.classList.remove('auto-hide');
+        controlPantalla.classList.remove('auto-hide', 'scrolling');
         clearTimeout(hideTimer);
         hideTimer = setTimeout(() => {
           controlPantalla.classList.add('auto-hide');
-        }, 3000);
+        }, 4000);
+      }
+    };
+    
+    const hideOnScroll = () => {
+      if (controlPantalla) {
+        controlPantalla.classList.add('scrolling');
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          controlPantalla.classList.remove('scrolling');
+        }, 1000);
       }
     };
     
     // Mostrar al tocar la pantalla
     document.addEventListener('touchstart', showControl);
+    // Ocultar más al hacer scroll
+    document.addEventListener('scroll', hideOnScroll, { passive: true });
+    document.addEventListener('touchmove', hideOnScroll, { passive: true });
+    
     showControl(); // Mostrar inicialmente
   }
   
