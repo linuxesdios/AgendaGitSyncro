@@ -1323,8 +1323,15 @@ input[type="file"] {
           <div style="display: flex; gap: 3px; flex-wrap: wrap;">
             <button onclick="abrirModalNuevaCita()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #4ecdc4; color: white;">➕</button>
             <button onclick="abrirModalCitasRelativas()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #9c27b0; color: white;">📅+</button>
+            <button onclick="abrirModalCitaPeriodica()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #e91e63; color: white;">🔄</button>
             <button onclick="abrirCalendario()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #ff9800; color: white;">📅</button>
           </div>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <select id="filtro-citas" onchange="cambiarFiltroCitas()" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px;">
+            <option value="proximas">Próximas 30 días</option>
+            <option value="todas">Todas las citas</option>
+          </select>
         </div>
         <div id="citas-panel" style="max-height:200px;overflow-y:auto;"></div>
       </section>
@@ -1722,6 +1729,76 @@ input[type="file"] {
     <div class="modal-botones">
       <button class="btn-primario" onclick="guardarConfigVisual()">Guardar</button>
       <button class="btn-secundario" onclick="cerrarModal('modal-config-visual')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para cita periódica -->
+<div id="modal-cita-periodica" class="modal">
+  <div class="modal-content" style="max-width:400px;">
+    <h4>🔄 Cita Periódica</h4>
+    
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="periodica-descripcion" placeholder="Ej: Reunión semanal">
+    </div>
+    
+    <div class="form-group">
+      <label>Fecha de inicio:</label>
+      <input type="date" id="periodica-fecha-inicio" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+      <div>
+        <label style="font-size:12px;">Hora:</label>
+        <select id="periodica-hora" style="width:100%;padding:6px;">
+          <option value="08">08:00</option>
+          <option value="09">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12">12:00</option>
+          <option value="13">13:00</option>
+          <option value="14" selected>14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+          <option value="19">19:00</option>
+          <option value="20">20:00</option>
+          <option value="21">21:00</option>
+          <option value="22">22:00</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;">Minutos:</label>
+        <select id="periodica-minutos" style="width:100%;padding:6px;">
+          <option value="00" selected>00</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Frecuencia:</label>
+      <select id="periodica-frecuencia" style="width:100%;padding:8px;">
+        <option value="semanal">Cada semana</option>
+        <option value="quincenal">Cada 15 días</option>
+        <option value="mensual">Cada mes</option>
+        <option value="semestral">Cada 6 meses</option>
+        <option value="anual">Cada año</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Generar hasta:</label>
+      <input type="date" id="periodica-fecha-fin" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="crearCitaPeriodica()">Crear</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-cita-periodica')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -4575,6 +4652,14 @@ window.onclick = (e) => {
 
 
 // ========== PANEL DE CITAS ==========
+let mostrarTodasLasCitas = false;
+
+function cambiarFiltroCitas() {
+  const filtro = document.getElementById('filtro-citas').value;
+  mostrarTodasLasCitas = filtro === 'todas';
+  renderCitasPanel();
+}
+
 function renderCitasPanel() {
   const panel = document.getElementById('citas-panel');
   if (!panel) return;
@@ -4586,9 +4671,27 @@ function renderCitasPanel() {
     return;
   }
   
-  const sortedCitas = appState.agenda.citas
-    .slice()
-    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+  let citasFiltradas = appState.agenda.citas.slice();
+  
+  // Filtrar por próximas 30 días si no se muestran todas
+  if (!mostrarTodasLasCitas) {
+    const hoy = new Date();
+    const en30Dias = new Date();
+    en30Dias.setDate(hoy.getDate() + 30);
+    
+    citasFiltradas = citasFiltradas.filter(cita => {
+      const fechaCita = new Date(cita.fecha + 'T00:00:00');
+      return fechaCita >= hoy && fechaCita <= en30Dias;
+    });
+  }
+  
+  if (citasFiltradas.length === 0) {
+    const mensaje = mostrarTodasLasCitas ? 'No hay citas' : 'No hay citas en los próximos 30 días';
+    panel.innerHTML = `<div style="color:#777;padding:10px;text-align:center;">${mensaje}</div>`;
+    return;
+  }
+  
+  const sortedCitas = citasFiltradas.sort((a,b) => a.fecha.localeCompare(b.fecha));
     
   sortedCitas.forEach(c => {
     const div = document.createElement('div');
@@ -5659,6 +5762,101 @@ function editarSubtarea(tipoParent, indexParent, indexSubtarea) {
     renderizar();
     guardarJSON(true);
   }
+}
+
+// ========== CITA PERIÓDICA ==========
+function abrirModalCitaPeriodica() {
+  // Establecer fecha de inicio como hoy
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('periodica-fecha-inicio').value = hoy;
+  
+  // Establecer fecha fin como 3 meses después
+  const fechaFin = new Date();
+  fechaFin.setMonth(fechaFin.getMonth() + 3);
+  document.getElementById('periodica-fecha-fin').value = fechaFin.toISOString().slice(0, 10);
+  
+  // Limpiar campos
+  document.getElementById('periodica-descripcion').value = '';
+  document.getElementById('periodica-hora').value = '14';
+  document.getElementById('periodica-minutos').value = '00';
+  document.getElementById('periodica-frecuencia').value = 'semanal';
+  
+  abrirModal('modal-cita-periodica');
+  setTimeout(() => document.getElementById('periodica-descripcion').focus(), 100);
+}
+
+function crearCitaPeriodica() {
+  const descripcion = document.getElementById('periodica-descripcion').value.trim();
+  const fechaInicio = document.getElementById('periodica-fecha-inicio').value;
+  const fechaFin = document.getElementById('periodica-fecha-fin').value;
+  const hora = document.getElementById('periodica-hora').value;
+  const minutos = document.getElementById('periodica-minutos').value;
+  const frecuencia = document.getElementById('periodica-frecuencia').value;
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  if (!fechaInicio || !fechaFin) {
+    alert('Por favor, selecciona las fechas de inicio y fin');
+    return;
+  }
+  
+  const inicio = new Date(fechaInicio);
+  const fin = new Date(fechaFin);
+  
+  if (inicio >= fin) {
+    alert('La fecha de fin debe ser posterior a la fecha de inicio');
+    return;
+  }
+  
+  // Generar citas según la frecuencia
+  const citas = [];
+  let fechaActual = new Date(inicio);
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  
+  while (fechaActual <= fin) {
+    citas.push({
+      fecha: fechaActual.toISOString().slice(0, 10),
+      nombre: citaCompleta
+    });
+    
+    // Calcular siguiente fecha según frecuencia
+    switch (frecuencia) {
+      case 'semanal':
+        fechaActual.setDate(fechaActual.getDate() + 7);
+        break;
+      case 'quincenal':
+        fechaActual.setDate(fechaActual.getDate() + 15);
+        break;
+      case 'mensual':
+        fechaActual.setMonth(fechaActual.getMonth() + 1);
+        break;
+      case 'semestral':
+        fechaActual.setMonth(fechaActual.getMonth() + 6);
+        break;
+      case 'anual':
+        fechaActual.setFullYear(fechaActual.getFullYear() + 1);
+        break;
+    }
+  }
+  
+  // Añadir todas las citas generadas
+  appState.agenda.citas.push(...citas);
+  
+  // Cerrar modal
+  cerrarModal('modal-cita-periodica');
+  
+  // Actualizar vistas
+  renderCitasPanel();
+  renderCalendar();
+  renderAllAppointmentsList();
+  
+  // Guardar
+  guardarJSON(true);
+  
+  mostrarAlerta(`✅ ${citas.length} citas periódicas creadas`, 'success');
 }
 
 // ========== NUEVA CITA ÚNICA ==========
