@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🧠 Agenda de Pablo 🚆</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4ecdc4">
 <style>
@@ -556,86 +557,7 @@ section h3 {
   transform: translateY(-1px);
 }
 
-/* Control de pantalla activa - Barra lateral izquierda */
-.control-pantalla {
-  position: fixed;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 0 12px 12px 0;
-  padding: 8px 4px;
-  box-shadow: 2px 0 15px rgba(0,0,0,0.1);
-  z-index: 999;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  min-height: 120px;
-  justify-content: center;
-}
-.control-pantalla.auto-hide {
-  opacity: 0.2;
-  transform: translateY(-50%) translateX(-50%);
-}
-.control-pantalla:hover {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-.control-pantalla.scrolling {
-  opacity: 0.1;
-  transform: translateY(-50%) translateX(-70%);
-}
-.btn-pantalla {
-  background: #4ecdc4;
-  color: white;
-  border: none;
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 45px;
-  writing-mode: horizontal-tb;
-  text-align: center;
-}
-.btn-pantalla.activo {
-  background: #2e7d32;
-  animation: pulse-green 2s infinite;
-}
-.btn-pantalla:hover {
-  transform: translateY(-1px);
-}
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 5px rgba(46, 125, 50, 0.5); }
-  50% { box-shadow: 0 0 15px rgba(46, 125, 50, 0.8); }
-}
-.slider-tiempo {
-  width: 60px;
-  height: 4px;
-  background: #ddd;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  transform: rotate(0deg);
-}
-.slider-tiempo::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #4ecdc4;
-  border-radius: 50%;
-  cursor: pointer;
-}
-.tiempo-label {
-  font-size: 9px;
-  color: #666;
-  min-width: 30px;
-  text-align: center;
-  writing-mode: horizontal-tb;
-}
+/* Control de pantalla eliminado */
 
 /* Estilos para modal de citas relativas */
 .cita-relativa-item {
@@ -681,15 +603,7 @@ section h3 {
   text-align: center;
 }
 
-/* Solo mostrar en móvil/tablet */
-@media (max-width: 1024px) and (pointer: coarse) {
-  .control-pantalla {
-    display: flex;
-  }
-  .header-center {
-    max-width: 60%;
-  }
-}
+/* Control de pantalla eliminado */
 
 @media (max-width: 768px) {
   .filtros-grid {
@@ -700,30 +614,9 @@ section h3 {
     font-size: 11px;
     padding: 5px 6px;
   }
-  .control-pantalla {
-    padding: 6px 3px;
-    gap: 6px;
-    min-height: 100px;
-  }
-  .btn-pantalla {
-    padding: 4px 6px;
-    font-size: 8px;
-    min-width: 35px;
-  }
-  .slider-tiempo {
-    width: 40px;
-  }
-  .tiempo-label {
-    font-size: 8px;
-  }
 }
 
-/* Ocultar en desktop */
-@media (min-width: 1025px) {
-  .control-pantalla {
-    display: none !important;
-  }
-}
+/* Control de pantalla eliminado */
 
 /* ========== MODO OSCURO ========== */
 body.modo-oscuro {
@@ -880,14 +773,7 @@ body.modo-oscuro {
   color: #e0e0e0;
 }
 
-.modo-oscuro .control-pantalla {
-  background: rgba(30, 30, 45, 0.95);
-  border: 1px solid rgba(78, 205, 196, 0.2);
-}
-
-.modo-oscuro .tiempo-label {
-  color: #e0e0e0;
-}
+/* Control de pantalla eliminado */
 
 .modo-oscuro .config-item {
   background: rgba(30, 30, 45, 0.9);
@@ -1510,14 +1396,7 @@ input[type="file"] {
 
 </div>
 
-<!-- Control de pantalla activa -->
-<div class="control-pantalla">
-  <button id="btn-pantalla-activa" class="btn-pantalla" onclick="togglePantallaActiva()" title="Mantener pantalla activa">
-    🔒 OFF
-  </button>
-  <input type="range" id="slider-tiempo" class="slider-tiempo" min="1" max="30" value="10" onchange="actualizarTiempo()">
-  <span id="tiempo-label" class="tiempo-label">10m</span>
-</div>
+<!-- Control de pantalla eliminado -->
 
 <!-- Zona de borrado -->
 <div id="delete-zone" class="delete-zone"></div>
@@ -2149,148 +2028,7 @@ if (isMobile()) {
   }, false);
 }
 
-// ========== CONTROL DE PANTALLA ACTIVA ==========
-let wakeLock = null;
-let pantallaActivaEnabled = false;
-let tiempoMinutos = 10;
-let activityTimer = null;
-
-const mantenerPantallaActiva = async () => {
-  if ('wakeLock' in navigator && pantallaActivaEnabled) {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      console.log('🔆 Pantalla mantenida activa');
-      return true;
-    } catch (err) {
-      console.log('No se pudo mantener pantalla activa:', err);
-      return false;
-    }
-  }
-  return false;
-};
-
-const liberarPantallaActiva = () => {
-  if (wakeLock) {
-    wakeLock.release();
-    wakeLock = null;
-    console.log('🔒 Wake lock liberado');
-  }
-};
-
-const simularActividad = () => {
-  // Simular actividad moviendo un pixel invisible
-  const dot = document.createElement('div');
-  dot.style.position = 'fixed';
-  dot.style.top = '0px';
-  dot.style.left = '0px';
-  dot.style.width = '1px';
-  dot.style.height = '1px';
-  dot.style.opacity = '0';
-  dot.style.pointerEvents = 'none';
-  document.body.appendChild(dot);
-  
-  setTimeout(() => {
-    dot.style.left = '1px';
-    setTimeout(() => {
-      dot.remove();
-    }, 100);
-  }, 50);
-};
-
-const iniciarTimerActividad = () => {
-  if (activityTimer) clearInterval(activityTimer);
-  
-  if (pantallaActivaEnabled) {
-    // Simular actividad cada minuto para mantener pantalla activa
-    activityTimer = setInterval(() => {
-      simularActividad();
-      // También intentar renovar wake lock
-      if (!wakeLock) {
-        mantenerPantallaActiva();
-      }
-    }, 60000); // Cada minuto
-    
-    // Timer principal según tiempo configurado
-    setTimeout(() => {
-      if (pantallaActivaEnabled) {
-        togglePantallaActiva(); // Auto-desactivar
-        mostrarAlerta(`⏰ Pantalla activa desactivada tras ${tiempoMinutos} minutos`, 'info');
-      }
-    }, tiempoMinutos * 60000);
-  }
-};
-
-const togglePantallaActiva = async () => {
-  pantallaActivaEnabled = !pantallaActivaEnabled;
-  const btn = document.getElementById('btn-pantalla-activa');
-  
-  if (pantallaActivaEnabled) {
-    const success = await mantenerPantallaActiva();
-    if (success || isMobile()) {
-      btn.textContent = '🔓 ON';
-      btn.classList.add('activo');
-      btn.title = `Pantalla activa por ${tiempoMinutos} min`;
-      iniciarTimerActividad();
-      mostrarAlerta(`🔓 Pantalla activa por ${tiempoMinutos} minutos`, 'success');
-    } else {
-      // Fallback para navegadores que no soportan Wake Lock
-      btn.textContent = '🔓 ON';
-      btn.classList.add('activo');
-      btn.title = `Simulando actividad por ${tiempoMinutos} min`;
-      iniciarTimerActividad();
-      mostrarAlerta(`🔓 Simulando actividad por ${tiempoMinutos} minutos`, 'info');
-    }
-  } else {
-    liberarPantallaActiva();
-    if (activityTimer) {
-      clearInterval(activityTimer);
-      activityTimer = null;
-    }
-    btn.textContent = '🔒 OFF';
-    btn.classList.remove('activo');
-    btn.title = 'Mantener pantalla activa';
-    mostrarAlerta('🔒 Pantalla activa desactivada', 'info');
-  }
-};
-
-const actualizarTiempo = () => {
-  const slider = document.getElementById('slider-tiempo');
-  const label = document.getElementById('tiempo-label');
-  tiempoMinutos = parseInt(slider.value);
-  label.textContent = tiempoMinutos + 'm';
-  
-  // Actualizar título del botón si está activo
-  const btn = document.getElementById('btn-pantalla-activa');
-  if (pantallaActivaEnabled) {
-    btn.title = `Pantalla activa por ${tiempoMinutos} min`;
-  }
-};
-
-// Liberar wake lock cuando se minimiza
-document.addEventListener('visibilitychange', () => {
-  if (wakeLock !== null && document.visibilityState === 'hidden') {
-    liberarPantallaActiva();
-  } else if (document.visibilityState === 'visible' && pantallaActivaEnabled) {
-    mantenerPantallaActiva();
-  }
-});
-
-// Detectar actividad del usuario para resetear timer
-let userActivityTimeout;
-const resetUserActivity = () => {
-  if (userActivityTimeout) clearTimeout(userActivityTimeout);
-  
-  if (pantallaActivaEnabled) {
-    userActivityTimeout = setTimeout(() => {
-      simularActividad();
-    }, 30000); // Simular actividad cada 30 segundos de inactividad
-  }
-};
-
-// Escuchar eventos de actividad del usuario
-['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-  document.addEventListener(event, resetUserActivity, { passive: true });
-});
+// Control de pantalla eliminado - no funciona bien en tablets
 
 // ========== ESTADO GLOBAL ==========
 const appState = {
@@ -2435,149 +2173,193 @@ async function githubPull() {
     mostrarAlerta('Configura repo/path/token primero', 'info');
     return;
   }
+  
   const status = document.getElementById('sync-status');
-  status.textContent = '⏳ Verificando GitHub...';
-  try {
-    const [ghOwner, ghRepo] = repo.split('/');
-    if (!ghOwner || !ghRepo) {
-      throw new Error('Formato de repositorio inválido. Debe ser "usuario/repositorio"');
-    }
-    const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+  
+  // Función de pull con reintentos
+  const pullConReintentos = async (maxReintentos = 5) => {
+    let ultimoError = null;
     
-    // Obtener el archivo con metadatos
-    const metaR = await fetch(url, { 
-      headers: { 
-        'Authorization': `Bearer ${token}`, 
-        'Accept': 'application/vnd.github.v3+json'
-      } 
-    });
-    
-    if (metaR.status === 404) {
-      mostrarAlerta('📝 Creando nuevo archivo en GitHub...', 'info');
-      // Crear JSON inicial
-      const jsonInicial = {
-        fecha: new Date().toISOString().slice(0, 10),
-        dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
-        tareas_criticas: [],
-        tareas: [],
-        notas: []
-      };
-      
-      const createR = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify({
-          message: 'Creación inicial de agenda',
-          content: btoa(JSON.stringify(jsonInicial, null, 2)),
-          branch: branch
-        })
-      });
-      
-      if (!createR.ok) throw new Error('Error al crear archivo: HTTP ' + createR.status);
-      procesarJSON(jsonInicial);
-      status.textContent = '✅ Nueva agenda creada en GitHub';
-      mostrarAlerta('✨ Nueva agenda creada y sincronizada', 'success');
-      return;
-    }
-
-    if (!metaR.ok) {
-      throw new Error('HTTP ' + metaR.status);
-    }
-
-    // Obtener los metadatos y contenido
-    const response = await metaR.json();
-    console.log('SHA del archivo:', response.sha);
-    
-    // Decodificar correctamente UTF-8 desde base64
-    let content;
-    if (response.content && response.encoding === 'base64') {
-      const base64Content = response.content.replace(/\n/g, '');
-      const binaryString = atob(base64Content);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      content = new TextDecoder('utf-8').decode(bytes);
-    } else {
-      throw new Error('No se pudo obtener el contenido del archivo');
-    }
-    
-    console.log('Contenido recibido:', content);
-    
-    // VERIFICAR SI EL ARCHIVO ESTÁ VACÍO Y CREAR DATOS DE EJEMPLO
-    if (content.trim().includes('<mit>\n  </mit>') && content.trim().includes('<notas>\n  </notas>')) {
-      console.warn('⚠️ El archivo XML está vacío. Creando datos de ejemplo.');
-      mostrarAlerta('⚠️ Archivo vacío. Creando datos de ejemplo.', 'info');
-      
-      // Crear datos de ejemplo
-      const datosEjemplo = {
-        fecha: new Date().toISOString().slice(0, 10),
-        dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
-        tareas_criticas: [
-          {
-            id: Date.now().toString(),
-            titulo: 'Tarea crítica de ejemplo',
-            razon: 'Esta es una tarea importante',
-            fecha_fin: new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0, 10),
-            completada: false,
-            estado: 'pendiente'
-          }
-        ],
-        tareas: [
-          {
-            id: Date.now().toString() + '1',
-            texto: 'Tarea normal de ejemplo',
-            fecha_fin: new Date(Date.now() + 3*24*60*60*1000).toISOString().slice(0, 10),
-            completada: false,
-            estado: 'pendiente',
-            persona: null,
-            fecha_migrar: null
-          }
-        ],
-        notas: ['Nota de ejemplo 1', 'Nota de ejemplo 2'],
-        citas: []
-      };
-      
-      procesarJSON(datosEjemplo);
-      mostrarAlerta('✨ Datos de ejemplo creados.', 'success');
-      return;
-    }
-    
-    let data;
-    // Detectar si es XML o JSON
-    if (content.trim().startsWith('<?xml') || content.trim().startsWith('<agenda')) {
-      // Es XML, convertir a JSON
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(content, 'text/xml');
-      data = convertXMLtoJSON(xmlDoc);
-      console.log('XML convertido a JSON:', data);
-    } else {
-      // Es JSON
+    for (let intento = 1; intento <= maxReintentos; intento++) {
       try {
-        data = JSON.parse(content);
-      } catch (parseError) {
-        console.error('Error al parsear JSON:', parseError, 'Contenido recibido:', content);
-        throw new Error('El archivo no contiene JSON válido: ' + parseError.message);
+        status.textContent = `⏳ Intento ${intento}/${maxReintentos} - Verificando GitHub...`;
+        
+        const [ghOwner, ghRepo] = repo.split('/');
+        if (!ghOwner || !ghRepo) {
+          throw new Error('Formato de repositorio inválido. Debe ser "usuario/repositorio"');
+        }
+        
+        const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+        
+        // Obtener el archivo con metadatos
+        const metaR = await fetch(url, { 
+          headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Accept': 'application/vnd.github.v3+json'
+          } 
+        });
+        
+        if (metaR.status === 404) {
+          status.textContent = `⏳ Intento ${intento}/${maxReintentos} - Creando archivo...`;
+          
+          // Crear JSON inicial
+          const jsonInicial = {
+            fecha: new Date().toISOString().slice(0, 10),
+            dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
+            tareas_criticas: [],
+            tareas: [],
+            notas: []
+          };
+          
+          const createR = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+              message: `Creación inicial de agenda (intento ${intento})`,
+              content: btoa(JSON.stringify(jsonInicial, null, 2)),
+              branch: branch
+            })
+          });
+          
+          if (createR.ok) {
+            procesarJSON(jsonInicial);
+            const mensaje = intento === 1 ? 
+              '✅ Nueva agenda creada en GitHub' : 
+              `✅ Nueva agenda creada (tras ${intento} intentos)`;
+            status.textContent = mensaje;
+            mostrarAlerta('✨ Nueva agenda creada y sincronizada', 'success');
+            return;
+          } else {
+            throw new Error('Error al crear archivo: HTTP ' + createR.status);
+          }
+        }
+
+        if (!metaR.ok) {
+          throw new Error('HTTP ' + metaR.status);
+        }
+
+        // Obtener los metadatos y contenido
+        const response = await metaR.json();
+        console.log(`SHA del archivo (intento ${intento}):`, response.sha);
+        
+        // Decodificar correctamente UTF-8 desde base64
+        let content;
+        if (response.content && response.encoding === 'base64') {
+          const base64Content = response.content.replace(/\n/g, '');
+          const binaryString = atob(base64Content);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          content = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          throw new Error('No se pudo obtener el contenido del archivo');
+        }
+        
+        console.log(`Contenido recibido (intento ${intento}):`, content.substring(0, 200) + '...');
+        
+        // VERIFICAR SI EL ARCHIVO ESTÁ VACÍO Y CREAR DATOS DE EJEMPLO
+        if (content.trim().includes('<mit>\n  </mit>') && content.trim().includes('<notas>\n  </notas>')) {
+          console.warn('⚠️ El archivo XML está vacío. Creando datos de ejemplo.');
+          
+          // Crear datos de ejemplo
+          const datosEjemplo = {
+            fecha: new Date().toISOString().slice(0, 10),
+            dia_semana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date().getDay()],
+            tareas_criticas: [
+              {
+                id: Date.now().toString(),
+                titulo: 'Tarea crítica de ejemplo',
+                razon: 'Esta es una tarea importante',
+                fecha_fin: new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0, 10),
+                completada: false,
+                estado: 'pendiente'
+              }
+            ],
+            tareas: [
+              {
+                id: Date.now().toString() + '1',
+                texto: 'Tarea normal de ejemplo',
+                fecha_fin: new Date(Date.now() + 3*24*60*60*1000).toISOString().slice(0, 10),
+                completada: false,
+                estado: 'pendiente',
+                persona: null,
+                fecha_migrar: null
+              }
+            ],
+            notas: ['Nota de ejemplo 1', 'Nota de ejemplo 2'],
+            citas: []
+          };
+          
+          procesarJSON(datosEjemplo);
+          const mensaje = intento === 1 ? 
+            '✅ Datos de ejemplo creados' : 
+            `✅ Datos de ejemplo creados (tras ${intento} intentos)`;
+          status.textContent = mensaje;
+          mostrarAlerta('✨ Datos de ejemplo creados.', 'success');
+          return;
+        }
+        
+        let data;
+        // Detectar si es XML o JSON
+        if (content.trim().startsWith('<?xml') || content.trim().startsWith('<agenda')) {
+          // Es XML, convertir a JSON
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(content, 'text/xml');
+          data = convertXMLtoJSON(xmlDoc);
+          console.log('XML convertido a JSON:', data);
+        } else {
+          // Es JSON
+          try {
+            data = JSON.parse(content);
+          } catch (parseError) {
+            console.error('Error al parsear JSON:', parseError, 'Contenido recibido:', content);
+            throw new Error('El archivo no contiene JSON válido: ' + parseError.message);
+          }
+        }
+        
+        // Almacenar el SHA actual del archivo
+        if (response && response.sha) {
+          window.currentSHA = response.sha;
+          console.log(`SHA actualizado (intento ${intento}):`, window.currentSHA);
+        }
+        
+        procesarJSON(data);
+        const mensaje = intento === 1 ? 
+          '✅ Agenda sincronizada desde GitHub' : 
+          `✅ Agenda sincronizada (tras ${intento} intentos)`;
+        status.textContent = mensaje;
+        mostrarAlerta('🔄 Datos cargados desde GitHub', 'success');
+        return;
+        
+      } catch (error) {
+        ultimoError = error;
+        console.error(`❌ Error en intento ${intento}:`, error);
+        
+        // Si no es el último intento, esperar y continuar
+        if (intento < maxReintentos) {
+          const tiempoEspera = Math.min(1000 * Math.pow(2, intento - 1), 5000);
+          console.log(`⏳ Esperando ${tiempoEspera}ms antes del siguiente intento...`);
+          await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+          continue;
+        }
       }
     }
     
-    // Almacenar el SHA actual del archivo
-    if (response && response.sha) {
-      window.currentSHA = response.sha;
-      console.log('SHA actualizado:', window.currentSHA);
-    }
-    
-    procesarJSON(data);
-    status.textContent = '✅ Agenda sincronizada desde GitHub';
-    mostrarAlerta('🔄 Datos cargados desde GitHub', 'success');
+    // Si llegamos aquí, todos los intentos fallaron
+    throw ultimoError;
+  };
+  
+  try {
+    await pullConReintentos();
   } catch (e) {
-    console.error(e);
+    console.error('❌ Error final en githubPull:', e);
     status.textContent = '❌ Error de sincronización: ' + (e.message || e);
-    mostrarAlerta('⚠️ Error al sincronizar con GitHub', 'info');
+    mostrarAlerta('⚠️ Error al sincronizar con GitHub tras múltiples intentos', 'error');
   }
 }
 
@@ -2593,89 +2375,151 @@ async function githubPush() {
   }
   
   const status = document.getElementById('sync-status');
-  status.textContent = '⏳ Verificando conexión con GitHub...';
+  
+  // Función de push con reintentos
+  const pushConReintentos = async (maxReintentos = 5) => {
+    let ultimoError = null;
+    
+    for (let intento = 1; intento <= maxReintentos; intento++) {
+      try {
+        status.textContent = `⏳ Intento ${intento}/${maxReintentos} - Verificando conexión...`;
+        
+        const [repoUser, repoProject] = repo.split('/');
+        const testUrl = `https://api.github.com/repos/${repoUser}/${repoProject}`;
+        const testR = await fetch(testUrl, { 
+          headers: { 
+            Authorization: 'token ' + token,
+            Accept: 'application/vnd.github.v3+json'
+          }
+        });
+        
+        if (testR.status === 404) {
+          throw new Error(`No se encontró el repositorio ${repo}. Verifica que existe y tienes acceso.`);
+        }
+        
+        if (testR.status === 401) {
+          throw new Error('Token inválido o expirado. Genera uno nuevo con permisos "repo".');
+        }
+        
+        if (!testR.ok) {
+          throw new Error(`Error al verificar repo: ${testR.status}`);
+        }
+        
+        status.textContent = `⏳ Intento ${intento}/${maxReintentos} - Sincronizando...`;
+        
+        const xml = (function() {
+          // Generar el XML igual que guardarXML (sin forzar descarga)
+          appState.agenda.notas = document.getElementById('notas-texto').value;
+          let x = '<?xml version="1.0" encoding="UTF-8"?>\n';
+          x += '<agenda>\n';
+          x += `  <dia fecha="${appState.agenda.fecha}" dia_semana="${appState.agenda.dia_semana}" />\n\n`;
+          x += '  <mit>\n';
+          appState.agenda.tareas_criticas.forEach(t => {
+            x += `    <tarea id="${t.id}" completada="${t.completada}"${t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : ''}>\n`;
+            x += `      <titulo>${escapeXml(t.titulo)}</titulo>\n`;
+            x += `      <razon>${escapeXml(t.razon)}</razon>\n`;
+            x += '    </tarea>\n';
+          });
+          x += '  </mit>\n\n';
+          x += '  <metodo_1_3_5>\n    <medianas>\n';
+          appState.agenda.tareas.forEach(t => {
+            const persona = t.persona ? ` persona="${escapeXml(t.persona)}"` : '';
+            const fechaMigrar = t.fecha_migrar ? ` fecha="${t.fecha_migrar}"` : '';
+            const fechaFin = t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : '';
+            x += `      <tarea completada="${t.completada}"${fechaFin}${persona}${fechaMigrar}>${escapeXml(t.texto)}</tarea>\n`;
+          });
+          x += '    </medianas>\n    <pequenas>\n    </pequenas>\n  </metodo_1_3_5>\n\n';
+          x += '  <notas>\n';
+          appState.agenda.notas.split('\n').forEach(nota => { if (nota.trim()) x += `    <nota>${escapeXml(nota.trim())}</nota>\n`; });
+          x += '  </notas>\n';
+          x += '</agenda>';
+          return x;
+        })();
+
+        const [owner, repository] = repo.split('/');
+        const apiUrl = `https://api.github.com/repos/${owner}/${repository}/contents/${encodeURIComponent(path)}`;
+        
+        // Obtener sha si existe
+        const getR = await fetch(apiUrl + `?ref=${encodeURIComponent(branch)}`, { 
+          headers: { Authorization: 'token ' + token } 
+        });
+        
+        let sha = null;
+        if (getR.ok) {
+          const meta = await getR.json();
+          sha = meta.sha;
+        }
+        
+        const body = {
+          message: `Actualización desde agenda web (intento ${intento}/${maxReintentos})`,
+          content: btoa(unescape(encodeURIComponent(xml))),
+          branch: branch
+        };
+        
+        if (sha) body.sha = sha;
+        
+        const putR = await fetch(apiUrl, { 
+          method: 'PUT', 
+          headers: { 
+            Authorization: 'token ' + token, 
+            'Content-Type': 'application/json' 
+          }, 
+          body: JSON.stringify(body) 
+        });
+        
+        if (putR.ok) {
+          const mensaje = intento === 1 ? 
+            '✅ Sincronizado con GitHub correctamente' : 
+            `✅ Sincronizado con GitHub (tras ${intento} intentos)`;
+          status.textContent = mensaje;
+          mostrarAlerta('🌐 Sincronización exitosa con GitHub', 'success');
+          return true;
+        } else {
+          const errorText = await putR.text();
+          const error = new Error(`HTTP ${putR.status}: ${errorText}`);
+          ultimoError = error;
+          
+          // Si es un conflicto 409 o error de servidor, reintentar
+          if (putR.status === 409 || putR.status >= 500) {
+            console.warn(`⚠️ Error ${putR.status} en intento ${intento}, reintentando...`);
+            
+            // Esperar antes del siguiente intento
+            const tiempoEspera = Math.min(1000 * Math.pow(2, intento - 1), 5000);
+            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+            
+            continue; // Reintentar
+          } else {
+            // Error no recuperable
+            throw error;
+          }
+        }
+      } catch (error) {
+        ultimoError = error;
+        console.error(`❌ Error en intento ${intento}:`, error);
+        
+        // Si no es el último intento, esperar y continuar
+        if (intento < maxReintentos) {
+          const tiempoEspera = Math.min(1000 * Math.pow(2, intento - 1), 5000);
+          console.log(`⏳ Esperando ${tiempoEspera}ms antes del siguiente intento...`);
+          await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+          continue;
+        }
+      }
+    }
+    
+    // Si llegamos aquí, todos los intentos fallaron
+    throw ultimoError;
+  };
   
   try {
-    const [repoUser, repoProject] = repo.split('/');
-    const testUrl = `https://api.github.com/repos/${repoUser}/${repoProject}`;
-    const testR = await fetch(testUrl, { 
-      headers: { 
-        Authorization: 'token ' + token,
-        Accept: 'application/vnd.github.v3+json'
-      }
-    });
-    
-    if (testR.status === 404) {
-      mostrarAlerta(`⚠️ No se encontró el repositorio ${repo}. Verifica que existe y tienes acceso.`, 'info');
-      status.textContent = '❌ Repositorio no encontrado';
-      return false;
-    }
-    
-    if (testR.status === 401) {
-      mostrarAlerta('⚠️ Token inválido o expirado. Genera uno nuevo con permisos "repo".', 'info');
-      status.textContent = '❌ Token inválido';
-      return false;
-    }
-    
-    if (!testR.ok) {
-      throw new Error(`Error al verificar repo: ${testR.status}`);
-    }
-    
-    status.textContent = '⏳ Sincronizando con GitHub...';
-    
-    const xml = (function() {
-      // Generar el XML igual que guardarXML (sin forzar descarga)
-      appState.agenda.notas = document.getElementById('notas-texto').value;
-      let x = '<?xml version="1.0" encoding="UTF-8"?>\n';
-      x += '<agenda>\n';
-      x += `  <dia fecha="${appState.agenda.fecha}" dia_semana="${appState.agenda.dia_semana}" />\n\n`;
-      x += '  <mit>\n';
-      appState.agenda.tareas_criticas.forEach(t => {
-        x += `    <tarea id="${t.id}" completada="${t.completada}"${t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : ''}>\n`;
-        x += `      <titulo>${escapeXml(t.titulo)}</titulo>\n`;
-        x += `      <razon>${escapeXml(t.razon)}</razon>\n`;
-        x += '    </tarea>\n';
-      });
-      x += '  </mit>\n\n';
-      x += '  <metodo_1_3_5>\n    <medianas>\n';
-      appState.agenda.tareas.forEach(t => {
-        const persona = t.persona ? ` persona="${escapeXml(t.persona)}"` : '';
-        const fechaMigrar = t.fecha_migrar ? ` fecha="${t.fecha_migrar}"` : '';
-        const fechaFin = t.fecha_fin ? ` fecha_fin="${t.fecha_fin}"` : '';
-        x += `      <tarea completada="${t.completada}"${fechaFin}${persona}${fechaMigrar}>${escapeXml(t.texto)}</tarea>\n`;
-      });
-      x += '    </medianas>\n    <pequenas>\n    </pequenas>\n  </metodo_1_3_5>\n\n';
-      x += '  <notas>\n';
-      appState.agenda.notas.split('\n').forEach(nota => { if (nota.trim()) x += `    <nota>${escapeXml(nota.trim())}</nota>\n`; });
-      x += '  </notas>\n';
-      x += '</agenda>';
-      return x;
-    })();
-
-    const [owner, repository] = repo.split('/');
-    const apiUrl = `https://api.github.com/repos/${owner}/${repository}/contents/${encodeURIComponent(path)}`;
-    // Obtener sha si existe
-    const getR = await fetch(apiUrl + `?ref=${encodeURIComponent(branch)}`, { headers: { Authorization: 'token ' + token } });
-    let sha = null;
-    if (getR.ok) {
-      const meta = await getR.json();
-      sha = meta.sha;
-    }
-    const body = {
-      message: 'Actualización desde agenda web',
-      content: btoa(unescape(encodeURIComponent(xml))),
-      branch: branch
-    };
-    if (sha) body.sha = sha;
-    const putR = await fetch(apiUrl, { method: 'PUT', headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!putR.ok) throw new Error('HTTP ' + putR.status);
-    status.textContent = '✅ Sincronizado con GitHub correctamente';
-    mostrarAlerta('🌐 Sincronización exitosa con GitHub', 'success');
-    return true;
+    return await pushConReintentos();
   } catch (e) {
-    console.error(e);
+    console.error('❌ Error final en githubPush:', e);
     status.textContent = '❌ Error de sincronización: ' + (e.message || e);
-    mostrarAlerta('⚠️ Error de sincronización con GitHub', 'info');
+    mostrarAlerta('⚠️ Error de sincronización con GitHub tras múltiples intentos', 'error');
+    
+    // Mostrar información adicional sobre reintentos
+    console.log('💡 La aplicación reintentará automáticamente la sincronización en las próximas operaciones');
     return false;
   }
 }
@@ -2940,43 +2784,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Iniciar optimizaciones de rendimiento
   performanceMonitor.start();
   
-  // Inicializar control de pantalla
-  actualizarTiempo();
+  // Control de pantalla eliminado
   
-  // Auto-hide control de pantalla en móvil con detección de scroll
-  if (isMobile()) {
-    let hideTimer;
-    let scrollTimer;
-    const controlPantalla = document.querySelector('.control-pantalla');
-    
-    const showControl = () => {
-      if (controlPantalla) {
-        controlPantalla.classList.remove('auto-hide', 'scrolling');
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => {
-          controlPantalla.classList.add('auto-hide');
-        }, 4000);
-      }
-    };
-    
-    const hideOnScroll = () => {
-      if (controlPantalla) {
-        controlPantalla.classList.add('scrolling');
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(() => {
-          controlPantalla.classList.remove('scrolling');
-        }, 1000);
-      }
-    };
-    
-    // Mostrar al tocar la pantalla
-    document.addEventListener('touchstart', showControl);
-    // Ocultar más al hacer scroll
-    document.addEventListener('scroll', hideOnScroll, { passive: true });
-    document.addEventListener('touchmove', hideOnScroll, { passive: true });
-    
-    showControl(); // Mostrar inicialmente
-  }
+  // Control de pantalla eliminado
   
   // Cargar configuración visual guardada
   cargarConfigVisual();
@@ -3157,9 +2967,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Limpiar recursos al cerrar
   window.addEventListener('beforeunload', () => {
     performanceMonitor.stop();
-    liberarPantallaActiva();
-    if (activityTimer) clearInterval(activityTimer);
-    if (userActivityTimeout) clearTimeout(userActivityTimeout);
   });
 });
 
@@ -3985,7 +3792,7 @@ async function eliminarTarea(index) {
   }
 }
 
-// ========== GUARDAR JSON ==========
+// ========== GUARDAR JSON CON REINTENTOS ==========
 async function guardarJSON(silent = false) {
   // Si ya hay un guardado en proceso, agregar a la cola
   if (appState.sync.isSaving) {
@@ -4044,117 +3851,128 @@ async function guardarJSON(silent = false) {
     const [repoOwner, repoName] = repo.split('/');
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}`;
 
-    let sha = null;
-
-    // Intentar obtener metadatos del archivo existente
-    try {
-      console.log('Verificando archivo existente:', apiUrl);
-      const getR = await fetch(apiUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-
-      if (getR.status === 404) {
-        console.log('El archivo no existe, se creará uno nuevo.');
-      } else if (getR.ok) {
-        const meta = await getR.json();
-        if (meta && meta.sha) {
-          sha = meta.sha;
-          console.log('SHA obtenido:', sha);
-        } else {
-          console.warn('No se encontró SHA en la respuesta de metadatos.');
-        }
-      } else {
-        throw new Error(`Error al obtener metadatos (${getR.status})`);
-      }
-    } catch (error) {
-      console.error('Error al verificar el archivo en GitHub:', error);
-      throw new Error('Error al verificar el archivo en GitHub: ' + error.message);
-    }
-
-    // Función auxiliar para intentar guardar con reintentos
-    const tryPut = async (retryCount = 0) => {
-      // Obtener SHA más reciente antes de cada intento
-      let currentSha = sha;
-      if (retryCount > 0) {
+    // Función principal de guardado con reintentos automáticos
+    const guardarConReintentos = async (maxReintentos = 5) => {
+      let ultimoError = null;
+      
+      for (let intento = 1; intento <= maxReintentos; intento++) {
         try {
-          const refreshR = await fetch(apiUrl, {
+          console.log(`🔄 Intento ${intento}/${maxReintentos} de sincronización con GitHub`);
+          
+          // Obtener SHA más reciente antes de cada intento
+          let sha = null;
+          try {
+            const getR = await fetch(apiUrl, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            });
+            
+            if (getR.ok) {
+              const meta = await getR.json();
+              sha = meta.sha;
+              console.log(`SHA obtenido en intento ${intento}:`, sha);
+            } else if (getR.status !== 404) {
+              throw new Error(`Error al obtener metadatos: ${getR.status}`);
+            }
+          } catch (metaError) {
+            console.warn(`Error al obtener metadatos en intento ${intento}:`, metaError);
+            if (intento === maxReintentos) throw metaError;
+            continue;
+          }
+          
+          // Codificar correctamente UTF-8 para caracteres españoles
+          const jsonString = JSON.stringify(jsonData, null, 2);
+          const utf8Bytes = new TextEncoder().encode(jsonString);
+          const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+          
+          const body = {
+            message: `Actualización desde agenda web (intento ${intento}/${maxReintentos})`,
+            content: base64Content,
+            branch: branch
+          };
+          
+          if (sha) {
+            body.sha = sha;
+          }
+
+          // Intentar guardar
+          const putR = await fetch(apiUrl, {
+            method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
               'Accept': 'application/vnd.github.v3+json'
-            }
+            },
+            body: JSON.stringify(body)
           });
-          if (refreshR.ok) {
-            const meta = await refreshR.json();
-            currentSha = meta.sha;
-            console.log(`Reintento ${retryCount}: SHA actualizado a ${currentSha}`);
+
+          if (putR.ok) {
+            // ¡Éxito! Actualizar SHA global
+            const result = await putR.json();
+            if (result.content && result.content.sha) {
+              window.currentSHA = result.content.sha;
+              console.log(`✅ Guardado exitoso en intento ${intento}. SHA actualizado:`, window.currentSHA);
+            }
+            
+            if (!silent) {
+              const mensaje = intento === 1 ? 
+                '💾 Guardado en GitHub' : 
+                `💾 Guardado en GitHub (tras ${intento} intentos)`;
+              mostrarAlerta(mensaje, 'success');
+            }
+            
+            return; // Salir exitosamente
+          } else {
+            const errorText = await putR.text();
+            const error = new Error(`Error ${putR.status}: ${errorText}`);
+            ultimoError = error;
+            
+            // Si es un conflicto 409 o error de red, reintentar
+            if (putR.status === 409 || putR.status >= 500) {
+              console.warn(`⚠️ Error ${putR.status} en intento ${intento}, reintentando...`);
+              
+              // Esperar un poco antes del siguiente intento (backoff exponencial)
+              const tiempoEspera = Math.min(1000 * Math.pow(2, intento - 1), 5000);
+              await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+              
+              continue; // Reintentar
+            } else {
+              // Error no recuperable
+              throw error;
+            }
           }
-        } catch (e) {
-          console.warn('Error al obtener SHA actualizado:', e);
+        } catch (error) {
+          ultimoError = error;
+          console.error(`❌ Error en intento ${intento}:`, error);
+          
+          // Si no es el último intento, esperar y continuar
+          if (intento < maxReintentos) {
+            const tiempoEspera = Math.min(1000 * Math.pow(2, intento - 1), 5000);
+            console.log(`⏳ Esperando ${tiempoEspera}ms antes del siguiente intento...`);
+            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+            continue;
+          }
         }
       }
       
-      // Codificar correctamente UTF-8 para caracteres españoles
-      const jsonString = JSON.stringify(jsonData, null, 2);
-      const utf8Bytes = new TextEncoder().encode(jsonString);
-      const base64Content = btoa(String.fromCharCode(...utf8Bytes));
-      
-      const body = {
-        message: `Actualización desde agenda web (intento ${retryCount + 1})`,
-        content: base64Content,
-        branch: branch
-      };
-      
-      if (currentSha) {
-        body.sha = currentSha;
-      }
-
-      const putR = await fetch(apiUrl, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (putR.status === 409 && retryCount < 5) {
-        console.warn(`Conflicto 409 en intento ${retryCount + 1}, reintentando...`);
-        return tryPut(retryCount + 1);
-      }
-
-      if (!putR.ok) {
-        const errorText = await putR.text();
-        throw new Error(`Error al guardar (${putR.status}): ${errorText}`);
-      }
-
-      // Actualizar SHA global si el guardado fue exitoso
-      const result = await putR.json();
-      if (result.content && result.content.sha) {
-        window.currentSHA = result.content.sha;
-        sha = result.content.sha; // Actualizar también el SHA local
-        console.log('SHA actualizado tras guardado exitoso:', window.currentSHA);
-      }
-
-      return putR;
+      // Si llegamos aquí, todos los intentos fallaron
+      throw new Error(`Falló la sincronización tras ${maxReintentos} intentos. Último error: ${ultimoError?.message || 'Error desconocido'}`);
     };
 
-    // Ejecutar guardado con control de conflictos
-    await tryPut();
-
-    if (!silent) {
-      mostrarAlerta('💾 Guardado en GitHub', 'success');
-    }
+    // Ejecutar guardado con reintentos
+    await guardarConReintentos();
 
   } catch (err) {
-    console.error('Error al guardar en GitHub:', err);
+    console.error('❌ Error final al guardar en GitHub:', err);
     mostrarAlerta(
-      '❌ Error al guardar: ' + (err.message || 'Verifica tu configuración de GitHub'),
-      'info'
+      '❌ Error al sincronizar: ' + (err.message || 'Verifica tu configuración de GitHub'),
+      'error'
     );
+    
+    // Mostrar información adicional sobre reintentos
+    console.log('💡 La aplicación reintentará automáticamente la sincronización en las próximas operaciones');
   } finally {
     appState.sync.isSaving = false;
     
