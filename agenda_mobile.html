@@ -1899,6 +1899,8 @@ input[type="file"] {
       <button class="config-tab active" onclick="switchTab('github')">🔗 GitHub</button>
       <button class="config-tab" onclick="switchTab('visual')">🎨 Visual</button>
       <button class="config-tab" onclick="switchTab('actions')">⚙️ Acciones</button>
+      <button class="config-tab" onclick="switchTab('options')">🔧 Opciones</button>
+      <button class="config-tab" onclick="switchTab('guide')">📖 Guía</button>
     </div>
     
     <!-- Contenido GitHub -->
@@ -1961,6 +1963,69 @@ La disciplina es el puente entre metas y logros"></textarea>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <button class="btn-secundario" onclick="abrirHistoricoTareas()">📊 Histórico</button>
         <button class="btn-secundario" onclick="abrirGraficos()">📈 Gráficos</button>
+      </div>
+    </div>
+    
+    <!-- Contenido Opciones -->
+    <div id="tab-options" class="tab-content">
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-forzar-fecha" onchange="guardarConfigOpciones()">
+          <span>Forzar fecha al crear tareas</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-sin-tactil" onchange="guardarConfigOpciones()">
+          <span>Deshabilitar respuesta táctil</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-mostrar-todo" onchange="guardarConfigOpciones()">
+          <span>Mostrar todas las fechas por defecto</span>
+        </label>
+      </div>
+    </div>
+    
+    <!-- Contenido Guía -->
+    <div id="tab-guide" class="tab-content">
+      <div style="max-height:400px;overflow-y:auto;padding:10px;">
+        <h5>📖 Guía de Uso</h5>
+        <div style="margin-bottom:15px;">
+          <h6>🔴 Símbolos de Estado:</h6>
+          <ul style="font-size:12px;">
+            <li><strong>●</strong> - Tarea pendiente</li>
+            <li><strong>→</strong> - Tarea migrada/delegada</li>
+            <li><strong>&lt;</strong> - Tarea programada</li>
+            <li><strong>✔</strong> - Tarea completada</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:15px;">
+          <h6>🎯 Controles:</h6>
+          <ul style="font-size:12px;">
+            <li>Clic en símbolo: cambiar estado</li>
+            <li>Clic en texto: editar tarea</li>
+            <li>Botón ➕: añadir subtarea</li>
+            <li>Arrastrar: mover entre columnas</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:15px;">
+          <h6>📅 Filtros:</h6>
+          <ul style="font-size:12px;">
+            <li>15d: alternar vista de largo plazo</li>
+            <li>🔍 Filtros: por estado, fecha, prioridad</li>
+            <li>Próximas 30 días / Todas las citas</li>
+          </ul>
+        </div>
+        <div>
+          <h6>⚙️ Configuración:</h6>
+          <ul style="font-size:12px;">
+            <li>GitHub: sincronización automática</li>
+            <li>Visual: tema, nombre, frases</li>
+            <li>Opciones: fecha obligatoria, sin táctil</li>
+          </ul>
+        </div>
       </div>
     </div>
     
