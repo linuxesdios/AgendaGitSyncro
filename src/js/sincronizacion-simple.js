@@ -462,26 +462,82 @@ let gapi = null;
 let isGoogleCalendarReady = false;
 
 function initGoogleCalendar() {
+  console.log('🔄 Iniciando Google Calendar API...');
+  
+  // Verificar si ya existe el script
+  if (document.querySelector('script[src*="apis.google.com"]')) {
+    console.log('📜 Script de Google API ya existe');
+    if (window.gapi) {
+      setupGoogleAPI();
+    }
+    return;
+  }
+  
   const script = document.createElement('script');
   script.src = 'https://apis.google.com/js/api.js';
+  script.async = true;
+  script.defer = true;
+  
   script.onload = () => {
-    gapi = window.gapi;
-    gapi.load('client:auth2', () => {
-      const config = getGoogleCalendarConfig();
-      if (config.apiKey && config.clientId) {
-        gapi.client.init({
-          apiKey: config.apiKey,
-          clientId: config.clientId,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-          scope: 'https://www.googleapis.com/auth/calendar'
-        }).then(() => {
-          isGoogleCalendarReady = true;
-          console.log('✅ Google Calendar API lista');
-        });
+    console.log('📜 Script de Google API cargado');
+    setupGoogleAPI();
+  };
+  
+  script.onerror = (error) => {
+    console.error('❌ Error cargando script de Google API:', error);
+    mostrarAlerta('❌ Error cargando Google API', 'error');
+  };
+  
+  document.head.appendChild(script);
+}
+
+function setupGoogleAPI() {
+  if (!window.gapi) {
+    console.error('❌ gapi no disponible');
+    return;
+  }
+  
+  gapi = window.gapi;
+  
+  try {
+    gapi.load('client:auth2', {
+      callback: () => {
+        console.log('📜 Client y Auth2 cargados');
+        initGoogleClient();
+      },
+      onerror: (error) => {
+        console.error('❌ Error cargando client:auth2:', error);
       }
     });
-  };
-  document.head.appendChild(script);
+  } catch (error) {
+    console.error('❌ Error en gapi.load:', error);
+  }
+}
+
+function initGoogleClient() {
+  const config = getGoogleCalendarConfig();
+  console.log('🔑 Config obtenida:', { hasApiKey: !!config.apiKey, hasClientId: !!config.clientId });
+  
+  if (!config.apiKey || !config.clientId) {
+    console.log('⚠️ Credenciales faltantes');
+    return;
+  }
+  
+  console.log('✅ Credenciales encontradas, inicializando cliente...');
+  
+  gapi.client.init({
+    apiKey: config.apiKey,
+    clientId: config.clientId,
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+    scope: 'https://www.googleapis.com/auth/calendar'
+  }).then(() => {
+    isGoogleCalendarReady = true;
+    console.log('✅ Google Calendar API lista');
+    mostrarAlerta('✅ Google Calendar inicializado', 'success');
+  }).catch(error => {
+    console.error('❌ Error inicializando Google Calendar:', error);
+    mostrarAlerta('❌ Error en Google Calendar: ' + (error.details || error.error || 'Error desconocido'), 'error');
+  });
 }
 
 function getGoogleCalendarConfig() {
@@ -496,30 +552,78 @@ function guardarConfigGoogleCalendar() {
   const apiKey = document.getElementById('google-apikey')?.value || '';
   const clientId = document.getElementById('google-clientid')?.value || '';
   
+  console.log('💾 Guardando config - API Key:', apiKey.substring(0, 10) + '...', 'Client ID:', clientId.substring(0, 20) + '...');
+  
   if (!apiKey || !clientId) {
+    console.log('❌ Credenciales incompletas');
     mostrarAlerta('❌ Completa API Key y Client ID', 'error');
     return;
   }
 
   const config = { apiKey, clientId };
   localStorage.setItem('google-calendar-config', JSON.stringify(config));
+  console.log('💾 Config guardada en localStorage');
   
   initGoogleCalendar();
   mostrarAlerta('✅ Google Calendar configurado', 'success');
 }
 
 function conectarGoogleCalendar() {
-  if (!isGoogleCalendarReady) {
+  console.log('=== INICIO conectarGoogleCalendar() ===');
+  console.log('🔗 FUNCIÓN conectarGoogleCalendar() LLAMADA');
+  window.alert('Función conectarGoogleCalendar llamada - revisa consola');
+  console.log('🔍 Estado isGoogleCalendarReady:', isGoogleCalendarReady);
+  console.log('🔍 window.gapi disponible:', !!window.gapi);
+  console.log('🔍 gapi variable local:', !!gapi);
+  
+  // Verificar configuración primero
+  const config = getGoogleCalendarConfig();
+  console.log('🔑 Config actual:', { hasApiKey: !!config.apiKey, hasClientId: !!config.clientId });
+  
+  if (!config.apiKey || !config.clientId) {
+    console.log('❌ Credenciales faltantes');
     mostrarAlerta('⚠️ Configura Google Calendar primero', 'warning');
     return;
   }
   
-  gapi.auth2.getAuthInstance().signIn().then(() => {
-    mostrarAlerta('✅ Conectado a Google Calendar', 'success');
-    localStorage.setItem('google-calendar-connected', 'true');
-  }).catch(error => {
-    mostrarAlerta('❌ Error conectando: ' + error.error, 'error');
-  });
+  if (!isGoogleCalendarReady) {
+    console.log('❌ Google Calendar no está listo, inicializando...');
+    mostrarAlerta('⚠️ Inicializando Google Calendar...', 'info');
+    initGoogleCalendar();
+    return;
+  }
+  
+  console.log('✅ Google Calendar listo, verificando auth...');
+  
+  if (!gapi || !gapi.auth2) {
+    console.error('❌ gapi.auth2 no disponible');
+    mostrarAlerta('❌ Error: API no inicializada', 'error');
+    return;
+  }
+  
+  try {
+    const authInstance = gapi.auth2.getAuthInstance();
+    console.log('🔍 AuthInstance obtenida:', !!authInstance);
+    
+    if (!authInstance) {
+      console.error('❌ No se pudo obtener AuthInstance');
+      mostrarAlerta('❌ Error de autenticación', 'error');
+      return;
+    }
+    
+    console.log('🔐 Iniciando proceso de login...');
+    authInstance.signIn().then(() => {
+      console.log('✅ Sesión iniciada correctamente');
+      mostrarAlerta('✅ Conectado a Google Calendar', 'success');
+      localStorage.setItem('google-calendar-connected', 'true');
+    }).catch(error => {
+      console.error('❌ Error en signIn:', error);
+      mostrarAlerta('❌ Error conectando: ' + (error.error || error.message || 'Error desconocido'), 'error');
+    });
+  } catch (error) {
+    console.error('❌ Error general en conectarGoogleCalendar:', error);
+    mostrarAlerta('❌ Error: ' + error.message, 'error');
+  }
 }
 
 function crearEventoGoogleCalendar(titulo, fecha, esUrgente = false) {
@@ -658,6 +762,8 @@ window.activarNotificaciones = activarNotificaciones;
 window.enviarNotificacion = enviarNotificacion;
 window.iniciarRecordatorios = iniciarRecordatorios;
 window.initGoogleCalendar = initGoogleCalendar;
+window.setupGoogleAPI = setupGoogleAPI;
+window.initGoogleClient = initGoogleClient;
 window.getGoogleCalendarConfig = getGoogleCalendarConfig;
 window.guardarConfigGoogleCalendar = guardarConfigGoogleCalendar;
 window.conectarGoogleCalendar = conectarGoogleCalendar;

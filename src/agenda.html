@@ -453,19 +453,18 @@
     <div id="tab-google" class="tab-content">
       <div style="padding:20px;text-align:center;">
         <h3>📅 Google Calendar</h3>
-        <p>Crea eventos automáticamente al añadir tareas.</p>
         <div class="form-group">
           <label>API Key:</label>
-          <input type="text" id="google-apikey" placeholder="AIza...">
+          <input type="text" id="google-apikey" placeholder="AIzaSy..." value="AIzaSyAQmGl6Q7wBzo7TyDMZmDtP5-_zb4LYN4w">
         </div>
         <div class="form-group">
           <label>Client ID:</label>
-          <input type="text" id="google-clientid" placeholder="123-abc.apps.googleusercontent.com">
+          <input type="text" id="google-clientid" placeholder="123-abc.apps.googleusercontent.com" value="675236622928-b3prqphl88u90me7j9tb6ikh0rqmt3jk.apps.googleusercontent.com">
         </div>
         <button class="btn-primario" onclick="guardarConfigGoogleCalendar()">Guardar Config</button>
-        <button class="btn-secundario" onclick="conectarGoogleCalendar()">Conectar</button>
+        <button class="btn-secundario" onclick="conectarGoogleCalendar()">Conectar a Google</button>
         <p style="font-size:11px;color:#666;margin-top:10px;">
-          Configura en: console.cloud.google.com → APIs → Calendar API
+          Al crear citas, marca el checkbox para añadir a Google Calendar
         </p>
       </div>
     </div>
