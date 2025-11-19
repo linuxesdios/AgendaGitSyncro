@@ -241,7 +241,7 @@ function cambiarFraseMotivacional() {
 function cargarConfigVisual() {
   const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
   if (config.tema === 'oscuro') {
-    document.body.classList.add('tema-oscuro');
+    document.body.classList.add('modo-oscuro');
   }
 }
 
@@ -256,6 +256,7 @@ function toggleConfigFloating() {
 }
 
 function switchTab(tabName) {
+  // Limpiar pestañas activas
   document.querySelectorAll('.tab-content').forEach(tab => {
     tab.classList.remove('active');
   });
@@ -263,8 +264,16 @@ function switchTab(tabName) {
     tab.classList.remove('active');
   });
   
-  document.getElementById('tab-' + tabName)?.classList.add('active');
-  event.target.classList.add('active');
+  // Activar nueva pestaña
+  const newTab = document.getElementById('tab-' + tabName);
+  if (newTab) {
+    newTab.classList.add('active');
+  }
+  
+  // Activar botón de pestaña
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
 }
 
 function guardarConfigVisualPanel() {
@@ -274,8 +283,13 @@ function guardarConfigVisualPanel() {
   const config = { tema, nombre };
   localStorage.setItem('config-visual', JSON.stringify(config));
   
-  document.body.classList.toggle('tema-oscuro', tema === 'oscuro');
+  // Aplicar tema
+  document.body.classList.remove('modo-oscuro');
+  if (tema === 'oscuro') {
+    document.body.classList.add('modo-oscuro');
+  }
   
+  // Actualizar título
   const titulo = document.getElementById('titulo-agenda');
   if (titulo) {
     titulo.textContent = '🧠 Agenda de ' + nombre + ' 🚆';

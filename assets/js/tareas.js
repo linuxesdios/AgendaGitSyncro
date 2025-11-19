@@ -91,32 +91,21 @@ function renderizarCriticas() {
     div.appendChild(simbolo);
     div.appendChild(texto);
     
-    // Botón de borrar si está habilitado O si el táctil está deshabilitado
-    if (mostrarBotonesBorrar || sinTactil) {
-      const btnBorrar = document.createElement('button');
-      btnBorrar.className = 'btn-borrar-tarea';
-      btnBorrar.textContent = '🗑️';
-      btnBorrar.title = 'Eliminar tarea';
-      btnBorrar.onclick = async (e) => {
-        e.stopPropagation();
-        if (confirm('¿Eliminar esta tarea crítica?')) {
-          appState.agenda.tareas_criticas.splice(realIndex, 1);
-          renderizar();
-          await guardarJSON(true);
-
-          // Cancelar auto-save programado después de guardado manual exitoso
-          if (appState.sync.autoSaveTimer) {
-            clearTimeout(appState.sync.autoSaveTimer);
-            appState.sync.autoSaveTimer = null;
-            console.log('✅ Auto-save cancelado después de eliminación crítica');
-          }
-
-          // Pequeño delay para evitar race conditions con operaciones posteriores
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      };
-      div.appendChild(btnBorrar);
-    }
+    // Botón de borrar - siempre visible
+    const btnBorrar = document.createElement('button');
+    btnBorrar.className = 'btn-borrar-tarea';
+    btnBorrar.textContent = '🗑️';
+    btnBorrar.title = 'Eliminar tarea crítica';
+    btnBorrar.onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm('¿Eliminar esta tarea crítica?')) {
+        appState.agenda.tareas_criticas.splice(realIndex, 1);
+        renderizar();
+        await guardarJSON(true);
+        mostrarAlerta('🗑️ Tarea crítica eliminada', 'info');
+      }
+    };
+    div.appendChild(btnBorrar);
     
     // Agregar alerta si es urgente o pasada
     if (!tarea.completada) {
@@ -245,32 +234,21 @@ function renderizarTareas() {
     div.appendChild(simbolo);
     div.appendChild(texto);
     
-    // Botón de borrar si está habilitado O si el táctil está deshabilitado
-    if (mostrarBotonesBorrar || sinTactil) {
-      const btnBorrar = document.createElement('button');
-      btnBorrar.className = 'btn-borrar-tarea';
-      btnBorrar.textContent = '🗑️';
-      btnBorrar.title = 'Eliminar tarea';
-      btnBorrar.onclick = async (e) => {
-        e.stopPropagation();
-        if (confirm('¿Eliminar esta tarea?')) {
-          appState.agenda.tareas.splice(realIndex, 1);
-          renderizar();
-          await guardarJSON(true);
-
-          // Cancelar auto-save programado después de guardado manual exitoso
-          if (appState.sync.autoSaveTimer) {
-            clearTimeout(appState.sync.autoSaveTimer);
-            appState.sync.autoSaveTimer = null;
-            console.log('✅ Auto-save cancelado después de eliminación normal');
-          }
-
-          // Pequeño delay para evitar race conditions con operaciones posteriores
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      };
-      div.appendChild(btnBorrar);
-    }
+    // Botón de borrar - siempre visible
+    const btnBorrar = document.createElement('button');
+    btnBorrar.className = 'btn-borrar-tarea';
+    btnBorrar.textContent = '🗑️';
+    btnBorrar.title = 'Eliminar tarea';
+    btnBorrar.onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm('¿Eliminar esta tarea?')) {
+        appState.agenda.tareas.splice(realIndex, 1);
+        renderizar();
+        await guardarJSON(true);
+        mostrarAlerta('🗑️ Tarea eliminada', 'info');
+      }
+    };
+    div.appendChild(btnBorrar);
     
     // Agregar alerta si es urgente o pasada
     if (!tarea.completada) {

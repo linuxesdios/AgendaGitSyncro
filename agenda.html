@@ -422,7 +422,8 @@
           <p><strong>Configuración para tu dominio:</strong></p>
           <div style="background:#f8f9fa;padding:10px;border-radius:4px;margin:10px 0;">
             <strong style="color:#d73502;">⚠️ AGREGAR A OAUTH:</strong><br>
-            <code style="font-size:10px;">https://linuxesdios.github.io/AgendaGitSyncro/agenda.html</code>
+            <code style="font-size:10px;">https://linuxesdios.github.io/AgendaGitSyncro/agenda.html</code><br>
+            <small style="color:#666;">También agregar: https://linuxesdios.github.io</small>
           </div>
           <ol style="text-align:left;display:inline-block;font-size:10px;">
             <li>Ve a <strong>console.cloud.google.com</strong></li>
@@ -437,18 +438,21 @@
     
     <!-- Contenido Visual -->
     <div id="tab-visual" class="tab-content">
-      <div class="form-group">
-        <label>Tema:</label>
-        <select id="config-tema-select">
-          <option value="claro">Claro</option>
-          <option value="oscuro">Oscuro</option>
-        </select>
+      <div style="padding:20px;">
+        <h3>🎨 Configuración Visual</h3>
+        <div class="form-group">
+          <label>Tema:</label>
+          <select id="config-tema-select">
+            <option value="claro">Claro</option>
+            <option value="oscuro">Oscuro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nombre:</label>
+          <input type="text" id="config-nombre-input" placeholder="Pablo">
+        </div>
+        <button class="btn-primario" onclick="guardarConfigVisualPanel()">Aplicar</button>
       </div>
-      <div class="form-group">
-        <label>Nombre:</label>
-        <input type="text" id="config-nombre-input" placeholder="Mi Agenda">
-      </div>
-      <button class="btn-primario" onclick="guardarConfigVisualPanel()">Aplicar</button>
     </div>
     
     <!-- Contenido Acciones -->
