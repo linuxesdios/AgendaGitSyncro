@@ -905,12 +905,6 @@ input[type="file"] {
   display: block;
 }
 
-#github-status {
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  text-align: center;
-}
 
 /* ========== ESTILOS ADAPTATIVOS ========== */
 /* Deshabilitar menú contextual y selección en móvil */
@@ -1561,55 +1555,6 @@ input[type="file"] {
       </div>
     </div>
 
-    <!-- Modal para sincronización remota (GitHub) -->
-    <div id="modal-sync" class="modal">
-      <div class="modal-content">
-        <h4>Sincronización remota (GitHub)</h4>
-        <div class="form-group">
-          <label>Owner/Repo (ej: usuario/repo):</label>
-          <input type="text" id="sync-repo" placeholder="usuario/repo">
-        </div>
-        <div class="form-group">
-          <label>Ruta en repo (ej: agenda.xml):</label>
-          <input type="text" id="sync-path" placeholder="agenda.xml">
-        </div>
-        <div class="form-group">
-          <label>Archivo historial (ej: historial.json):</label>
-          <input type="text" id="sync-history" placeholder="historial.json">
-        </div>
-        <div class="form-group">
-          <label>Branch (ej: main):</label>
-          <input type="text" id="sync-branch" placeholder="main">
-        </div>
-        <div class="form-group">
-          <label>Token (Personal Access Token):</label>
-          <input type="password" id="sync-token" placeholder="ghp_...">
-          <small style="display: block; margin-top: 5px; color: #666;">
-            Para crear el token:
-            <ol style="margin-top: 5px;">
-              <li>Ve a GitHub.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</li>
-              <li>Click en "Generate new token (classic)"</li>
-              <li>Nombre: "Agenda XML"</li>
-              <li>✅ Marca el checkbox "repo" completo (acceso a repositorios privados)</li>
-              <li>Click en "Generate token" y copia el token</li>
-            </ol>
-          </small>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="checkbox" id="sync-remember"><label for="sync-remember">Recordar token en este navegador</label>
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="saveSyncConfig()">Guardar configuración</button>
-          <button class="btn-secundario" onclick="cerrarModal('modal-sync')">Cerrar</button>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px;">
-          <button class="boton-cargar" onclick="githubPull()">🔁 Traer desde GitHub</button>
-          <button class="boton-guardar" onclick="githubPush()">⬆️ Subir a GitHub</button>
-          <button class="boton-cargar" id="toggle-autosync" onclick="toggleAutoSync()">Auto-sync: OFF</button>
-        </div>
-        <div id="sync-status" style="margin-top:10px;font-size:13px;color:#444"></div>
-      </div>
-    </div>
 </div>
 
 <!-- Modal para seleccionar hora -->
@@ -1913,36 +1858,46 @@ input[type="file"] {
     
     <!-- Pestañas -->
     <div class="config-tabs">
-      <button class="config-tab active" onclick="switchTab('github')">🔗 GitHub</button>
+      <button class="config-tab active" onclick="switchTab('extendsclass')">🔗 ExtendsClass</button>
       <button class="config-tab" onclick="switchTab('visual')">🎨 Visual</button>
       <button class="config-tab" onclick="switchTab('actions')">⚙️ Acciones</button>
       <button class="config-tab" onclick="switchTab('options')">🔧 Opciones</button>
       <button class="config-tab" onclick="switchTab('guide')">📖 Guía</button>
     </div>
     
-    <!-- Contenido GitHub -->
-    <div id="tab-github" class="tab-content active">
+    <!-- Contenido ExtendsClass -->
+    <div id="tab-extendsclass" class="tab-content active">
       <div class="form-group">
-        <label>Repositorio:</label>
-        <input type="text" id="config-repo" placeholder="usuario/repo">
+        <label>API Key:</label>
+        <input type="password" id="config-extendsclass-apikey" placeholder="Tu API Key de ExtendsClass">
       </div>
       <div class="form-group">
-        <label>Archivo agenda:</label>
-        <input type="text" id="config-agenda-file" placeholder="agenda.json" value="agenda.json">
+        <label>Security Key (opcional):</label>
+        <input type="password" id="config-extendsclass-securitykey" placeholder="Clave de seguridad (opcional)">
       </div>
       <div class="form-group">
-        <label>Archivo histórico:</label>
-        <input type="text" id="config-historico-file" placeholder="historico.json" value="historico.json">
+        <label>Bin ID (se creará automáticamente):</label>
+        <input type="text" id="config-extendsclass-binid" placeholder="Se asignará automáticamente" readonly>
       </div>
       <div class="form-group">
-        <label>Token:</label>
-        <input type="password" id="config-token" placeholder="ghp_...">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-extendsclass-private" checked>
+          <span>Bin privado (requiere Security Key para acceso)</span>
+        </label>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="btn-primario" onclick="guardarConfigGitHub()">Guardar</button>
-        <button class="btn-secundario" onclick="probarConexionGitHub()">Probar</button>
+        <button class="btn-primario" onclick="guardarConfigExtendsClass()">Guardar</button>
+        <button class="btn-secundario" onclick="probarConexionExtendsClass()">Probar</button>
       </div>
-      <div id="github-status" style="margin-top:10px;font-size:13px;display:none;"></div>
+      <div id="extendsclass-status" style="margin-top:10px;font-size:13px;display:none;"></div>
+      <div style="margin-top:15px;padding:10px;background:rgba(78,205,196,0.1);border-radius:6px;font-size:12px;">
+        <strong>💡 ExtendsClass JSON Storage:</strong><br>
+        • 10,000 requests/mes (gratis)<br>
+        • 100 KB máximo por bin<br>
+        • Sin problemas de caché<br>
+        • API Key: obtener en <a href="https://extendsclass.com" target="_blank">extendsclass.com</a><br>
+        • Security Key: protege tu bin (opcional)
+      </div>
     </div>
     
     <!-- Contenido Visual -->
@@ -1970,8 +1925,8 @@ La disciplina es el puente entre metas y logros"></textarea>
     <!-- Contenido Acciones -->
     <div id="tab-actions" class="tab-content">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-        <button class="btn-primario" onclick="guardarJSON()">💾 Guardar</button>
-        <button class="btn-secundario" onclick="githubPull()">🔄 Cargar</button>
+        <button class="btn-primario" onclick="extendsClassPush()">💾 Guardar</button>
+        <button class="btn-secundario" onclick="extendsClassPull()">🔄 Cargar</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
         <button class="btn-secundario" onclick="verHistorial()">📜 Historial</button>
@@ -2044,7 +1999,7 @@ La disciplina es el puente entre metas y logros"></textarea>
         <div>
           <h6>⚙️ Configuración:</h6>
           <ul style="font-size:12px;">
-            <li>GitHub: sincronización automática</li>
+            <li>ExtendsClass: sincronización automática</li>
             <li>Visual: tema, nombre, frases</li>
             <li>Opciones: fecha obligatoria, sin táctil</li>
           </ul>
@@ -4370,6 +4325,8 @@ window.cargarConfiguracionesModal = cargarConfiguracionesModal;
 window.switchTab = switchTab;
 window.guardarConfigGitHub = guardarConfigGitHub;
 window.probarConexionGitHub = probarConexionGitHub;
+window.guardarConfigExtendsClass = guardarConfigExtendsClass;
+window.probarConexionExtendsClass = probarConexionExtendsClass;
 window.guardarConfigVisualPanel = guardarConfigVisualPanel;
 window.cambiarFraseMotivacional = cambiarFraseMotivacional;
 window.mostrarCelebracion = mostrarCelebracion;
@@ -4425,14 +4382,13 @@ function mostrarCelebracion() {
 
 
 function cargarConfiguracionesModal() {
-  // Cargar config GitHub
-  const githubConfig = JSON.parse(localStorage.getItem('github-sync-config') || '{}');
-  const token = sessionStorage.getItem('github-sync-token') || localStorage.getItem('github-sync-token');
-  
-  document.getElementById('config-repo').value = githubConfig.repo || '';
-  document.getElementById('config-agenda-file').value = githubConfig.path || 'agenda.json';
-  document.getElementById('config-historico-file').value = githubConfig.historico || 'historico.json';
-  document.getElementById('config-token').value = token || '';
+  // Cargar config ExtendsClass
+  const extendsConfig = getExtendsClassConfig();
+
+  document.getElementById('config-extendsclass-apikey').value = extendsConfig.apiKey || '';
+  document.getElementById('config-extendsclass-securitykey').value = extendsConfig.securityKey || '';
+  document.getElementById('config-extendsclass-binid').value = extendsConfig.binId || '';
+  document.getElementById('config-extendsclass-private').checked = extendsConfig.private !== false;
   
   // Cargar config visual
   const visualConfig = JSON.parse(localStorage.getItem('config-visual') || '{}');
@@ -4541,6 +4497,139 @@ function mostrarStatusGitHub(mensaje, tipo) {
     status.style.color = '#0c5460';
   }
   
+  setTimeout(() => {
+    status.style.display = 'none';
+  }, 3000);
+}
+
+// ========== CONFIGURACIÓN EXTENDSCLASS ==========
+function guardarConfigExtendsClass() {
+  const apiKey = document.getElementById('config-extendsclass-apikey').value.trim();
+  const securityKey = document.getElementById('config-extendsclass-securitykey').value.trim();
+  const binId = document.getElementById('config-extendsclass-binid').value.trim();
+  const isPrivate = document.getElementById('config-extendsclass-private').checked;
+
+  if (!apiKey) {
+    mostrarStatusExtendsClass('⚠️ API Key requerido', 'error');
+    return;
+  }
+
+  // Guardar configuración
+  const config = {
+    private: isPrivate
+  };
+
+  if (binId) {
+    config.binId = binId;
+  }
+
+  localStorage.setItem('extendsclass-sync-config', JSON.stringify(config));
+  localStorage.setItem('extendsclass-api-key', apiKey);
+
+  if (securityKey) {
+    localStorage.setItem('extendsclass-security-key', securityKey);
+  } else {
+    localStorage.removeItem('extendsclass-security-key');
+  }
+
+  mostrarStatusExtendsClass('✅ Configuración guardada', 'success');
+}
+
+async function probarConexionExtendsClass() {
+  const apiKey = document.getElementById('config-extendsclass-apikey').value.trim();
+  const securityKey = document.getElementById('config-extendsclass-securitykey').value.trim();
+  const binId = document.getElementById('config-extendsclass-binid').value.trim();
+
+  if (!apiKey) {
+    mostrarStatusExtendsClass('⚠️ API Key requerido', 'error');
+    return;
+  }
+
+  mostrarStatusExtendsClass('🔄 Probando conexión...', 'info');
+
+  try {
+    if (binId) {
+      // Probar acceso a bin existente
+      const headers = {};
+      if (securityKey) {
+        headers['Security-key'] = securityKey;
+      }
+
+      const response = await fetch(`https://json.extendsclass.com/bin/${binId}`, {
+        headers: headers
+      });
+
+      if (response.ok) {
+        mostrarStatusExtendsClass('✅ Conexión exitosa', 'success');
+      } else if (response.status === 401) {
+        mostrarStatusExtendsClass('❌ Security Key inválido', 'error');
+      } else if (response.status === 404) {
+        mostrarStatusExtendsClass('⚠️ Bin no encontrado, se creará uno nuevo', 'info');
+      } else {
+        mostrarStatusExtendsClass(`❌ Error: ${response.status}`, 'error');
+      }
+    } else {
+      // Crear bin de prueba para validar API key
+      const testData = { test: true, timestamp: Date.now() };
+      const headers = {
+        'Content-Type': 'application/json',
+        'Api-key': apiKey
+      };
+
+      if (securityKey) {
+        headers['Security-key'] = securityKey;
+      }
+
+      const response = await fetch('https://json.extendsclass.com/bin', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(testData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        mostrarStatusExtendsClass('✅ API Key válido - conexión exitosa', 'success');
+
+        // Eliminar bin de prueba
+        try {
+          const deleteHeaders = {};
+          if (securityKey) {
+            deleteHeaders['Security-key'] = securityKey;
+          }
+          await fetch(`https://json.extendsclass.com/bin/${result.id}`, {
+            method: 'DELETE',
+            headers: deleteHeaders
+          });
+        } catch (e) {
+          // Ignorar errores al eliminar bin de prueba
+        }
+      } else if (response.status === 401) {
+        mostrarStatusExtendsClass('❌ API Key inválido', 'error');
+      } else {
+        mostrarStatusExtendsClass(`❌ Error: ${response.status}`, 'error');
+      }
+    }
+  } catch (error) {
+    mostrarStatusExtendsClass('❌ Error de conexión', 'error');
+  }
+}
+
+function mostrarStatusExtendsClass(mensaje, tipo) {
+  const status = document.getElementById('extendsclass-status');
+  status.textContent = mensaje;
+  status.style.display = 'block';
+
+  if (tipo === 'success') {
+    status.style.background = '#d4edda';
+    status.style.color = '#155724';
+  } else if (tipo === 'error') {
+    status.style.background = '#f8d7da';
+    status.style.color = '#721c24';
+  } else {
+    status.style.background = '#d1ecf1';
+    status.style.color = '#0c5460';
+  }
+
   setTimeout(() => {
     status.style.display = 'none';
   }, 3000);
@@ -7320,5 +7409,6 @@ window.abrirModalCitaPeriodica = abrirModalCitaPeriodica;
 window.crearCitaPeriodica = crearCitaPeriodica;
 
 </script>
+<script src="src/js/extendsclass-sync.js"></script>
 </body>
 </html>

@@ -15,8 +15,6 @@ const appState = {
   },
   sync: {
     autoSaveTimer: null,
-    githubAutoSync: false,
-    githubAutoTimer: null,
     saveQueue: [],
     isSaving: false
   },
@@ -39,6 +37,12 @@ const appState = {
     }
   }
 };
+
+// ========== CONFIGURACIÓN EXTENDSCLASS ==========
+// Compatibilidad con Firebase
+function getExtendsClassConfig() {
+  return { configured: true };
+}
 
 // ========== DETECCIÓN DE DISPOSITIVO ==========
 const isMobile = () => {
@@ -74,133 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Renderizar estado inicial (puede estar vacío)
   renderizar();
 
-  // Cargar automáticamente desde GitHub al inicio
-  (async () => {
-    try {
-      const { repo, path, branch, token } = getSyncConfig();
-      if (!repo || !path || !token) {
-        console.log('GitHub no configurado');
-        return;
-      }
-      
-      // Validar formato del repo
-      if (!repo.includes('/')) {
-        console.log('Formato de repo inválido');
-        return;
-      }
-
-      console.log('Cargando desde GitHub:', repo, path);
-      
-      const [repoOwner, repoName] = repo.split('/');
-      const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}&_t=${Date.now()}&no-cache=1`;
-      const r = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        cache: 'no-store'
-      });
-      
-      if (!r.ok) {
-        throw new Error(`Error GitHub (${r.status}): ${await r.text()}`);
-      }
-
-      const response = await r.json();
-      console.log('Respuesta de GitHub:', response);
-      console.log('📥 DATOS CARGADOS DE GITHUB:', {
-        sha_github: response.sha,
-        size_github: response.size,
-        sha_esperado: window.currentSHA
-      });
-
-      // Verificar si tenemos el SHA más reciente
-      if (window.currentSHA && response.sha !== window.currentSHA) {
-        console.log('⚠️ SHA no coincide - esperando 2 segundos para propagación CDN...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Intentar una vez más
-        console.log('🔄 Reintentando carga después del delay...');
-        const r2 = await fetch(url.replace(/&_t=\d+/, `&_t=${Date.now()}`), {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          cache: 'no-store'
-        });
-
-        if (r2.ok) {
-          const response2 = await r2.json();
-          console.log('📥 SEGUNDO INTENTO - SHA:', response2.sha);
-          if (response2.sha === window.currentSHA) {
-            console.log('✅ SHA ahora coincide - usando datos frescos');
-            // Usar response2 en lugar de response
-            Object.assign(response, response2);
-          }
-        }
-      }
-      
-      // Para archivos grandes, usar la URL de descarga directa
-      let text;
-      if (response.download_url) {
-        // Para download_url (CDN de GitHub), solo usar cache: 'no-store' sin headers adicionales
-        const downloadR = await fetch(response.download_url + `?_t=${Date.now()}`, {
-          cache: 'no-store'
-        });
-        if (!downloadR.ok) throw new Error('Error al descargar archivo');
-        text = await downloadR.text();
-      } else if (response.content && response.encoding === 'base64') {
-        // Decodificar correctamente UTF-8 desde base64
-        const base64Content = response.content.replace(/\n/g, '');
-        const binaryString = atob(base64Content);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        text = new TextDecoder('utf-8').decode(bytes);
-      } else {
-        throw new Error('No se pudo obtener el contenido del archivo');
-      }
-      
-      console.log('Contenido decodificado:', text);
-      
-      let data;
-      
-      // Detectar si es XML o JSON
-      if (text.trim().startsWith('<?xml') || text.trim().startsWith('<agenda')) {
-        // Es XML, convertir a JSON
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text, 'text/xml');
-        data = convertXMLtoJSON(xmlDoc);
-        console.log('XML convertido a JSON:', data);
-        console.log('📥 CONTENIDO PARSEADO DE GITHUB:', {
-          total_tareas_cargadas: data.tareas ? data.tareas.length : 0,
-          total_criticas_cargadas: data.tareas_criticas ? data.tareas_criticas.length : 0,
-          ultimas_3_tareas_cargadas: data.tareas ? data.tareas.slice(-3).map(t => ({id: t.id, texto: t.texto})) : []
-        });
-      } else {
-        // Es JSON
-        data = JSON.parse(text);
-      }
-      
-      console.log('Datos parseados:', data);
-      procesarJSON(data);
-      mostrarAlerta('✅ Agenda cargada desde GitHub', 'success');
-      
-      // NO activar auto-sync por defecto para evitar conflictos
-      appState.sync.githubAutoSync = false;
-      
-      // Evitar guardado automático inmediato después de cargar
-      if (appState.sync.autoSaveTimer) {
-        clearTimeout(appState.sync.autoSaveTimer);
-        appState.sync.autoSaveTimer = null;
-      }
-    } catch (err) {
-      console.error('Error al cargar desde GitHub:', err);
-      mostrarAlerta('⚠️ No se pudo cargar desde GitHub', 'info');
-    }
-  })();
+  // Firebase se inicializa automáticamente en sincronizacion-simple.js
   
   // Listener optimizado para cambios en notas
   const notasEl = document.getElementById('notas-texto');
@@ -240,12 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     headerTimer = setTimeout(collapseHeader, 5000);
   }
   
-  // Iniciar auto-guardado optimizado cada minuto (solo después de 2 minutos de inicialización)
-  setTimeout(() => {
-    setInterval(() => {
-      guardarJSON(true);
-    }, 60000);
-  }, 120000);
+  // Firebase maneja la sincronización automática
 });
 
 function actualizarFecha() {
@@ -364,23 +237,11 @@ function setupAutoCapitalize() {
 
 // ========== AUTO-SAVE ==========
 function scheduleAutoSave() {
-  // No auto-guardar durante los primeros 30 segundos de inicialización
-  if (Date.now() - window.appStartTime < 30000) {
-    console.log('Auto-guardado deshabilitado durante inicialización');
-    return;
-  }
-
-  // No auto-guardar si ya se está guardando (prevenir race conditions)
-  if (appState.sync.isSaving) {
-    console.log('🚫 Auto-save cancelado - guardado en progreso');
-    return;
-  }
-
+  // Auto-guardado con Firebase cada 5 segundos después de cambios
   if (appState.sync.autoSaveTimer) clearTimeout(appState.sync.autoSaveTimer);
   appState.sync.autoSaveTimer = setTimeout(() => {
-    console.log('⏰ Ejecutando auto-save programado');
     guardarJSON(true);
-  }, 3000); // Incrementado a 3 segundos para más seguridad
+  }, 5000);
 }
 
 // Cerrar modal al hacer clic fuera
@@ -406,6 +267,7 @@ function cargarConfigOpciones() {
 
 // Hacer funciones disponibles globalmente para compatibilidad
 window.appState = appState;
+window.getExtendsClassConfig = getExtendsClassConfig;
 window.isMobile = isMobile;
 window.isTabletOrMobile = isTabletOrMobile;
 window.isDesktop = isDesktop;

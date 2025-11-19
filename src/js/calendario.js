@@ -377,6 +377,7 @@ function guardarNuevaCita() {
   const descripcion = document.getElementById('nueva-cita-desc').value.trim();
   const hora = document.getElementById('nueva-cita-hora').value;
   const minutos = document.getElementById('nueva-cita-minutos').value;
+  const addToGoogle = document.getElementById('nueva-cita-google')?.checked || false;
   
   if (!fecha) {
     alert('Por favor, selecciona una fecha');
@@ -390,6 +391,11 @@ function guardarNuevaCita() {
   
   const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
   appState.agenda.citas.push({ fecha, nombre: citaCompleta });
+  
+  // Crear evento en Google Calendar si está marcado
+  if (addToGoogle) {
+    crearEventoGoogleCalendar(descripcion, fecha + 'T' + hora + ':' + minutos + ':00');
+  }
   
   cerrarModal('modal-nueva-cita');
   renderCalendar();

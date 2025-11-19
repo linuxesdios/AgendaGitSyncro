@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test ExtendsClass</title>
+</head>
+<body>
+    <h1>Prueba ExtendsClass JSON Storage</h1>
+    <div>
+        <input type="password" id="api-key" placeholder="Tu API Key">
+        <button onclick="testConfig()">Probar Configuración</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        function getExtendsClassConfig() {
+            return {
+                apiKey: document.getElementById('api-key').value,
+                binId: null,
+                securityKey: null,
+                private: true
+            };
+        }
+
+        async function testConfig() {
+            const config = getExtendsClassConfig();
+            const result = document.getElementById('result');
+
+            if (!config.apiKey) {
+                result.innerHTML = '❌ API Key requerida';
+                return;
+            }
+
+            try {
+                result.innerHTML = '🔄 Probando...';
+
+                // Crear bin de prueba
+                const testData = { test: true, timestamp: Date.now() };
+                const response = await fetch('https://json.extendsclass.com/bin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Api-key': config.apiKey
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `✅ Éxito! Bin ID: ${data.id}`;
+
+                    // Eliminar bin de prueba
+                    try {
+                        await fetch(`https://json.extendsclass.com/bin/${data.id}`, {
+                            method: 'DELETE'
+                        });
+                    } catch (e) {}
+                } else {
+                    result.innerHTML = `❌ Error: ${response.status}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

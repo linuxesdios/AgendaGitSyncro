@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ExtendsClass Fix</title>
+</head>
+<body>
+    <h1>🔧 Solución ExtendsClass</h1>
+    <p>El problema es que ExtendsClass está devolviendo HTML en lugar de JSON.</p>
+    
+    <h3>Solución:</h3>
+    <ol>
+        <li>Desactiva cualquier ad-blocker (uBlock Origin, AdBlock, etc.)</li>
+        <li>Ve directamente a: <a href="https://json.extendsclass.com/bin" target="_blank">https://json.extendsclass.com/bin</a></li>
+        <li>Si ves una página web normal, el problema es el ad-blocker</li>
+        <li>Si ves "Method Not Allowed", la API funciona</li>
+    </ol>
+
+    <h3>Prueba manual:</h3>
+    <button onclick="testDirect()">Probar API directamente</button>
+    <div id="result"></div>
+
+    <script>
+        function testDirect() {
+            console.log('=== PRUEBA DIRECTA ===');
+            
+            // Crear un iframe para evitar CORS
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            // Intentar cargar la URL de la API
+            iframe.src = 'https://json.extendsclass.com/bin';
+            
+            iframe.onload = () => {
+                console.log('Iframe cargado');
+                try {
+                    const content = iframe.contentDocument.body.innerHTML;
+                    console.log('Contenido del iframe:', content.substring(0, 200));
+                    
+                    if (content.includes('Method Not Allowed')) {
+                        document.getElementById('result').innerHTML = '✅ API accesible - El problema es el método HTTP';
+                    } else if (content.includes('ad or script blocking')) {
+                        document.getElementById('result').innerHTML = '❌ Ad-blocker detectado - Desactívalo';
+                    } else {
+                        document.getElementById('result').innerHTML = '⚠️ Respuesta inesperada';
+                    }
+                } catch (e) {
+                    console.log('Error accediendo al iframe:', e);
+                    document.getElementById('result').innerHTML = '🔒 CORS bloqueado - Prueba desactivando ad-blocker';
+                }
+                
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = () => {
+                console.log('Error cargando iframe');
+                document.getElementById('result').innerHTML = '❌ No se puede acceder a la API';
+                document.body.removeChild(iframe);
+            };
+        }
+    </script>
+</body>
+</html>

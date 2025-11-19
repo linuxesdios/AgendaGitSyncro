@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug ExtendsClass</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; background: #007bff; color: white; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug ExtendsClass API</h1>
+
+    <h3>Tu API Key: af09383f-c4e3-11f0-9924-0242ac110008</h3>
+
+    <div>
+        <button onclick="test1()">Test 1: Crear Bin Simple</button>
+        <button onclick="test2()">Test 2: Verificar Headers</button>
+        <button onclick="test3()">Test 3: Probar con Fetch Básico</button>
+        <button onclick="clearResults()">Limpiar</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const API_KEY = 'af09383f-c4e3-11f0-9924-0242ac110008';
+
+        function addResult(title, content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${title}</strong><br><pre>${content}</pre>`;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function test1() {
+            addResult('Test 1', 'Iniciando prueba de creación de bin...', 'info');
+
+            try {
+                const testData = { test: true, timestamp: Date.now() };
+
+                console.log('Enviando request con headers:', {
+                    'Content-Type': 'application/json',
+                    'Api-key': API_KEY
+                });
+
+                const response = await fetch('https://json.extendsclass.com/bin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Api-key': API_KEY
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                addResult('Response Status', `${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+
+                const responseHeaders = {};
+                response.headers.forEach((value, key) => {
+                    responseHeaders[key] = value;
+                });
+                addResult('Response Headers', JSON.stringify(responseHeaders, null, 2), 'info');
+
+                const responseText = await response.text();
+                addResult('Response Body (Raw)', responseText, response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    try {
+                        const jsonData = JSON.parse(responseText);
+                        addResult('Parsed JSON', JSON.stringify(jsonData, null, 2), 'success');
+
+                        // Limpiar el bin de prueba
+                        if (jsonData.id) {
+                            await fetch(`https://json.extendsclass.com/bin/${jsonData.id}`, {
+                                method: 'DELETE'
+                            });
+                            addResult('Cleanup', 'Bin de prueba eliminado', 'success');
+                        }
+                    } catch (parseError) {
+                        addResult('JSON Parse Error', parseError.message, 'error');
+                    }
+                }
+
+            } catch (error) {
+                addResult('Network Error', error.message, 'error');
+            }
+        }
+
+        async function test2() {
+            addResult('Test 2', 'Verificando configuración de headers...', 'info');
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Api-key': API_KEY,
+                'Accept': 'application/json'
+            };
+
+            addResult('Headers Enviados', JSON.stringify(headers, null, 2), 'info');
+
+            try {
+                const response = await fetch('https://json.extendsclass.com/bin', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ debug: 'test2', time: new Date().toISOString() })
+                });
+
+                const contentType = response.headers.get('content-type');
+                addResult('Content-Type Recibido', contentType || 'No especificado', 'info');
+
+                const text = await response.text();
+
+                if (contentType && contentType.includes('application/json')) {
+                    const json = JSON.parse(text);
+                    addResult('JSON Response', JSON.stringify(json, null, 2), 'success');
+                } else {
+                    addResult('Non-JSON Response', text.substring(0, 500) + (text.length > 500 ? '...' : ''), 'error');
+                }
+
+            } catch (error) {
+                addResult('Test 2 Error', error.message, 'error');
+            }
+        }
+
+        async function test3() {
+            addResult('Test 3', 'Prueba con configuración básica...', 'info');
+
+            try {
+                // Versión más simple posible
+                const response = await fetch('https://json.extendsclass.com/bin', {
+                    method: 'POST',
+                    headers: {
+                        'Api-key': API_KEY
+                    },
+                    body: '{"simple": "test"}'
+                });
+
+                addResult('Simple Test Status', response.status + ' ' + response.statusText, response.ok ? 'success' : 'error');
+
+                const body = await response.text();
+                addResult('Simple Test Body', body.substring(0, 1000), response.ok ? 'success' : 'error');
+
+            } catch (error) {
+                addResult('Simple Test Error', error.message, 'error');
+            }
+        }
+
+        // Auto-ejecutar el primer test
+        window.onload = () => {
+            addResult('Info', 'Página cargada. Click en "Test 1" para empezar.', 'info');
+        };
+    </script>
+</body>
+</html>

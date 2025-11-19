@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda con ExtendsClass</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .config-section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input[type="password"], input[type="text"] { width: 300px; padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primario { background: #4ecdc4; color: white; }
+        .btn-secundario { background: #95a5a6; color: white; }
+        #status { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .test-section { background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🗓️ Agenda con ExtendsClass JSON Storage</h1>
+
+    <div class="config-section">
+        <h2>🔧 Configuración ExtendsClass</h2>
+        <div>
+            <label>API Key:</label><br>
+            <input type="password" id="api-key" placeholder="Tu API Key de ExtendsClass">
+        </div>
+        <div>
+            <label>Security Key (opcional):</label><br>
+            <input type="password" id="security-key" placeholder="Clave de seguridad opcional">
+        </div>
+        <div>
+            <label>Bin ID (se crea automáticamente):</label><br>
+            <input type="text" id="bin-id" placeholder="Se asignará automáticamente" readonly>
+        </div>
+        <div>
+            <button class="btn-primario" onclick="guardarConfig()">Guardar</button>
+            <button class="btn-secundario" onclick="probarConexion()">Probar Conexión</button>
+        </div>
+        <div id="status"></div>
+        <div style="margin-top: 15px; font-size: 12px; color: #666;">
+            <strong>💡 Para obtener tu API Key:</strong><br>
+            1. Ve a <a href="https://extendsclass.com/connect" target="_blank">https://extendsclass.com/connect</a><br>
+            2. Crea una cuenta gratuita<br>
+            3. Ve a "My Account" y copia tu API Key
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Prueba de Funcionalidad</h3>
+        <div>
+            <input type="text" id="test-data" placeholder="Escribe algo para probar" value="Mi primera agenda">
+            <button class="btn-primario" onclick="guardarDatos()">💾 Guardar</button>
+            <button class="btn-secundario" onclick="cargarDatos()">🔄 Cargar</button>
+        </div>
+        <div id="test-result" style="margin-top: 10px; font-style: italic; color: #666;"></div>
+    </div>
+
+    <script>
+        // Configuración ExtendsClass
+        function getConfig() {
+            return {
+                apiKey: document.getElementById('api-key').value.trim(),
+                securityKey: document.getElementById('security-key').value.trim(),
+                binId: document.getElementById('bin-id').value.trim(),
+                private: true
+            };
+        }
+
+        function mostrarStatus(mensaje, tipo) {
+            const status = document.getElementById('status');
+            status.textContent = mensaje;
+            status.className = tipo;
+            status.style.display = 'block';
+        }
+
+        function guardarConfig() {
+            const config = getConfig();
+            if (!config.apiKey) {
+                mostrarStatus('⚠️ API Key requerida', 'error');
+                return;
+            }
+
+            localStorage.setItem('extendsclass-config', JSON.stringify({
+                binId: config.binId,
+                private: config.private
+            }));
+            localStorage.setItem('extendsclass-api-key', config.apiKey);
+
+            if (config.securityKey) {
+                localStorage.setItem('extendsclass-security-key', config.securityKey);
+            } else {
+                localStorage.removeItem('extendsclass-security-key');
+            }
+
+            mostrarStatus('✅ Configuración guardada', 'success');
+        }
+
+        async function probarConexion() {
+            const config = getConfig();
+            if (!config.apiKey) {
+                mostrarStatus('⚠️ API Key requerida', 'error');
+                return;
+            }
+
+            mostrarStatus('🔄 Probando conexión...', 'info');
+
+            try {
+                // Crear bin de prueba
+                const testData = { test: true, timestamp: Date.now() };
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Api-key': config.apiKey
+                };
+
+                if (config.securityKey) {
+                    headers['Security-key'] = config.securityKey;
+                }
+
+                const response = await fetch('https://json.extendsclass.com/bin', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(testData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarStatus('✅ Conexión exitosa! Bin creado: ' + result.id, 'success');
+
+                    // Guardar el Bin ID para pruebas
+                    document.getElementById('bin-id').value = result.id;
+
+                    // Eliminar bin de prueba
+                    try {
+                        const deleteHeaders = {};
+                        if (config.securityKey) {
+                            deleteHeaders['Security-key'] = config.securityKey;
+                        }
+                        await fetch(`https://json.extendsclass.com/bin/${result.id}`, {
+                            method: 'DELETE',
+                            headers: deleteHeaders
+                        });
+                    } catch (e) {}
+                } else {
+                    mostrarStatus('❌ Error: ' + response.status, 'error');
+                }
+            } catch (error) {
+                mostrarStatus('❌ Error de conexión: ' + error.message, 'error');
+            }
+        }
+
+        async function guardarDatos() {
+            const config = getConfig();
+            const data = document.getElementById('test-data').value;
+
+            if (!config.apiKey) {
+                document.getElementById('test-result').textContent = '⚠️ Configura ExtendsClass primero';
+                return;
+            }
+
+            if (!data) {
+                document.getElementById('test-result').textContent = '⚠️ Escribe algo para guardar';
+                return;
+            }
+
+            try {
+                const agendaData = {
+                    fecha: new Date().toISOString().slice(0, 10),
+                    datos: data,
+                    timestamp: Date.now()
+                };
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Api-key': config.apiKey
+                };
+
+                if (config.securityKey) {
+                    headers['Security-key'] = config.securityKey;
+                }
+
+                let url, method;
+                if (config.binId) {
+                    // Actualizar bin existente
+                    url = `https://json.extendsclass.com/bin/${config.binId}`;
+                    method = 'PUT';
+                } else {
+                    // Crear nuevo bin
+                    url = 'https://json.extendsclass.com/bin';
+                    method = 'POST';
+                    headers['Private'] = 'true';
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(agendaData)
+                });
+
+                if (response.ok) {
+                    if (!config.binId) {
+                        // Nuevo bin creado
+                        const result = await response.json();
+                        document.getElementById('bin-id').value = result.id;
+                        localStorage.setItem('extendsclass-config', JSON.stringify({
+                            binId: result.id,
+                            private: true
+                        }));
+                    }
+                    document.getElementById('test-result').textContent = '✅ Datos guardados correctamente';
+                } else {
+                    document.getElementById('test-result').textContent = '❌ Error al guardar: ' + response.status;
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        async function cargarDatos() {
+            const config = getConfig();
+
+            if (!config.apiKey || !config.binId) {
+                document.getElementById('test-result').textContent = '⚠️ Guarda datos primero';
+                return;
+            }
+
+            try {
+                const headers = {};
+                if (config.securityKey) {
+                    headers['Security-key'] = config.securityKey;
+                }
+
+                const response = await fetch(`https://json.extendsclass.com/bin/${config.binId}`, {
+                    headers: headers
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('test-data').value = data.datos;
+                    document.getElementById('test-result').textContent = `✅ Datos cargados (guardados: ${data.fecha})`;
+                } else {
+                    document.getElementById('test-result').textContent = '❌ Error al cargar: ' + response.status;
+                }
+            } catch (error) {
+                document.getElementById('test-result').textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Cargar configuración al iniciar
+        window.addEventListener('load', () => {
+            try {
+                const config = JSON.parse(localStorage.getItem('extendsclass-config') || '{}');
+                const apiKey = localStorage.getItem('extendsclass-api-key');
+                const securityKey = localStorage.getItem('extendsclass-security-key');
+
+                if (apiKey) document.getElementById('api-key').value = apiKey;
+                if (securityKey) document.getElementById('security-key').value = securityKey;
+                if (config.binId) document.getElementById('bin-id').value = config.binId;
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>

@@ -978,12 +978,6 @@ section h3 {
   display: block;
 }
 
-#github-status {
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  text-align: center;
-}
 
 /* ========== ESTILOS PARA CITAS RELATIVAS ========== */
 .cita-relativa-item {
