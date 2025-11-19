@@ -180,7 +180,18 @@ function renderizarCriticas() {
         
         const subTexto = document.createElement('div');
         subTexto.className = 'subtarea-texto';
+        subTexto.style.cursor = 'pointer';
         subTexto.textContent = subtarea.texto;
+        subTexto.onclick = () => abrirEditorSubtarea(realIndex, subIndex, 'critica');
+        
+        const btnMigrarSub = document.createElement('button');
+        btnMigrarSub.className = 'btn-migrar-subtarea';
+        btnMigrarSub.textContent = '→';
+        btnMigrarSub.title = 'Posponer/Asignar subtarea';
+        btnMigrarSub.onclick = (e) => {
+          e.stopPropagation();
+          abrirMigracionSubtarea(realIndex, subIndex, 'critica');
+        };
         
         const btnBorrarSub = document.createElement('button');
         btnBorrarSub.className = 'btn-borrar-subtarea';
@@ -192,6 +203,7 @@ function renderizarCriticas() {
         
         subDiv.appendChild(subSimbolo);
         subDiv.appendChild(subTexto);
+        subDiv.appendChild(btnMigrarSub);
         subDiv.appendChild(btnBorrarSub);
         lista.appendChild(subDiv);
       });
@@ -369,7 +381,18 @@ function renderizarTareas() {
         
         const subTexto = document.createElement('div');
         subTexto.className = 'subtarea-texto';
+        subTexto.style.cursor = 'pointer';
         subTexto.textContent = subtarea.texto;
+        subTexto.onclick = () => abrirEditorSubtarea(realIndex, subIndex, 'tarea');
+        
+        const btnMigrarSub = document.createElement('button');
+        btnMigrarSub.className = 'btn-migrar-subtarea';
+        btnMigrarSub.textContent = '→';
+        btnMigrarSub.title = 'Posponer/Asignar subtarea';
+        btnMigrarSub.onclick = (e) => {
+          e.stopPropagation();
+          abrirMigracionSubtarea(realIndex, subIndex, 'tarea');
+        };
         
         const btnBorrarSub = document.createElement('button');
         btnBorrarSub.className = 'btn-borrar-subtarea';
@@ -381,6 +404,7 @@ function renderizarTareas() {
         
         subDiv.appendChild(subSimbolo);
         subDiv.appendChild(subTexto);
+        subDiv.appendChild(btnMigrarSub);
         subDiv.appendChild(btnBorrarSub);
         lista.appendChild(subDiv);
       });
@@ -626,6 +650,12 @@ function guardarMigracion() {
   // Guardar nueva persona si no existe
   if (persona && !appState.agenda.personas.includes(persona)) {
     appState.agenda.personas.push(persona);
+  }
+  
+  // Verificar si es una subtarea
+  if (window.subtareaSeleccionada) {
+    guardarMigracionSubtarea();
+    return;
   }
   
   if (!appState.ui.tareaSeleccionada) {
@@ -1188,6 +1218,98 @@ function cancelarEliminacion() {
   }
 }
 
+// ========== EDITOR Y MIGRACIÓN DE SUBTAREAS ==========
+function abrirEditorSubtarea(tareaIndex, subIndex, tipo) {
+  const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[tareaIndex] : appState.agenda.tareas[tareaIndex];
+  const subtarea = tarea.subtareas[subIndex];
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-editor-subtarea';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h4>✏️ Editar Subtarea</h4>
+      <div class="form-group">
+        <label>Descripción:</label>
+        <input type="text" id="editor-subtarea-texto" value="${escapeHtml(subtarea.texto)}">
+      </div>
+      <div class="form-group">
+        <label>Fecha límite:</label>
+        <input type="date" id="editor-subtarea-fecha" value="${subtarea.fecha_fin || ''}">
+      </div>
+      <div class="form-group">
+        <label>Persona asignada:</label>
+        <input type="text" id="editor-subtarea-persona" value="${subtarea.persona || ''}">
+      </div>
+      <div class="form-group">
+        <label>Fecha migración:</label>
+        <input type="date" id="editor-subtarea-fecha-migrar" value="${subtarea.fecha_migrar || ''}">
+      </div>
+      <div class="modal-botones">
+        <button class="btn-primario" onclick="guardarEdicionSubtarea(${tareaIndex}, ${subIndex}, '${tipo}')">Guardar</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-editor-subtarea')">Cancelar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.style.display = 'block';
+}
+
+function guardarEdicionSubtarea(tareaIndex, subIndex, tipo) {
+  const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[tareaIndex] : appState.agenda.tareas[tareaIndex];
+  const subtarea = tarea.subtareas[subIndex];
+  const texto = document.getElementById('editor-subtarea-texto').value.trim();
+  const fecha = document.getElementById('editor-subtarea-fecha').value;
+  const persona = document.getElementById('editor-subtarea-persona').value.trim();
+  const fechaMigrar = document.getElementById('editor-subtarea-fecha-migrar').value;
+  
+  if (!texto) {
+    alert('El texto no puede estar vacío');
+    return;
+  }
+  
+  subtarea.texto = texto;
+  subtarea.fecha_fin = fecha;
+  subtarea.persona = persona;
+  subtarea.fecha_migrar = fechaMigrar;
+  
+  cerrarModal('modal-editor-subtarea');
+  renderizar();
+  guardarJSON(true);
+  mostrarAlerta('✅ Subtarea actualizada', 'success');
+}
+
+function abrirMigracionSubtarea(tareaIndex, subIndex, tipo) {
+  window.subtareaSeleccionada = { tareaIndex, subIndex, tipo };
+  abrirModal('modal-migrar');
+}
+
+function guardarMigracionSubtarea() {
+  const fecha = document.getElementById('migrar-fecha').value;
+  const persona = document.getElementById('migrar-persona').value.trim();
+  
+  if (!window.subtareaSeleccionada) return;
+  
+  const { tareaIndex, subIndex, tipo } = window.subtareaSeleccionada;
+  const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[tareaIndex] : appState.agenda.tareas[tareaIndex];
+  const subtarea = tarea.subtareas[subIndex];
+  
+  subtarea.fecha_migrar = fecha || null;
+  subtarea.persona = persona || null;
+  
+  window.subtareaSeleccionada = null;
+  cerrarModal('modal-migrar');
+  renderizar();
+  guardarJSON(true);
+  
+  if (persona) {
+    mostrarAlerta(`→ Subtarea asignada a ${persona}`, 'success');
+  } else if (fecha) {
+    mostrarAlerta(`→ Subtarea pospuesta para ${fecha}`, 'success');
+  }
+}
+
 // Hacer funciones disponibles globalmente
 window.renderizar = renderizar;
 window.renderizarCriticas = renderizarCriticas;
@@ -1226,3 +1348,7 @@ window.abrirModalSubtareaCritica = abrirModalSubtareaCritica;
 window.agregarSubtareaCritica = agregarSubtareaCritica;
 window.toggleSubtareaCritica = toggleSubtareaCritica;
 window.eliminarSubtareaCritica = eliminarSubtareaCritica;
+window.abrirEditorSubtarea = abrirEditorSubtarea;
+window.guardarEdicionSubtarea = guardarEdicionSubtarea;
+window.abrirMigracionSubtarea = abrirMigracionSubtarea;
+window.guardarMigracionSubtarea = guardarMigracionSubtarea;

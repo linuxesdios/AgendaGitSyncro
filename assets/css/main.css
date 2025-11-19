@@ -1170,6 +1170,26 @@ body.modo-oscuro {
   transform: scale(1.1);
 }
 
+.btn-migrar-subtarea {
+  background: #9c27b0;
+  color: white;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  min-width: 24px;
+  height: 24px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+.btn-migrar-subtarea:hover {
+  background: #7b1fa2;
+  transform: scale(1.1);
+}
+
 /* ========== SCROLL PARA LISTA DE TAREAS ========== */
 #lista-metodo {
   max-height: none;
