@@ -469,8 +469,8 @@ section h3 {
   gap: 8px;
 }
 
-/* ========== NOTAS ========== */
-#notas-texto {
+/* ========== NOTAS Y SENTIMIENTOS ========== */
+#notas-texto, #sentimientos-texto {
   width: 100%;
   min-height: 60px;
   max-height: 300px;
@@ -481,6 +481,13 @@ section h3 {
   font-size: 14px;
   resize: vertical;
   overflow-y: auto;
+  transition: all 0.3s ease;
+}
+
+#notas-texto:focus, #sentimientos-texto:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
 }
 
 /* ========== MODALES ========== */

@@ -176,7 +176,12 @@ function renderizarCriticas() {
         const subSimbolo = document.createElement('span');
         subSimbolo.className = 'subtarea-simbolo';
         subSimbolo.textContent = subtarea.completada ? '✓' : '○';
-        subSimbolo.onclick = () => toggleSubtareaCritica(realIndex, subIndex);
+        subSimbolo.onclick = () => {
+          toggleSubtareaCritica(realIndex, subIndex);
+          if (!subtarea.completada) {
+            guardarSubtareaCompletada(subtarea, true);
+          }
+        };
         
         const subTexto = document.createElement('div');
         subTexto.className = 'subtarea-texto';
@@ -184,13 +189,13 @@ function renderizarCriticas() {
         subTexto.textContent = subtarea.texto;
         subTexto.onclick = () => abrirEditorSubtarea(realIndex, subIndex, 'critica');
         
-        const btnMigrarSub = document.createElement('button');
-        btnMigrarSub.className = 'btn-migrar-subtarea';
-        btnMigrarSub.textContent = '→';
-        btnMigrarSub.title = 'Posponer/Asignar subtarea';
-        btnMigrarSub.onclick = (e) => {
+        const btnSubtareaSub = document.createElement('button');
+        btnSubtareaSub.className = 'btn-subtarea';
+        btnSubtareaSub.textContent = '📝';
+        btnSubtareaSub.title = 'Añadir subtarea';
+        btnSubtareaSub.onclick = (e) => {
           e.stopPropagation();
-          abrirMigracionSubtarea(realIndex, subIndex, 'critica');
+          abrirModalSubtareaCritica(realIndex);
         };
         
         const btnBorrarSub = document.createElement('button');
@@ -203,7 +208,7 @@ function renderizarCriticas() {
         
         subDiv.appendChild(subSimbolo);
         subDiv.appendChild(subTexto);
-        subDiv.appendChild(btnMigrarSub);
+        subDiv.appendChild(btnSubtareaSub);
         subDiv.appendChild(btnBorrarSub);
         lista.appendChild(subDiv);
       });
@@ -377,7 +382,12 @@ function renderizarTareas() {
         const subSimbolo = document.createElement('span');
         subSimbolo.className = 'subtarea-simbolo';
         subSimbolo.textContent = subtarea.completada ? '✓' : '○';
-        subSimbolo.onclick = () => toggleSubtarea(realIndex, subIndex);
+        subSimbolo.onclick = () => {
+          toggleSubtarea(realIndex, subIndex);
+          if (!subtarea.completada) {
+            guardarSubtareaCompletada(subtarea, false);
+          }
+        };
         
         const subTexto = document.createElement('div');
         subTexto.className = 'subtarea-texto';
@@ -385,13 +395,13 @@ function renderizarTareas() {
         subTexto.textContent = subtarea.texto;
         subTexto.onclick = () => abrirEditorSubtarea(realIndex, subIndex, 'tarea');
         
-        const btnMigrarSub = document.createElement('button');
-        btnMigrarSub.className = 'btn-migrar-subtarea';
-        btnMigrarSub.textContent = '→';
-        btnMigrarSub.title = 'Posponer/Asignar subtarea';
-        btnMigrarSub.onclick = (e) => {
+        const btnSubtareaSub = document.createElement('button');
+        btnSubtareaSub.className = 'btn-subtarea';
+        btnSubtareaSub.textContent = '📝';
+        btnSubtareaSub.title = 'Añadir subtarea';
+        btnSubtareaSub.onclick = (e) => {
           e.stopPropagation();
-          abrirMigracionSubtarea(realIndex, subIndex, 'tarea');
+          abrirModalSubtarea(realIndex);
         };
         
         const btnBorrarSub = document.createElement('button');
@@ -404,7 +414,7 @@ function renderizarTareas() {
         
         subDiv.appendChild(subSimbolo);
         subDiv.appendChild(subTexto);
-        subDiv.appendChild(btnMigrarSub);
+        subDiv.appendChild(btnSubtareaSub);
         subDiv.appendChild(btnBorrarSub);
         lista.appendChild(subDiv);
       });
@@ -1066,6 +1076,7 @@ function toggleSubtareaCritica(tareaIndex, subIndex) {
   
   if (subtarea.completada) {
     mostrarAlerta('✅ Subtarea crítica completada', 'success');
+    mostrarCelebracion();
   }
 }
 
@@ -1142,6 +1153,7 @@ function toggleSubtarea(tareaIndex, subIndex) {
   
   if (subtarea.completada) {
     mostrarAlerta('✅ Subtarea completada', 'success');
+    mostrarCelebracion();
   }
 }
 
@@ -1310,6 +1322,21 @@ function guardarMigracionSubtarea() {
   }
 }
 
+// ========== GUARDAR SUBTAREAS EN HISTORIAL ==========
+function guardarSubtareaCompletada(subtarea, esCritica) {
+  if (typeof guardarEnHistorial === 'function') {
+    const entrada = {
+      id: Date.now().toString(),
+      tipo: esCritica ? 'subtarea_critica' : 'subtarea',
+      texto: subtarea.texto,
+      fecha_completada: new Date().toISOString(),
+      fecha_original: subtarea.fecha_fin || null,
+      persona: subtarea.persona || null
+    };
+    guardarEnHistorial(entrada);
+  }
+}
+
 // Hacer funciones disponibles globalmente
 window.renderizar = renderizar;
 window.renderizarCriticas = renderizarCriticas;
@@ -1352,3 +1379,4 @@ window.abrirEditorSubtarea = abrirEditorSubtarea;
 window.guardarEdicionSubtarea = guardarEdicionSubtarea;
 window.abrirMigracionSubtarea = abrirMigracionSubtarea;
 window.guardarMigracionSubtarea = guardarMigracionSubtarea;
+window.guardarSubtareaCompletada = guardarSubtareaCompletada;
