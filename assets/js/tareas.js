@@ -216,16 +216,8 @@ function renderizarTareas() {
   const sinTactil = configOpciones.sinTactil || false;
   const mostrarBotonesBorrar = configOpciones.botonesBorrar || false;
   
-  // Filtrar tareas según la vista de largo plazo
-  let tareasFiltradas = appState.agenda.tareas.filter(tarea => {
-    if (mostrarTodo || appState.ui.mostrarLargoPlazo) {
-      return true; // Mostrar todas las tareas
-    }
-    // Ocultar tareas de largo plazo (más de 15 días)
-    const esLargoFin = esLargoPlazo(tarea.fecha_fin);
-    const esLargoMigrar = esLargoPlazo(tarea.fecha_migrar);
-    return !esLargoFin && !esLargoMigrar;
-  });
+  // Mostrar todas las tareas siempre
+  let tareasFiltradas = appState.agenda.tareas;
   
   // Aplicar filtros adicionales
   tareasFiltradas = filtrarTareas(tareasFiltradas, 'tareas');
@@ -233,7 +225,7 @@ function renderizarTareas() {
   if (tareasFiltradas.length === 0) {
     const mensaje = appState.filtros.tareas.estado || appState.filtros.tareas.fecha || appState.filtros.tareas.prioridad ?
       'No hay tareas que coincidan con los filtros' :
-      'No hay tareas (algunas pueden estar ocultas en largo plazo)';
+      'No hay tareas';
     lista.innerHTML = `<div style="color:#777;padding:10px;text-align:center;">${mensaje}</div>`;
     return;
   }
@@ -804,13 +796,22 @@ function toggleFiltros(tipo) {
   }
 }
 
+function scrollToTop() {
+  const lista = document.getElementById('lista-metodo');
+  if (lista) {
+    lista.scrollTop = 0;
+  }
+}
+
+function scrollToBottom() {
+  const lista = document.getElementById('lista-metodo');
+  if (lista) {
+    lista.scrollTop = lista.scrollHeight;
+  }
+}
+
 function toggleLargoPlazo() {
   appState.ui.mostrarLargoPlazo = !appState.ui.mostrarLargoPlazo;
-  const btn = document.getElementById('btn-largo-plazo');
-  if (btn) {
-    btn.textContent = appState.ui.mostrarLargoPlazo ? 'Todas' : '15d';
-    btn.style.background = appState.ui.mostrarLargoPlazo ? '#4caf50' : '#a8e6cf';
-  }
   renderizar();
 }
 
@@ -1209,6 +1210,8 @@ window.actualizarEstilosFiltros = actualizarEstilosFiltros;
 window.limpiarFiltros = limpiarFiltros;
 window.toggleFiltros = toggleFiltros;
 window.toggleLargoPlazo = toggleLargoPlazo;
+window.scrollToTop = scrollToTop;
+window.scrollToBottom = scrollToBottom;
 window.setupPersonasAutocomplete = setupPersonasAutocomplete;
 window.mostrarCelebracion = mostrarCelebracion;
 window.mostrarCuentaRegresiva = mostrarCuentaRegresiva;

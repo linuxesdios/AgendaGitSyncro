@@ -1170,6 +1170,13 @@ body.modo-oscuro {
   transform: scale(1.1);
 }
 
+/* ========== SCROLL PARA LISTA DE TAREAS ========== */
+#lista-metodo {
+  max-height: 60vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 /* ========== BOTONES DE BORRAR TAREAS ========== */
 .btn-borrar-tarea {
   background: #e74c3c;
