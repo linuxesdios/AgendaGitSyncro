@@ -1172,8 +1172,8 @@ body.modo-oscuro {
 
 /* ========== SCROLL PARA LISTA DE TAREAS ========== */
 #lista-metodo {
-  max-height: 60vh;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   scroll-behavior: smooth;
 }
 
