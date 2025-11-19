@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Agenda de Pablo 🚆</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%234ecdc4' rx='20'/><text x='90' y='120' font-size='100' text-anchor='middle' fill='white'>🧠</text></svg>">
+<meta name="theme-color" content="#4ecdc4">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div style="width:120px; display: flex; align-items: center; justify-content: flex-start;">
+      <span style="font-size: 40px; color: #2d5a27;">📋</span>
+    </div>
+    <div class="header-center">
+      <h1 id="titulo-agenda">🧠 Agenda de Pablo 🚆</h1>
+      <div class="frase-motivacional" id="frase-motivacional" onclick="cambiarFraseMotivacional()" title="Haz clic para cambiar la frase">"El éxito es la suma de pequeños esfuerzos repetidos día tras día"</div>
+      <div class="fecha-actual" id="fecha-actual"></div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-end; width:120px;">
+      <button id="btn-config" class="boton-cargar tooltip" onclick="toggleConfigFloating()" style="padding:6px 12px;font-size:12px;" data-tooltip="Configuración">⚙️</button>
+    </div>
+  </div>
+
+  <div id="alertas"></div>
+
+  <div class="contenedor-dos-columnas">
+    <div class="columna-izquierda">
+      <section class="drop-zone" data-target="criticas">
+        <h3>🚨 Tareas Críticas 🚨</h3>
+        
+        <!-- Filtros para tareas críticas -->
+        <div class="filtros-container">
+          <button class="filtros-toggle" onclick="toggleFiltros('criticas')">
+            <span>🔍 Filtros</span>
+            <span id="filtros-icon-criticas">▼</span>
+          </button>
+          <div id="filtros-content-criticas" class="filtros-content">
+            <div class="filtros-grid">
+              <div class="filtro-grupo">
+                <label class="filtro-label">Estado</label>
+                <select id="filtro-estado-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="migrada">Migradas</option>
+                  <option value="programada">Programadas</option>
+                  <option value="completada">Completadas</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Fecha</label>
+                <select id="filtro-fecha-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="hoy">Hoy</option>
+                  <option value="pasadas">Pasadas</option>
+                  <option value="proximas">Próximas</option>
+                  <option value="sin-fecha">Sin fecha</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Prioridad</label>
+                <select id="filtro-prioridad-criticas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="urgente">Urgentes</option>
+                  <option value="normal">Normales</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <button class="btn-limpiar-filtros" onclick="limpiarFiltros('criticas')">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="lista-criticas"></div>
+        <button class="boton-agregar tooltip" onclick="nuevaTareaCritica()" data-tooltip="Crear nueva tarea crítica">➕ Añadir tarea crítica</button>
+      </section>
+
+      <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">📅 Citas</h3>
+          <div style="display: flex; gap: 3px; flex-wrap: wrap;">
+            <button onclick="abrirModalNuevaCita()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #4ecdc4; color: white;">➕</button>
+            <button onclick="abrirModalCitasRelativas()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #9c27b0; color: white;">📅+</button>
+            <button onclick="abrirModalCitaPeriodica()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #e91e63; color: white;">🔄</button>
+            <button onclick="abrirCalendario()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #ff9800; color: white;">📅</button>
+          </div>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <select id="filtro-citas" onchange="cambiarFiltroCitas()" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px;">
+            <option value="todas">Todas las citas</option>
+            <option value="proximas">15 días atrás + 30 adelante</option>
+          </select>
+        </div>
+        <div id="citas-panel" style="max-height:200px;overflow-y:auto;"></div>
+      </section>
+
+      <section>
+        <h3>📝 Notas / Brain Dump</h3>
+        <textarea id="notas-texto" placeholder="Escribe aquí tus notas, ideas, recordatorios..."></textarea>
+      </section>
+    </div>
+
+    <div class="columna-derecha">
+      <section class="drop-zone" data-target="tareas">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">✅ Lista para hacer</h3>
+          <div style="display: flex; gap: 3px; flex-wrap: wrap;">
+            <button id="btn-largo-plazo" onclick="toggleLargoPlazo()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 9px; background: #4caf50;">Todas</button>
+            <button onclick="abrirCalendarioTareas()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #ff9800; color: white;">📅</button>
+          </div>
+        </div>
+        
+        <!-- Filtros para tareas normales -->
+        <div class="filtros-container">
+          <button class="filtros-toggle" onclick="toggleFiltros('tareas')">
+            <span>🔍 Filtros</span>
+            <span id="filtros-icon-tareas">▼</span>
+          </button>
+          <div id="filtros-content-tareas" class="filtros-content">
+            <div class="filtros-grid">
+              <div class="filtro-grupo">
+                <label class="filtro-label">Estado</label>
+                <select id="filtro-estado-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendientes</option>
+                  <option value="migrada">Migradas</option>
+                  <option value="programada">Programadas</option>
+                  <option value="completada">Completadas</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Fecha</label>
+                <select id="filtro-fecha-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="hoy">Hoy</option>
+                  <option value="pasadas">Pasadas</option>
+                  <option value="proximas">Próximas</option>
+                  <option value="sin-fecha">Sin fecha</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <label class="filtro-label">Prioridad</label>
+                <select id="filtro-prioridad-tareas" class="filtro-select" onchange="aplicarFiltros()">
+                  <option value="">Todas</option>
+                  <option value="urgente">Urgentes</option>
+                  <option value="normal">Normales</option>
+                </select>
+              </div>
+              <div class="filtro-grupo">
+                <button class="btn-limpiar-filtros" onclick="limpiarFiltros('tareas')">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="lista-metodo"></div>
+        <button class="boton-agregar tooltip" onclick="nuevaTarea()" data-tooltip="Crear nueva tarea">➕ Añadir tarea</button>
+      </section>
+    </div>
+  </div>
+
+</div>
+
+<!-- Zona de borrado -->
+<div id="delete-zone" class="delete-zone"></div>
+
+<!-- Zona de migración -->
+<div id="migrate-zone" class="migrate-zone"></div>
+
+<!-- Modal del Calendario -->
+<div id="modal-calendar" class="modal">
+  <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
+    <h4>📅 Calendario</h4>
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:20px;">
+      <!-- Columna izquierda: Todas las citas -->
+      <div style="border-right:1px solid #eee;padding-right:15px;">
+        <h5 style="margin:0 0 10px 0;color:#2c3e50;">📋 Todas las citas</h5>
+        <div id="allAppointmentsList" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+      
+      <!-- Panel principal: Calendario y citas del día -->
+      <div>
+        <div class="calendar-header">
+          <button id="prevMonth" class="calendar-nav-btn">◀</button>
+          <h3 id="monthYear"></h3>
+          <button id="nextMonth" class="calendar-nav-btn">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">Lun</div>
+          <div class="calendar-weekday">Mar</div>
+          <div class="calendar-weekday">Mié</div>
+          <div class="calendar-weekday">Jue</div>
+          <div class="calendar-weekday">Vie</div>
+          <div class="calendar-weekday">Sáb</div>
+          <div class="calendar-weekday">Dom</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" style="min-height:300px;"></div>
+        <div class="calendar-appointments">
+          <div id="appointmentsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal del Calendario de Tareas -->
+<div id="modal-calendar-tareas" class="modal">
+  <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
+    <h4>📅 Calendario de Tareas</h4>
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:20px;">
+      <!-- Columna izquierda: Todas las tareas con fecha -->
+      <div style="border-right:1px solid #eee;padding-right:15px;">
+        <h5 style="margin:0 0 10px 0;color:#2c3e50;">📝 Todas las tareas</h5>
+        <div id="allTasksList" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+      
+      <!-- Panel principal: Calendario y tareas del día -->
+      <div>
+        <div class="calendar-header">
+          <button id="prevMonthTareas" class="calendar-nav-btn">◀</button>
+          <h3 id="monthYearTareas"></h3>
+          <button id="nextMonthTareas" class="calendar-nav-btn">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">Lun</div>
+          <div class="calendar-weekday">Mar</div>
+          <div class="calendar-weekday">Mié</div>
+          <div class="calendar-weekday">Jue</div>
+          <div class="calendar-weekday">Vie</div>
+          <div class="calendar-weekday">Sáb</div>
+          <div class="calendar-weekday">Dom</div>
+        </div>
+        <div class="calendar-grid" id="calendarGridTareas" style="min-height:300px;"></div>
+        <div class="calendar-appointments">
+          <div id="tasksListDay"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva tarea crítica -->
+<div id="modal-critica" class="modal">
+  <div class="modal-content">
+    <h4>⭐ Nueva Tarea Crítica</h4>
+    <div class="form-group">
+      <label>Título:</label>
+      <input type="text" id="critica-titulo" placeholder="Ej: Revisar informe">
+    </div>
+    <div class="form-group">
+      <label>Fecha límite (opcional):</label>
+      <input type="date" id="critica-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="agregarTareaCritica()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva tarea normal -->
+<div id="modal-tarea" class="modal">
+  <div class="modal-content">
+    <h4>✅ Nueva Tarea</h4>
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="tarea-texto" placeholder="Ej: Llamar al proveedor">
+    </div>
+    <div class="form-group">
+      <label>Fecha límite (opcional):</label>
+      <input type="date" id="tarea-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="agregarTarea()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-tarea')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para migrar/delegar -->
+<div id="modal-migrar" class="modal">
+  <div class="modal-content">
+    <h4>Reprogramar / Delegar</h4>
+    <div class="form-group">
+      <label>📅 Nueva fecha:</label>
+      <input type="date" id="migrar-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="form-group">
+      <label>👤 Delegar a:</label>
+      <div style="position: relative;">
+        <input type="text" id="migrar-persona" placeholder="Nombre (opcional)" autocomplete="off">
+        <div id="personas-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 150px; overflow-y: auto; z-index: 1000;"></div>
+      </div>
+    </div>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarMigracion()">Aceptar</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-migrar')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para seleccionar hora -->
+<div id="modal-hora" class="modal">
+  <div class="modal-content" style="max-width:280px;padding:15px;">
+    <h4 style="margin:0 0 10px 0;text-align:center;">🕰️ Seleccionar Hora</h4>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0;">
+      <select id="hora-select" style="padding:6px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14" selected>14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+      </select>
+      <span style="font-size:16px;font-weight:bold;">:</span>
+      <select id="minuto-select" style="padding:6px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+        <option value="00" selected>00</option>
+        <option value="15">15</option>
+        <option value="30">30</option>
+        <option value="45">45</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px;">
+      <input type="text" id="cita-descripcion" placeholder="¿Qué hacer?" style="width:100%;padding:8px;border-radius:4px;border:1px solid #ddd;font-size:14px;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primario" onclick="confirmarCita()" style="flex:1;padding:8px;font-size:13px;">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-hora')" style="flex:1;padding:8px;font-size:13px;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva cita única -->
+<div id="modal-nueva-cita" class="modal">
+  <div class="modal-content" style="max-width:350px;">
+    <h4>📅 Nueva Cita</h4>
+    
+    <div class="form-group">
+      <label>Fecha:</label>
+      <input type="date" id="nueva-cita-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="nueva-cita-desc" placeholder="¿Qué hacer?">
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+      <div>
+        <label style="font-size:12px;">Hora:</label>
+        <select id="nueva-cita-hora" style="width:100%;padding:6px;">
+          <option value="08">08:00</option>
+          <option value="09">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12">12:00</option>
+          <option value="13">13:00</option>
+          <option value="14" selected>14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+          <option value="19">19:00</option>
+          <option value="20">20:00</option>
+          <option value="21">21:00</option>
+          <option value="22">22:00</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;">Minutos:</label>
+        <select id="nueva-cita-minutos" style="width:100%;padding:6px;">
+          <option value="00" selected>00</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarNuevaCita()">Añadir</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-nueva-cita')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Configuración con Pestañas -->
+<div id="modal-config" class="modal">
+  <div class="modal-content" style="max-width:500px;">
+    <h4>⚙️ Configuración</h4>
+    
+    <!-- Pestañas -->
+    <div class="config-tabs">
+      <button class="config-tab active" onclick="switchTab('github')">🔗 GitHub</button>
+      <button class="config-tab" onclick="switchTab('visual')">🎨 Visual</button>
+      <button class="config-tab" onclick="switchTab('actions')">⚙️ Acciones</button>
+      <button class="config-tab" onclick="switchTab('options')">🔧 Opciones</button>
+      <button class="config-tab" onclick="switchTab('guide')">📖 Guía</button>
+    </div>
+    
+    <!-- Contenido GitHub -->
+    <div id="tab-github" class="tab-content active">
+      <div class="form-group">
+        <label>Repositorio:</label>
+        <input type="text" id="config-repo" placeholder="usuario/repo">
+      </div>
+      <div class="form-group">
+        <label>Archivo agenda:</label>
+        <input type="text" id="config-agenda-file" placeholder="agenda.xml" value="agenda.xml">
+      </div>
+      <div class="form-group">
+        <label>Archivo histórico:</label>
+        <input type="text" id="config-historico-file" placeholder="historico.json" value="historico.json">
+      </div>
+      <div class="form-group">
+        <label>Token:</label>
+        <input type="password" id="config-token" placeholder="ghp_...">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-primario" onclick="guardarConfigGitHub()">Guardar</button>
+        <button class="btn-secundario" onclick="probarConexionGitHub()">Probar</button>
+      </div>
+      <div id="github-status" style="margin-top:10px;font-size:13px;display:none;"></div>
+    </div>
+    
+    <!-- Contenido Visual -->
+    <div id="tab-visual" class="tab-content">
+      <div class="form-group">
+        <label>Tema:</label>
+        <select id="config-tema-select">
+          <option value="claro">Claro</option>
+          <option value="oscuro">Oscuro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" id="config-nombre-input" placeholder="Mi Agenda">
+      </div>
+      <div class="form-group">
+        <label>Frases motivacionales (una por línea):</label>
+        <textarea id="config-frases" rows="4" placeholder="El éxito es la suma de pequeños esfuerzos repetidos día tras día
+Cada día es una nueva oportunidad para mejorar
+La disciplina es el puente entre metas y logros"></textarea>
+      </div>
+      <button class="btn-primario" onclick="guardarConfigVisualPanel()">Aplicar</button>
+    </div>
+    
+    <!-- Contenido Acciones -->
+    <div id="tab-actions" class="tab-content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <button class="btn-primario" onclick="guardarJSON()">💾 Guardar</button>
+        <button class="btn-secundario" onclick="githubPull()">🔄 Cargar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <button class="btn-secundario" onclick="verHistorial()">📜 Historial</button>
+        <button class="btn-secundario" onclick="hacerCopia()">📋 Copia</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <button class="btn-secundario" onclick="abrirHistoricoTareas()">📊 Histórico</button>
+        <button class="btn-secundario" onclick="abrirGraficos()">📈 Gráficos</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn-secundario" onclick="crearBackupManual()">💾 Backup</button>
+        <button class="btn-secundario" onclick="restaurarBackup()">🔄 Restaurar</button>
+      </div>
+    </div>
+    
+    <!-- Contenido Opciones -->
+    <div id="tab-options" class="tab-content">
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-forzar-fecha" onchange="guardarConfigOpciones()">
+          <span>Forzar fecha al crear tareas</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-sin-tactil" onchange="guardarConfigOpciones()">
+          <span>Deshabilitar respuesta táctil</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-mostrar-todo" onchange="guardarConfigOpciones()">
+          <span>Mostrar todas las fechas por defecto</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-botones-borrar" onchange="guardarConfigOpciones()">
+          <span>Mostrar botones de borrar en tareas</span>
+        </label>
+      </div>
+    </div>
+    
+    <!-- Contenido Guía -->
+    <div id="tab-guide" class="tab-content">
+      <div style="max-height:400px;overflow-y:auto;padding:10px;">
+        <h5>📖 Guía de Uso</h5>
+        <div style="margin-bottom:15px;">
+          <h6>🔴 Símbolos de Estado:</h6>
+          <ul style="font-size:12px;">
+            <li><strong>●</strong> - Tarea pendiente</li>
+            <li><strong>→</strong> - Tarea migrada/delegada</li>
+            <li><strong>&lt;</strong> - Tarea programada</li>
+            <li><strong>✔</strong> - Tarea completada</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:15px;">
+          <h6>🎯 Controles:</h6>
+          <ul style="font-size:12px;">
+            <li>Clic en símbolo: cambiar estado</li>
+            <li>Clic en texto: editar tarea</li>
+            <li>Botón ➕: añadir subtarea</li>
+            <li>Arrastrar: mover entre columnas</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:15px;">
+          <h6>📅 Filtros:</h6>
+          <ul style="font-size:12px;">
+            <li>15d: alternar vista de largo plazo</li>
+            <li>🔍 Filtros: por estado, fecha, prioridad</li>
+            <li>Próximas 30 días / Todas las citas</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:15px;">
+          <h6>🔗 Configuración GitHub:</h6>
+          <ul style="font-size:12px;">
+            <li><strong>1.</strong> Crear repositorio público en GitHub</li>
+            <li><strong>2.</strong> Ir a Settings > Developer settings > Personal access tokens</li>
+            <li><strong>3.</strong> Generate new token (classic)</li>
+            <li><strong>4.</strong> Seleccionar scopes: repo (full control)</li>
+            <li><strong>5.</strong> Copiar token que empieza con ghp_</li>
+            <li><strong>6.</strong> En configuración: poner usuario/repo y token</li>
+            <li><strong>7.</strong> Archivo por defecto: agenda.xml</li>
+          </ul>
+        </div>
+        <div>
+          <h6>⚙️ Configuración:</h6>
+          <ul style="font-size:12px;">
+            <li>GitHub: sincronización automática</li>
+            <li>Visual: tema, nombre, frases</li>
+            <li>Opciones: fecha obligatoria, sin táctil</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="cerrarModal('modal-config')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver historial -->
+<div id="modal-historial" class="modal">
+  <div class="modal-content" style="max-width:800px;width:95%;max-height:90vh;">
+    <h4>📜 Historial de Elementos Eliminados</h4>
+    <div id="historial-contenido" style="max-height:70vh;overflow-y:auto;padding:10px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9;"></div>
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="cerrarModal('modal-historial')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para cita periódica -->
+<div id="modal-cita-periodica" class="modal">
+  <div class="modal-content" style="max-width:400px;">
+    <h4>🔄 Cita Periódica</h4>
+    
+    <div class="form-group">
+      <label>Descripción:</label>
+      <input type="text" id="periodica-descripcion" placeholder="Ej: Reunión semanal">
+    </div>
+    
+    <div class="form-group">
+      <label>Fecha de inicio:</label>
+      <input type="date" id="periodica-fecha-inicio" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+      <div>
+        <label style="font-size:12px;">Hora:</label>
+        <select id="periodica-hora" style="width:100%;padding:6px;">
+          <option value="08">08:00</option>
+          <option value="09">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12">12:00</option>
+          <option value="13">13:00</option>
+          <option value="14" selected>14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+          <option value="19">19:00</option>
+          <option value="20">20:00</option>
+          <option value="21">21:00</option>
+          <option value="22">22:00</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;">Minutos:</label>
+        <select id="periodica-minutos" style="width:100%;padding:6px;">
+          <option value="00" selected>00</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label>Frecuencia:</label>
+      <select id="periodica-frecuencia" style="width:100%;padding:8px;">
+        <option value="semanal">Cada semana</option>
+        <option value="quincenal">Cada 15 días</option>
+        <option value="mensual">Cada mes</option>
+        <option value="semestral">Cada 6 meses</option>
+        <option value="anual">Cada año</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Generar hasta:</label>
+      <input type="date" id="periodica-fecha-fin" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="crearCitaPeriodica()">Crear</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-cita-periodica')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para citas con fechas relativas -->
+<div id="modal-citas-relativas" class="modal">
+  <div class="modal-content" style="max-width:450px;">
+    <h4>📅 Conjunto de Citas</h4>
+    
+    <!-- Selector de fecha base -->
+    <div class="form-group">
+      <label>Fecha base:</label>
+      <input type="date" id="fecha-base-citas" onkeydown="return false;" onclick="this.showPicker();" onchange="actualizarPreviewFecha()">
+    </div>
+    
+    <!-- Lista de citas a agregar -->
+    <div class="form-group">
+      <label>Citas a agregar:</label>
+      <div id="lista-citas-relativas" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:10px;background:#f9f9f9;">
+        <!-- Las citas se agregarán aquí dinámicamente -->
+      </div>
+    </div>
+    
+    <!-- Formulario para nueva cita -->
+    <div style="border-top:1px solid #eee;padding-top:15px;margin-top:15px;">
+      <div class="form-group">
+        <label>Nueva cita:</label>
+        <input type="text" id="nueva-cita-descripcion" placeholder="Descripción de la cita">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:12px;">Días:</label>
+          <input type="number" id="dias-offset" value="0" min="-365" max="365" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Meses:</label>
+          <input type="number" id="meses-offset" value="0" min="-12" max="12" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Años:</label>
+          <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;" oninput="actualizarPreviewFecha()">
+        </div>
+      </div>
+      
+      <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <div>
+          <label style="font-size:12px;">Hora:</label>
+          <select id="hora-cita-relativa" style="width:100%;padding:6px;">
+            <option value="08">08:00</option>
+            <option value="09">09:00</option>
+            <option value="10">10:00</option>
+            <option value="11">11:00</option>
+            <option value="12">12:00</option>
+            <option value="13">13:00</option>
+            <option value="14" selected>14:00</option>
+            <option value="15">15:00</option>
+            <option value="16">16:00</option>
+            <option value="17">17:00</option>
+            <option value="18">18:00</option>
+            <option value="19">19:00</option>
+            <option value="20">20:00</option>
+            <option value="21">21:00</option>
+            <option value="22">22:00</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Minutos:</label>
+          <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
+            <option value="00" selected>00</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="45">45</option>
+          </select>
+        </div>
+      </div>
+      
+      <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir cita</button>
+    </div>
+    
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts modulares -->
+<script src="js/app.js"></script>
+<script src="js/tareas.js"></script>
+<script src="js/calendario.js"></script>
+<script src="js/sincronizacion.js"></script>
+<script src="js/rendimiento.js"></script>
+<script src="js/compatibility.js"></script>
+
+</body>
+</html>

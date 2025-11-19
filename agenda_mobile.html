@@ -354,6 +354,23 @@ section h3 {
   cursor: pointer;
   font-size: 12px;
 }
+.boton-eliminar.pequeno {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  margin-left: 5px;
+  min-width: 20px;
+  height: 20px;
+  transition: all 0.2s;
+}
+.boton-eliminar.pequeno:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
 .boton-agregar {
   width: 100%;
   padding: 10px;
@@ -1330,8 +1347,8 @@ input[type="file"] {
         </div>
         <div style="margin-bottom: 10px;">
           <select id="filtro-citas" onchange="cambiarFiltroCitas()" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px;">
-            <option value="proximas">Próximas 30 días</option>
             <option value="todas">Todas las citas</option>
+            <option value="proximas">Próximas 30 días</option>
           </select>
         </div>
         <div id="citas-panel" style="max-height:200px;overflow-y:auto;"></div>
@@ -1348,7 +1365,7 @@ input[type="file"] {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h3 style="margin: 0;">✅ Lista para hacer</h3>
           <div style="display: flex; gap: 3px; flex-wrap: wrap;">
-            <button id="btn-largo-plazo" onclick="toggleLargoPlazo()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 9px; background: #a8e6cf;">15d</button>
+            <button id="btn-largo-plazo" onclick="toggleLargoPlazo()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 9px; background: #4caf50;">Todas</button>
             <button onclick="abrirCalendarioTareas()" class="boton-cargar calendar-btn" style="padding: 4px 8px; font-size: 10px; background: #ff9800; color: white;">📅</button>
           </div>
         </div>
@@ -1986,6 +2003,12 @@ La disciplina es el puente entre metas y logros"></textarea>
           <span>Mostrar todas las fechas por defecto</span>
         </label>
       </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" id="config-botones-borrar" onchange="guardarConfigOpciones()">
+          <span>Mostrar botones de borrar en tareas</span>
+        </label>
+      </div>
     </div>
     
     <!-- Contenido Guía -->
@@ -2155,12 +2178,22 @@ const performanceMonitor = {
 
 // Prevenir zoom accidental en tablet
 if (isMobile()) {
+  // Disable tactile feedback globally
+  document.body.style.WebkitTapHighlightColor = 'transparent';
+
+  // Prevent default touch behaviors
   document.addEventListener('touchstart', (e) => {
+    // Prevent multi-touch zoom
     if (e.touches.length > 1) {
       e.preventDefault();
     }
+
+    // Optional: add a subtle vibration for task interactions
+    if ('vibrate' in navigator && document.getElementById('config-vibration')?.checked) {
+      navigator.vibrate(10);
+    }
   }, { passive: false });
-  
+
   let lastTouchEnd = 0;
   document.addEventListener('touchend', (e) => {
     const now = (new Date()).getTime();
@@ -2199,7 +2232,7 @@ const appState = {
     tareaSeleccionada: null,
     tareaEditando: null,
     criticaEditando: null,
-    mostrarLargoPlazo: false
+    mostrarLargoPlazo: true
   },
   filtros: {
     criticas: {
@@ -3404,6 +3437,12 @@ function renderizarCriticas() {
     };
     div.appendChild(btnSubtarea);
     
+    // Botón de borrar si está habilitado
+    const btnBorrar = crearBotonBorrar('critica', realIndex);
+    if (btnBorrar) {
+      div.appendChild(btnBorrar);
+    }
+    
     // Drag & Drop / Touch
     div.draggable = !isMobile();
     div.dataset.tipo = 'critica';
@@ -3547,6 +3586,12 @@ function renderizarTareas() {
       nuevaSubtarea('tarea', realIndex);
     };
     div.appendChild(btnSubtarea);
+    
+    // Botón de borrar si está habilitado
+    const btnBorrar = crearBotonBorrar('tarea', realIndex);
+    if (btnBorrar) {
+      div.appendChild(btnBorrar);
+    }
     
     // Drag & Drop / Touch
     div.draggable = !isMobile();
@@ -3714,6 +3759,12 @@ document.querySelectorAll('.modal').forEach(modal => {
 });
 
 function nuevaTareaCritica() {
+    // Check for mandatory date requirement
+    const fechaInput = document.getElementById('fecha_fin');
+    if (!fechaInput || !fechaInput.value) {
+        mostrarAlerta('❌ Es obligatorio establecer una fecha para la tarea crítica', 'error');
+        return false;
+    }
   abrirModal('modal-critica');
   setTimeout(() => document.getElementById('critica-titulo').focus(), 100);
 }
@@ -3759,6 +3810,12 @@ async function agregarTareaCritica() {
 }
 
 function nuevaTarea() {
+    // Check for mandatory date requirement
+    const fechaInput = document.getElementById('fecha_fin_tarea');
+    if (!fechaInput || !fechaInput.value) {
+        mostrarAlerta('❌ Es obligatorio establecer una fecha para la tarea', 'error');
+        return false;
+    }
   abrirModal('modal-tarea');
   setTimeout(() => document.getElementById('tarea-texto').focus(), 100);
 }
@@ -4169,7 +4226,7 @@ function toggleLargoPlazo() {
   appState.ui.mostrarLargoPlazo = !appState.ui.mostrarLargoPlazo;
   const btn = document.getElementById('btn-largo-plazo');
   if (btn) {
-    btn.textContent = appState.ui.mostrarLargoPlazo ? 'Mostrar todas' : 'Próximos 15 días';
+    btn.textContent = appState.ui.mostrarLargoPlazo ? 'Todas' : '15d';
     btn.style.background = appState.ui.mostrarLargoPlazo ? '#4caf50' : '#a8e6cf';
   }
   renderizar();
@@ -4718,7 +4775,7 @@ window.onclick = (e) => {
 
 
 // ========== PANEL DE CITAS ==========
-let mostrarTodasLasCitas = false;
+let mostrarTodasLasCitas = true;
 
 function cambiarFiltroCitas() {
   const filtro = document.getElementById('filtro-citas').value;
@@ -6595,5 +6652,673 @@ async function confirmDeleteSubtarea(tipoParent, indexParent, indexSubtarea) {
 
 
 
+</body>
+</html>
+
+// ========== NUEVAS FUNCIONES PARA MEJORAS ==========
+
+// Configuración de opciones
+let configOpciones = {
+  forzarFecha: false,
+  sinTactil: false,
+  mostrarTodo: false,
+  botonesBorrar: false
+};
+
+// Cargar configuración de opciones al iniciar
+function cargarConfigOpciones() {
+  const config = JSON.parse(localStorage.getItem('config-opciones') || '{}');
+  configOpciones = {
+    forzarFecha: config.forzarFecha || false,
+    sinTactil: config.sinTactil || false,
+    mostrarTodo: config.mostrarTodo || false,
+    botonesBorrar: config.botonesBorrar || false
+  };
+  
+  // Aplicar configuración a los checkboxes
+  document.getElementById('config-forzar-fecha').checked = configOpciones.forzarFecha;
+  document.getElementById('config-sin-tactil').checked = configOpciones.sinTactil;
+  document.getElementById('config-mostrar-todo').checked = configOpciones.mostrarTodo;
+  document.getElementById('config-botones-borrar').checked = configOpciones.botonesBorrar;
+  
+  // Aplicar configuración de mostrar todo por defecto
+  if (configOpciones.mostrarTodo) {
+    appState.ui.mostrarLargoPlazo = true;
+    const btn = document.getElementById('btn-largo-plazo');
+    if (btn) {
+      btn.textContent = 'Mostrar todas';
+      btn.style.background = '#4caf50';
+    }
+    // Cambiar filtro de citas por defecto
+    const filtroCitas = document.getElementById('filtro-citas');
+    if (filtroCitas) {
+      filtroCitas.value = 'todas';
+      mostrarTodasLasCitas = true;
+    }
+  }
+  
+  // Aplicar configuración sin táctil
+  if (configOpciones.sinTactil) {
+    deshabilitarRespuestaTactil();
+  }
+}
+
+// Guardar configuración de opciones
+function guardarConfigOpciones() {
+  configOpciones.forzarFecha = document.getElementById('config-forzar-fecha').checked;
+  configOpciones.sinTactil = document.getElementById('config-sin-tactil').checked;
+  configOpciones.mostrarTodo = document.getElementById('config-mostrar-todo').checked;
+  configOpciones.botonesBorrar = document.getElementById('config-botones-borrar').checked;
+  
+  localStorage.setItem('config-opciones', JSON.stringify(configOpciones));
+  
+  // Aplicar cambios inmediatamente
+  if (configOpciones.mostrarTodo) {
+    appState.ui.mostrarLargoPlazo = true;
+    const btn = document.getElementById('btn-largo-plazo');
+    if (btn) {
+      btn.textContent = 'Mostrar todas';
+      btn.style.background = '#4caf50';
+    }
+    const filtroCitas = document.getElementById('filtro-citas');
+    if (filtroCitas) {
+      filtroCitas.value = 'todas';
+      mostrarTodasLasCitas = true;
+    }
+  }
+  
+  if (configOpciones.sinTactil) {
+    deshabilitarRespuestaTactil();
+  } else {
+    habilitarRespuestaTactil();
+  }
+  
+  // Re-renderizar para aplicar cambios de botones de borrar
+  renderizar();
+  renderCitasPanel();
+  
+  mostrarAlerta('⚙️ Configuración guardada', 'success');
+}
+
+// Deshabilitar respuesta táctil
+function deshabilitarRespuestaTactil() {
+  const style = document.createElement('style');
+  style.id = 'disable-touch-style';
+  style.textContent = `
+    .tarea-item:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .tarea-simbolo:hover {
+      transform: none !important;
+    }
+    .boton-agregar:hover {
+      transform: none !important;
+    }
+    .calendar-day:hover {
+      transform: none !important;
+    }
+    .calendar-nav-btn:hover {
+      transform: none !important;
+    }
+    .boton-guardar:hover,
+    .boton-cargar:hover {
+      transform: none !important;
+    }
+    .btn-primario:hover,
+    .btn-secundario:hover {
+      transform: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Habilitar respuesta táctil
+function habilitarRespuestaTactil() {
+  const style = document.getElementById('disable-touch-style');
+  if (style) {
+    style.remove();
+  }
+}
+
+// Modificar función de agregar tarea crítica para forzar fecha
+async function agregarTareaCriticaConFecha() {
+  const titulo = document.getElementById('critica-titulo').value.trim();
+  const fecha = document.getElementById('critica-fecha').value;
+  
+  if (!titulo) {
+    alert('Por favor, ingresa un título');
+    return;
+  }
+  
+  // Verificar si se debe forzar fecha
+  if (configOpciones.forzarFecha && !fecha) {
+    alert('Debes seleccionar una fecha límite');
+    document.getElementById('critica-fecha').focus();
+    return;
+  }
+  
+  if (appState.ui.criticaEditando !== null) {
+    const tarea = appState.agenda.tareas_criticas[appState.ui.criticaEditando];
+    tarea.titulo = titulo;
+    tarea.fecha_fin = fecha;
+    appState.ui.criticaEditando = null;
+  } else {
+    const nuevaTarea = {
+      id: Date.now().toString(),
+      titulo,
+      razon: '',
+      fecha_fin: fecha,
+      completada: false,
+      estado: 'pendiente',
+      fecha_creacion: new Date().toISOString()
+    };
+    appState.agenda.tareas_criticas.push(nuevaTarea);
+  }
+  
+  cerrarModal('modal-critica');
+  renderizar();
+  await guardarJSON(true);
+}
+
+// Modificar función de agregar tarea normal para forzar fecha
+async function agregarTareaConFecha() {
+  const texto = document.getElementById('tarea-texto').value.trim();
+  const fecha = document.getElementById('tarea-fecha').value;
+  
+  if (!texto) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  // Verificar si se debe forzar fecha
+  if (configOpciones.forzarFecha && !fecha) {
+    alert('Debes seleccionar una fecha límite');
+    document.getElementById('tarea-fecha').focus();
+    return;
+  }
+  
+  if (appState.ui.tareaEditando !== null) {
+    const tarea = appState.agenda.tareas[appState.ui.tareaEditando];
+    tarea.texto = texto;
+    tarea.fecha_fin = fecha;
+    appState.ui.tareaEditando = null;
+  } else {
+    const nuevaTarea = {
+      id: Date.now().toString(),
+      texto,
+      fecha_fin: fecha,
+      completada: false,
+      estado: 'pendiente',
+      fecha_creacion: new Date().toISOString()
+    };
+    appState.agenda.tareas.push(nuevaTarea);
+  }
+  
+  cerrarModal('modal-tarea');
+  renderizar();
+  await guardarJSON(true);
+}
+
+// Función para crear botón de borrar pequeño
+function crearBotonBorrar(tipo, index) {
+  if (!configOpciones.botonesBorrar) return null;
+  
+  const boton = document.createElement('button');
+  boton.className = 'boton-eliminar';
+  boton.textContent = '🗑️';
+  boton.style.cssText = `
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    margin-left: 5px;
+    min-width: 20px;
+    height: 20px;
+  `;
+  boton.title = 'Eliminar tarea';
+  boton.onclick = (e) => {
+    e.stopPropagation();
+    if (tipo === 'critica') {
+      eliminarCritica(index);
+    } else {
+      eliminarTarea(index);
+    }
+  };
+  return boton;
+}
+
+// Función para arreglar el bug del calendario - mostrar tareas de hoy
+function arreglarBugCalendario() {
+  // Modificar la función de filtrado de citas para incluir hoy por defecto
+  const hoy = new Date().toISOString().slice(0, 10);
+  
+  // Si hay citas para hoy, asegurar que se muestren
+  const citasHoy = appState.agenda.citas.filter(cita => cita.fecha === hoy);
+  if (citasHoy.length > 0) {
+    console.log('Citas encontradas para hoy:', citasHoy);
+  }
+}
+
+// Sobrescribir las funciones originales
+window.agregarTareaCritica = agregarTareaCriticaConFecha;
+window.agregarTarea = agregarTareaConFecha;
+
+// Función para abrir calendario de tareas (corregir bug)
+function abrirCalendarioTareas() {
+  // Cargar todas las tareas con fecha
+  const tareasConFecha = [
+    ...appState.agenda.tareas_criticas.filter(t => t.fecha_fin).map(t => ({
+      ...t,
+      tipo: 'critica',
+      fecha: t.fecha_fin
+    })),
+    ...appState.agenda.tareas.filter(t => t.fecha_fin || t.fecha_migrar).map(t => ({
+      ...t,
+      tipo: 'tarea',
+      fecha: t.fecha_fin || t.fecha_migrar
+    }))
+  ];
+  
+  renderAllTasksList(tareasConFecha);
+  renderCalendarTareas();
+  abrirModal('modal-calendar-tareas');
+}
+
+// Función para renderizar lista de todas las tareas
+function renderAllTasksList(tareas) {
+  const list = document.getElementById('allTasksList');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  if (tareas.length === 0) {
+    list.innerHTML = '<div style="color:#777;padding:6px;font-size:12px;">No hay tareas con fecha</div>';
+    return;
+  }
+  
+  const sortedTareas = tareas.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  
+  sortedTareas.forEach(tarea => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    div.style.fontSize = '12px';
+    div.style.cursor = 'pointer';
+    
+    const fecha = new Date(tarea.fecha + 'T00:00:00');
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diaSemana = diasSemana[fecha.getDay()];
+    
+    // Verificar si es hoy o pasada
+    const esHoy = esFechaHoy(tarea.fecha);
+    const esPasada = esFechaPasada(tarea.fecha);
+    
+    if (esPasada || esHoy) {
+      div.style.background = '#ffebee';
+      div.style.border = '2px solid #f44336';
+    }
+    
+    const texto = tarea.tipo === 'critica' ? tarea.titulo : tarea.texto;
+    div.innerHTML = `
+      <span style="${(esHoy || esPasada) ? 'color: #d32f2f; font-weight: bold;' : ''}">${diaSemana}, ${tarea.fecha}<br><small>${texto}</small></span>
+    `;
+    
+    div.addEventListener('click', () => {
+      focusCalendarTareasOn(tarea.fecha);
+      showTasksForDay(tarea.fecha);
+    });
+    
+    list.appendChild(div);
+  });
+}
+
+// Función para renderizar calendario de tareas
+function renderCalendarTareas() {
+  const grid = document.getElementById('calendarGridTareas');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  const monthYearEl = document.getElementById('monthYearTareas');
+  if (monthYearEl) {
+    monthYearEl.textContent = appState.calendar.currentDate.toLocaleString('es-ES', {month:'long', year:'numeric'});
+  }
+  
+  const year = appState.calendar.currentDate.getFullYear();
+  const month = appState.calendar.currentDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  for (let i = 0; i < 42; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7;
+    const dayOffset = i - firstDayOfWeek;
+    const dayNumber = dayOffset + 1;
+    
+    if (dayOffset >= 0 && dayOffset < lastDay.getDate()) {
+      const dayNum = document.createElement('div');
+      dayNum.className = 'day-num';
+      dayNum.textContent = dayNumber;
+      cell.appendChild(dayNum);
+      
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+      
+      // Verificar si es hoy
+      const hoy = new Date().toISOString().slice(0, 10);
+      const esHoy = dateStr === hoy;
+      
+      // Buscar tareas para este día
+      const tareasDelDia = [
+        ...appState.agenda.tareas_criticas.filter(t => t.fecha_fin === dateStr),
+        ...appState.agenda.tareas.filter(t => t.fecha_fin === dateStr || t.fecha_migrar === dateStr)
+      ];
+      
+      const tieneTareas = tareasDelDia.length > 0;
+      
+      if (esHoy && tieneTareas) {
+        cell.classList.add('today', 'has-events');
+      } else if (esHoy) {
+        cell.classList.add('today');
+      } else if (tieneTareas) {
+        cell.classList.add('has-events');
+      }
+      
+      if (tieneTareas) {
+        const eventsDiv = document.createElement('div');
+        eventsDiv.className = 'day-events';
+        
+        tareasDelDia.slice(0, 3).forEach(tarea => {
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'day-event';
+          const texto = tarea.titulo || tarea.texto;
+          eventDiv.textContent = texto.length > 12 ? texto.substring(0, 12) + '...' : texto;
+          eventsDiv.appendChild(eventDiv);
+        });
+        
+        if (tareasDelDia.length > 3) {
+          const moreDiv = document.createElement('div');
+          moreDiv.className = 'day-event';
+          moreDiv.textContent = `+${tareasDelDia.length - 3} más`;
+          moreDiv.style.fontStyle = 'italic';
+          eventsDiv.appendChild(moreDiv);
+        }
+        
+        cell.appendChild(eventsDiv);
+      }
+      
+      cell.addEventListener('click', () => {
+        showTasksForDay(dateStr);
+      });
+      
+      cell.dataset.date = dateStr;
+    } else {
+      cell.style.opacity = '0.3';
+    }
+    
+    grid.appendChild(cell);
+  }
+}
+
+// Función para mostrar tareas de un día específico
+function showTasksForDay(date) {
+  const list = document.getElementById('tasksListDay');
+  if (!list) return;
+  
+  const tareasDelDia = [
+    ...appState.agenda.tareas_criticas.filter(t => t.fecha_fin === date).map(t => ({...t, tipo: 'critica'})),
+    ...appState.agenda.tareas.filter(t => t.fecha_fin === date || t.fecha_migrar === date).map(t => ({...t, tipo: 'tarea'}))
+  ];
+  
+  list.innerHTML = '';
+  
+  if (tareasDelDia.length === 0) {
+    list.innerHTML = '<div style="color:#777;padding:6px">No hay tareas para este día</div>';
+    return;
+  }
+  
+  tareasDelDia.forEach(tarea => {
+    const div = document.createElement('div');
+    div.className = 'cita-item';
+    const texto = tarea.titulo || tarea.texto;
+    const tipoTexto = tarea.tipo === 'critica' ? 'Crítica' : 'Normal';
+    div.innerHTML = `
+      <span><strong>${tipoTexto}:</strong> ${texto}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Función para enfocar calendario de tareas en una fecha
+function focusCalendarTareasOn(dateStr) {
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    appState.calendar.currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, 1);
+    renderCalendarTareas();
+  }
+}
+
+// Inicializar navegación del calendario de tareas
+document.addEventListener('DOMContentLoaded', () => {
+  const prevBtn = document.getElementById('prevMonthTareas');
+  const nextBtn = document.getElementById('nextMonthTareas');
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() - 1);
+      renderCalendarTareas();
+    });
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      appState.calendar.currentDate.setMonth(appState.calendar.currentDate.getMonth() + 1);
+      renderCalendarTareas();
+    });
+  }
+  
+  // Cargar configuración de opciones
+  cargarConfigOpciones();
+});
+
+// Función para abrir calendario normal (corregir bug)
+function abrirCalendario() {
+  renderCalendar();
+  renderAllAppointmentsList();
+  abrirModal('modal-calendar');
+}
+
+// Función para abrir modal de nueva cita
+function abrirModalNuevaCita() {
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('nueva-cita-fecha').value = hoy;
+  document.getElementById('nueva-cita-desc').value = '';
+  document.getElementById('nueva-cita-hora').value = '14';
+  document.getElementById('nueva-cita-minutos').value = '00';
+  
+  abrirModal('modal-nueva-cita');
+  setTimeout(() => document.getElementById('nueva-cita-desc').focus(), 100);
+}
+
+// Función para guardar nueva cita
+function guardarNuevaCita() {
+  const fecha = document.getElementById('nueva-cita-fecha').value;
+  const descripcion = document.getElementById('nueva-cita-desc').value.trim();
+  const hora = document.getElementById('nueva-cita-hora').value;
+  const minutos = document.getElementById('nueva-cita-minutos').value;
+  
+  if (!fecha) {
+    alert('Por favor, selecciona una fecha');
+    return;
+  }
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  appState.agenda.citas.push({ fecha, nombre: citaCompleta });
+  
+  cerrarModal('modal-nueva-cita');
+  renderCitasPanel();
+  renderCalendar();
+  renderAllAppointmentsList();
+  guardarJSON(true);
+  
+  mostrarAlerta('📅 Cita añadida correctamente', 'success');
+}
+
+// Función para abrir modal de citas relativas
+function abrirModalCitasRelativas() {
+  const hoy = new Date().toISOString().slice(0, 10);
+  document.getElementById('fecha-base-citas').value = hoy;
+  document.getElementById('lista-citas-relativas').innerHTML = '';
+  document.getElementById('nueva-cita-descripcion').value = '';
+  document.getElementById('dias-offset').value = '0';
+  document.getElementById('meses-offset').value = '0';
+  document.getElementById('anos-offset').value = '0';
+  
+  abrirModal('modal-citas-relativas');
+  actualizarPreviewFecha();
+}
+
+// Variables globales para citas relativas
+let citasRelativasPendientes = [];
+
+// Función para actualizar preview de fecha
+function actualizarPreviewFecha() {
+  const fechaBase = document.getElementById('fecha-base-citas').value;
+  const dias = parseInt(document.getElementById('dias-offset').value) || 0;
+  const meses = parseInt(document.getElementById('meses-offset').value) || 0;
+  const anos = parseInt(document.getElementById('anos-offset').value) || 0;
+  
+  if (!fechaBase) {
+    document.getElementById('preview-fecha').textContent = 'Fecha resultante: --';
+    return;
+  }
+  
+  const fecha = new Date(fechaBase);
+  fecha.setDate(fecha.getDate() + dias);
+  fecha.setMonth(fecha.getMonth() + meses);
+  fecha.setFullYear(fecha.getFullYear() + anos);
+  
+  const fechaResultante = fecha.toISOString().slice(0, 10);
+  document.getElementById('preview-fecha').textContent = `Fecha resultante: ${fechaResultante}`;
+}
+
+// Función para agregar cita relativa
+function agregarCitaRelativa() {
+  const descripcion = document.getElementById('nueva-cita-descripcion').value.trim();
+  const dias = parseInt(document.getElementById('dias-offset').value) || 0;
+  const meses = parseInt(document.getElementById('meses-offset').value) || 0;
+  const anos = parseInt(document.getElementById('anos-offset').value) || 0;
+  const hora = document.getElementById('hora-cita-relativa').value;
+  const minutos = document.getElementById('minutos-cita-relativa').value;
+  
+  if (!descripcion) {
+    alert('Por favor, ingresa una descripción');
+    return;
+  }
+  
+  const fechaBase = document.getElementById('fecha-base-citas').value;
+  if (!fechaBase) {
+    alert('Por favor, selecciona una fecha base');
+    return;
+  }
+  
+  const fecha = new Date(fechaBase);
+  fecha.setDate(fecha.getDate() + dias);
+  fecha.setMonth(fecha.getMonth() + meses);
+  fecha.setFullYear(fecha.getFullYear() + anos);
+  
+  const fechaResultante = fecha.toISOString().slice(0, 10);
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  
+  citasRelativasPendientes.push({
+    fecha: fechaResultante,
+    nombre: citaCompleta,
+    offset: { dias, meses, anos }
+  });
+  
+  // Actualizar lista visual
+  actualizarListaCitasRelativas();
+  
+  // Limpiar campos
+  document.getElementById('nueva-cita-descripcion').value = '';
+  document.getElementById('dias-offset').value = '0';
+  document.getElementById('meses-offset').value = '0';
+  document.getElementById('anos-offset').value = '0';
+  actualizarPreviewFecha();
+}
+
+// Función para actualizar lista de citas relativas
+function actualizarListaCitasRelativas() {
+  const lista = document.getElementById('lista-citas-relativas');
+  lista.innerHTML = '';
+  
+  if (citasRelativasPendientes.length === 0) {
+    lista.innerHTML = '<div style="color:#777;text-align:center;padding:10px;">No hay citas añadidas</div>';
+    return;
+  }
+  
+  citasRelativasPendientes.forEach((cita, index) => {
+    const div = document.createElement('div');
+    div.className = 'cita-relativa-item';
+    div.innerHTML = `
+      <div class="fecha-calculada">${cita.fecha}</div>
+      <div class="descripcion">${cita.nombre}</div>
+      <button class="btn-eliminar" onclick="eliminarCitaRelativa(${index})">🗑️</button>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+// Función para eliminar cita relativa
+function eliminarCitaRelativa(index) {
+  citasRelativasPendientes.splice(index, 1);
+  actualizarListaCitasRelativas();
+}
+
+// Función para guardar todas las citas relativas
+function guardarCitasRelativas() {
+  if (citasRelativasPendientes.length === 0) {
+    alert('No hay citas para guardar');
+    return;
+  }
+  
+  // Añadir todas las citas al estado
+  appState.agenda.citas.push(...citasRelativasPendientes);
+  
+  // Limpiar array temporal
+  citasRelativasPendientes = [];
+  
+  cerrarModal('modal-citas-relativas');
+  renderCitasPanel();
+  renderCalendar();
+  renderAllAppointmentsList();
+  guardarJSON(true);
+  
+  mostrarAlerta(`📅 ${citasRelativasPendientes.length} citas añadidas correctamente`, 'success');
+}
+
+// Hacer funciones globales
+window.abrirCalendarioTareas = abrirCalendarioTareas;
+window.abrirCalendario = abrirCalendario;
+window.abrirModalNuevaCita = abrirModalNuevaCita;
+window.guardarNuevaCita = guardarNuevaCita;
+window.abrirModalCitasRelativas = abrirModalCitasRelativas;
+window.actualizarPreviewFecha = actualizarPreviewFecha;
+window.agregarCitaRelativa = agregarCitaRelativa;
+window.eliminarCitaRelativa = eliminarCitaRelativa;
+window.guardarCitasRelativas = guardarCitasRelativas;
+window.guardarConfigOpciones = guardarConfigOpciones;
+window.abrirModalCitaPeriodica = abrirModalCitaPeriodica;
+window.crearCitaPeriodica = crearCitaPeriodica;
+
+</script>
 </body>
 </html>
