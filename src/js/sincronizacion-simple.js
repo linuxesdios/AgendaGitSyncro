@@ -569,9 +569,9 @@ function guardarConfigGoogleCalendar() {
 }
 
 function conectarGoogleCalendar() {
+  alert('CONECTAR GOOGLE CALENDAR EJECUTADO');
   console.log('=== INICIO conectarGoogleCalendar() ===');
   console.log('🔗 FUNCIÓN conectarGoogleCalendar() LLAMADA');
-  window.alert('Función conectarGoogleCalendar llamada - revisa consola');
   console.log('🔍 Estado isGoogleCalendarReady:', isGoogleCalendarReady);
   console.log('🔍 window.gapi disponible:', !!window.gapi);
   console.log('🔍 gapi variable local:', !!gapi);
@@ -737,7 +737,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Test function
+function testGoogleConnection() {
+  alert('TEST FUNCTION WORKS');
+  console.log('Test function executed');
+}
+
 // Exports
+window.testGoogleConnection = testGoogleConnection;
 window.getFirebaseConfig = getFirebaseConfig;
 window.initFirebase = initFirebase;
 window.setupAutoSync = setupAutoSync;
