@@ -433,6 +433,8 @@ function mostrarPopupCelebracion() {
     return;
   }
   
+  console.log('Configuración visual:', visualConfig); // Debug
+  
   // Obtener frases personalizadas
   const frasesPersonalizadas = visualConfig.frases || [];
   
@@ -452,6 +454,8 @@ function mostrarPopupCelebracion() {
   // Usar frases personalizadas si existen, sino usar las por defecto
   const frases = frasesPersonalizadas.length > 0 ? frasesPersonalizadas : frasesDefault;
   const frase = frases[Math.floor(Math.random() * frases.length)];
+  
+  console.log('Frase seleccionada:', frase); // Debug
   
   // Crear overlay transparente como el dashboard
   const overlay = document.createElement('div');
