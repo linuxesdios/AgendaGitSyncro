@@ -83,28 +83,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Firebase se inicializa automáticamente en sincronizacion-simple.js
   
-  // Normalizar citas al cargar
+  // Logs de depuración
   setTimeout(() => {
-    if (appState.agenda.citas && appState.agenda.citas.length > 0) {
-      let normalizado = false;
-      appState.agenda.citas = appState.agenda.citas.map(cita => {
-        if (cita.titulo && cita.hora && !cita.nombre) {
-          normalizado = true;
-          return {
-            id: cita.id || Date.now().toString(),
-            fecha: cita.fecha,
-            nombre: `${cita.hora} - ${cita.descripcion || cita.titulo}`,
-            etiqueta: cita.etiqueta || null
-          };
+    console.log('🔍 Cargando: citas desde localStorage:', localStorage.getItem('agenda'));
+    console.log('🔍 Cargando: appState.agenda.citas:', appState.agenda.citas);
+    console.log('🔍 Cargando: Total citas en memoria:', appState.agenda.citas?.length || 0);
+    
+    // LIMPIAR localStorage de citas
+    const agendaLocal = localStorage.getItem('agenda');
+    if (agendaLocal) {
+      try {
+        const data = JSON.parse(agendaLocal);
+        if (data.citas && data.citas.length > 0) {
+          console.warn('⚠️ Encontradas citas en localStorage, ELIMINANDO...');
+          data.citas = [];
+          localStorage.setItem('agenda', JSON.stringify(data));
+          console.log('✅ localStorage limpiado');
         }
-        return cita;
-      });
-      
-      if (normalizado && window.db) {
-        window.db.collection('citas').doc('data').set({
-          citas: appState.agenda.citas,
-          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
+      } catch (e) {
+        console.error('Error limpiando localStorage:', e);
       }
     }
     
@@ -114,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeCalendarioIntegrado();
       }
     }
-  }, 500);
+  }, 1000);
   
   // Listener optimizado para cambios en notas
   const notasEl = document.getElementById('notas-texto');
