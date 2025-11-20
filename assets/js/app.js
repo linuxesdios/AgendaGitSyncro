@@ -85,25 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Logs de depuración
   setTimeout(() => {
-    console.log('🔍 Cargando: citas desde localStorage:', localStorage.getItem('agenda'));
-    console.log('🔍 Cargando: appState.agenda.citas:', appState.agenda.citas);
-    console.log('🔍 Cargando: Total citas en memoria:', appState.agenda.citas?.length || 0);
-    
-    // LIMPIAR localStorage de citas
-    const agendaLocal = localStorage.getItem('agenda');
-    if (agendaLocal) {
-      try {
-        const data = JSON.parse(agendaLocal);
-        if (data.citas && data.citas.length > 0) {
-          console.warn('⚠️ Encontradas citas en localStorage, ELIMINANDO...');
-          data.citas = [];
-          localStorage.setItem('agenda', JSON.stringify(data));
-          console.log('✅ localStorage limpiado');
-        }
-      } catch (e) {
-        console.error('Error limpiando localStorage:', e);
-      }
-    }
+    console.log('🔍 appState.agenda.citas:', appState.agenda.citas);
+    console.log('🔍 Total citas en memoria:', appState.agenda.citas?.length || 0);
     
     const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
     if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
@@ -286,10 +269,37 @@ function setupAutoCapitalize() {
 
 // ========== AUTO-SAVE ==========
 function scheduleAutoSave() {
-  // Auto-guardado con Firebase cada 5 segundos después de cambios
+  // Auto-guardado DIRECTO en Firebase cada 5 segundos después de cambios
   if (appState.sync.autoSaveTimer) clearTimeout(appState.sync.autoSaveTimer);
   appState.sync.autoSaveTimer = setTimeout(() => {
-    guardarJSON(true);
+    if (window.db && window.isFirebaseInitialized) {
+      const batch = window.db.batch();
+      
+      const tareasRef = window.db.collection('tareas').doc('data');
+      batch.set(tareasRef, {
+        tareas_criticas: appState.agenda.tareas_criticas || [],
+        tareas: appState.agenda.tareas || [],
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      const notasRef = window.db.collection('notas').doc('data');
+      batch.set(notasRef, {
+        notas: appState.agenda.notas || '',
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      const sentimientosRef = window.db.collection('sentimientos').doc('data');
+      batch.set(sentimientosRef, {
+        sentimientos: appState.agenda.sentimientos || '',
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      batch.commit().then(() => {
+        console.log('💾 Auto-guardado en Firebase');
+      }).catch(error => {
+        console.error('❌ Error en auto-guardado:', error);
+      });
+    }
   }, 5000);
 }
 

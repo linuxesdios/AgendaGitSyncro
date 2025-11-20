@@ -458,9 +458,12 @@ function renderCitasPanel() {
       alertaHtml = '<span class="alerta-urgente" title="¡Cita hoy!">⚠️ Vence hoy</span>';
     }
     
-    // Extraer solo la descripción de la cita (sin hora)
-    const descripcion = (c.nombre && c.nombre.includes(' - ')) ? c.nombre.split(' - ')[1] : (c.nombre || 'Sin descripción');
-    let contenidoCita = `${descripcion} - ${c.fecha}`;
+    // Extraer hora y descripción
+    const partes = (c.nombre && c.nombre.includes(' - ')) ? c.nombre.split(' - ') : ['', c.nombre || 'Sin descripción'];
+    const hora = partes[0] || '';
+    const descripcion = partes[1] || c.nombre || 'Sin descripción';
+    
+    let contenidoCita = `<span style="font-size:20px;font-weight:bold;color:#2d5a27;">${hora}</span> ${descripcion} <small style="color:#666;">${c.fecha}</small>`;
     if (c.etiqueta) {
       const etiquetaInfo = obtenerEtiquetaInfo ? obtenerEtiquetaInfo(c.etiqueta, 'citas') : null;
       if (etiquetaInfo) {
@@ -757,12 +760,19 @@ function crearCitaPeriodica() {
   }
   
   cerrarModal('modal-cita-periodica');
-  renderCalendar();
-  renderAllAppointmentsList();
-  renderCitasPanel();
-  guardarJSON(true);
   
-  mostrarAlerta(`📅 ${citasCreadas.length} citas periódicas creadas`, 'success');
+  // Guardar SOLO en Firebase
+  if (window.db) {
+    window.db.collection('citas').doc('data').set({
+      citas: appState.agenda.citas,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      renderCalendar();
+      renderAllAppointmentsList();
+      renderCitasPanel();
+      mostrarAlerta(`📅 ${citasCreadas.length} citas periódicas creadas`, 'success');
+    });
+  }
 }
 
 // ========== CITAS RELATIVAS ==========
@@ -876,13 +886,20 @@ function guardarCitasRelativas() {
   });
   
   cerrarModal('modal-citas-relativas');
-  renderCalendar();
-  renderAllAppointmentsList();
-  renderCitasPanel();
-  guardarJSON(true);
   
-  mostrarAlerta(`📅 ${citasRelativasTemp.length} citas guardadas`, 'success');
-  citasRelativasTemp = [];
+  // Guardar SOLO en Firebase
+  if (window.db) {
+    window.db.collection('citas').doc('data').set({
+      citas: appState.agenda.citas,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      renderCalendar();
+      renderAllAppointmentsList();
+      renderCitasPanel();
+      mostrarAlerta(`📅 ${citasRelativasTemp.length} citas guardadas`, 'success');
+      citasRelativasTemp = [];
+    });
+  }
 }
 
 // ========== PROGRAMACIÓN DE NOTIFICACIONES ==========

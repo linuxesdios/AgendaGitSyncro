@@ -288,13 +288,15 @@ function aplicarConfiguracionSincronizada() {
 function procesarJSON(data) {
   if (!data) return;
 
-  console.log('🔄 procesarJSON recibió:', {
-    citas: data.citas ? data.citas.length : 'undefined',
-    citasData: data.citas
+  console.log('🔄 procesarJSON recibió desde Firebase:', {
+    tareas_criticas: data.tareas_criticas ? data.tareas_criticas.length : 0,
+    tareas: data.tareas ? data.tareas.length : 0,
+    citas: data.citas ? data.citas.length : 0
   });
 
-  console.log('📊 appState.agenda.citas ANTES:', appState.agenda.citas ? appState.agenda.citas.length : 'undefined');
+  console.log('📊 appState.agenda.citas ANTES:', appState.agenda.citas ? appState.agenda.citas.length : 0);
 
+  // Actualizar SOLO el estado en memoria, NO localStorage
   appState.agenda.fecha = data.fecha || new Date().toISOString().slice(0, 10);
   appState.agenda.dia_semana = data.dia_semana || '';
   appState.agenda.tareas_criticas = data.tareas_criticas || [];
