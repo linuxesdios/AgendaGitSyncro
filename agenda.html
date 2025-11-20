@@ -248,6 +248,12 @@
       <label>Fecha límite (opcional):</label>
       <input type="date" id="critica-fecha" onkeydown="return false;" onclick="this.showPicker();">
     </div>
+    <div class="form-group">
+      <label>Etiqueta (opcional):</label>
+      <select id="critica-etiqueta">
+        <option value="">Sin etiqueta</option>
+      </select>
+    </div>
     <div class="modal-botones">
       <button class="btn-primario" onclick="agregarTareaCritica()">Añadir</button>
       <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
@@ -266,6 +272,12 @@
     <div class="form-group">
       <label>Fecha límite (opcional):</label>
       <input type="date" id="tarea-fecha" onkeydown="return false;" onclick="this.showPicker();">
+    </div>
+    <div class="form-group">
+      <label>Etiqueta (opcional):</label>
+      <select id="tarea-etiqueta">
+        <option value="">Sin etiqueta</option>
+      </select>
     </div>
     <div class="modal-botones">
       <button class="btn-primario" onclick="agregarTarea()">Añadir</button>
@@ -309,6 +321,13 @@
     <div class="form-group">
       <label>Descripción:</label>
       <input type="text" id="nueva-cita-desc" placeholder="¿Qué hacer?">
+    </div>
+    
+    <div class="form-group">
+      <label>Etiqueta (opcional):</label>
+      <select id="nueva-cita-etiqueta">
+        <option value="">Sin etiqueta</option>
+      </select>
     </div>
     
 
@@ -369,6 +388,7 @@
       <button class="config-tab active" onclick="switchTab('firebase')">🔥 Firebase</button>
       <button class="config-tab" onclick="switchTab('visual')">🎨 Visual</button>
       <button class="config-tab" onclick="switchTab('funcionales')">⚙️ Funcionales</button>
+      <button class="config-tab" onclick="switchTab('etiquetas')">🏷️ Etiquetas</button>
       <button class="config-tab" onclick="switchTab('actions')">📊 Acciones</button>
     </div>
     
@@ -508,6 +528,79 @@
         </div>
         
 
+      </div>
+    </div>
+    
+    <!-- Contenido Etiquetas -->
+    <div id="tab-etiquetas" class="tab-content">
+      <div style="padding:20px;">
+        <h3>🏷️ Gestión de Etiquetas</h3>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <h4>📝 Etiquetas de Tareas</h4>
+            <div id="etiquetas-tareas-lista" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:5px;margin-bottom:10px;">
+              <input type="text" id="nueva-etiqueta-tarea" placeholder="Nombre etiqueta" style="flex:1;padding:6px;">
+              <select id="simbolo-etiqueta-tarea" style="padding:6px;">
+                <option value="💼">💼 Trabajo</option>
+                <option value="🏥">🏥 Salud</option>
+                <option value="🎮">🎮 Ocio</option>
+                <option value="📚">📚 Estudio</option>
+                <option value="🏠">🏠 Casa</option>
+                <option value="💰">💰 Finanzas</option>
+                <option value="🚗">🚗 Transporte</option>
+                <option value="🍽️">🍽️ Comida</option>
+                <option value="📞">📞 Llamadas</option>
+                <option value="🛍️">🛍️ Compras</option>
+                <option value="✈️">✈️ Viajes</option>
+                <option value="📱">📱 Tecnología</option>
+                <option value="🏋️">🏋️ Ejercicio</option>
+                <option value="📝">📝 Documentos</option>
+                <option value="🎉">🎉 Eventos</option>
+                <option value="👥">👥 Social</option>
+                <option value="🎨">🎨 Creatividad</option>
+                <option value="🔧">🔧 Reparaciones</option>
+                <option value="🌱">🌱 Jardinería</option>
+                <option value="📧">📧 Email</option>
+              </select>
+              <button onclick="agregarEtiquetaTarea()" class="btn-primario" style="padding:6px 12px;">Añadir</button>
+            </div>
+          </div>
+          
+          <div>
+            <h4>📅 Etiquetas de Citas</h4>
+            <div id="etiquetas-citas-lista" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:5px;margin-bottom:10px;">
+              <input type="text" id="nueva-etiqueta-cita" placeholder="Nombre etiqueta" style="flex:1;padding:6px;">
+              <select id="simbolo-etiqueta-cita" style="padding:6px;">
+                <option value="💼">💼 Trabajo</option>
+                <option value="🏥">🏥 Salud</option>
+                <option value="🎮">🎮 Ocio</option>
+                <option value="📚">📚 Estudio</option>
+                <option value="🏠">🏠 Casa</option>
+                <option value="💰">💰 Finanzas</option>
+                <option value="🚗">🚗 Transporte</option>
+                <option value="🍽️">🍽️ Comida</option>
+                <option value="📞">📞 Llamadas</option>
+                <option value="🛍️">🛍️ Compras</option>
+                <option value="✈️">✈️ Viajes</option>
+                <option value="📱">📱 Tecnología</option>
+                <option value="🏋️">🏋️ Ejercicio</option>
+                <option value="📝">📝 Documentos</option>
+                <option value="🎉">🎉 Eventos</option>
+                <option value="👥">👥 Social</option>
+                <option value="🎨">🎨 Creatividad</option>
+                <option value="🔧">🔧 Reparaciones</option>
+                <option value="🌱">🌱 Jardinería</option>
+                <option value="📧">📧 Email</option>
+              </select>
+              <button onclick="agregarEtiquetaCita()" class="btn-primario" style="padding:6px 12px;">Añadir</button>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-primario" onclick="guardarEtiquetas()">Guardar Etiquetas</button>
       </div>
     </div>
     

@@ -108,16 +108,23 @@ function extendsClassPull() {
     return;
   }
 
-  db.collection('agenda').doc('data').get().then((doc) => {
-    if (doc.exists) {
-      const data = doc.data();
-      console.log('📥 Sincronizado desde Firebase');
-      procesarJSON(data);
-      mostrarAlerta('✅ Datos sincronizados', 'success');
-    } else {
-      console.log('📝 Primera vez, creando datos');
-      guardarJSON(true);
-    }
+  Promise.all([
+    db.collection('tareas').doc('data').get(),
+    db.collection('citas').doc('data').get(),
+    db.collection('notas').doc('data').get(),
+    db.collection('sentimientos').doc('data').get()
+  ]).then(([tareasDoc, citasDoc, notasDoc, sentimientosDoc]) => {
+    const data = {
+      tareas_criticas: tareasDoc.exists ? (tareasDoc.data().tareas_criticas || []) : [],
+      tareas: tareasDoc.exists ? (tareasDoc.data().tareas || []) : [],
+      citas: citasDoc.exists ? (citasDoc.data().citas || []) : [],
+      notas: notasDoc.exists ? (notasDoc.data().notas || '') : '',
+      sentimientos: sentimientosDoc.exists ? (sentimientosDoc.data().sentimientos || '') : ''
+    };
+    
+    console.log('📥 Sincronizado desde Firebase');
+    procesarJSON(data);
+    mostrarAlerta('✅ Datos sincronizados', 'success');
   }).catch((error) => {
     console.error('Error:', error);
     mostrarAlerta('❌ Error: ' + error.message, 'error');
@@ -130,18 +137,39 @@ function guardarJSON(silent = false) {
     return false;
   }
 
-  const dataToSave = {
-    fecha: appState.agenda.fecha,
-    dia_semana: appState.agenda.dia_semana,
-    tareas_criticas: appState.agenda.tareas_criticas,
-    tareas: appState.agenda.tareas,
-    notas: appState.agenda.notas,
-    sentimientos: appState.agenda.sentimientos || '',
+  // Guardar en colecciones separadas
+  const batch = db.batch();
+  
+  // Tareas
+  const tareasRef = db.collection('tareas').doc('data');
+  batch.set(tareasRef, {
+    tareas_criticas: appState.agenda.tareas_criticas || [],
+    tareas: appState.agenda.tareas || [],
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  
+  // Citas
+  const citasRef = db.collection('citas').doc('data');
+  batch.set(citasRef, {
     citas: appState.agenda.citas || [],
     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  });
+  
+  // Notas
+  const notasRef = db.collection('notas').doc('data');
+  batch.set(notasRef, {
+    notas: appState.agenda.notas || '',
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  
+  // Sentimientos
+  const sentimientosRef = db.collection('sentimientos').doc('data');
+  batch.set(sentimientosRef, {
+    sentimientos: appState.agenda.sentimientos || '',
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
-  db.collection('agenda').doc('data').set(dataToSave).then(() => {
+  batch.commit().then(() => {
     if (!silent) {
       console.log('✅ Guardado en Firebase');
       mostrarAlerta('💾 Guardado automáticamente', 'success');
@@ -237,6 +265,10 @@ function cargarConfiguracionesModal() {
   
   // Cargar configuraciones funcionales
   cargarConfigFuncionales();
+  
+  // Cargar etiquetas
+  renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
+  renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
 }
 
 function cambiarFraseMotivacional() {
@@ -931,7 +963,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Aplicar visibilidad de secciones al cargar
-  setTimeout(() => aplicarVisibilidadSecciones(), 100);
+  setTimeout(() => {
+    aplicarVisibilidadSecciones();
+    inicializarEtiquetas();
+  }, 100);
   
   // Iniciar notificaciones si están activadas
   if (localStorage.getItem('notificaciones-activas') === 'true') {
@@ -1008,5 +1043,139 @@ function guardarSentimiento(texto) {
   }
 }
 
+// ========== SISTEMA DE ETIQUETAS ==========
+function inicializarEtiquetas() {
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  if (!etiquetas.tareas) {
+    etiquetas.tareas = [
+      { nombre: 'Salud', simbolo: '🏥' },
+      { nombre: 'Laboral', simbolo: '💼' },
+      { nombre: 'Ocio', simbolo: '🎮' }
+    ];
+  }
+  if (!etiquetas.citas) {
+    etiquetas.citas = [
+      { nombre: 'Salud', simbolo: '🏥' },
+      { nombre: 'Laboral', simbolo: '💼' },
+      { nombre: 'Ocio', simbolo: '🎮' }
+    ];
+  }
+  localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+  return etiquetas;
+}
+
+function cargarEtiquetasEnSelect(selectId, tipo) {
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  const select = document.getElementById(selectId);
+  if (!select || !etiquetas[tipo]) return;
+  
+  select.innerHTML = '<option value="">Sin etiqueta</option>';
+  etiquetas[tipo].forEach(etiqueta => {
+    const option = document.createElement('option');
+    option.value = etiqueta.nombre;
+    option.textContent = `${etiqueta.simbolo} ${etiqueta.nombre}`;
+    select.appendChild(option);
+  });
+}
+
+function renderizarListaEtiquetas(containerId, tipo) {
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  const container = document.getElementById(containerId);
+  if (!container || !etiquetas[tipo]) return;
+  
+  container.innerHTML = '';
+  etiquetas[tipo].forEach((etiqueta, index) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:5px;';
+    div.innerHTML = `
+      <span>${etiqueta.simbolo} ${etiqueta.nombre}</span>
+      <button onclick="eliminarEtiqueta('${tipo}', ${index})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;border-radius:3px;cursor:pointer;">❌</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function agregarEtiquetaTarea() {
+  const nombre = document.getElementById('nueva-etiqueta-tarea').value.trim();
+  const simbolo = document.getElementById('simbolo-etiqueta-tarea').value;
+  if (!nombre) return;
+  
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  if (!etiquetas.tareas) etiquetas.tareas = [];
+  etiquetas.tareas.push({ nombre, simbolo });
+  localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+  
+  document.getElementById('nueva-etiqueta-tarea').value = '';
+  renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
+}
+
+function agregarEtiquetaCita() {
+  const nombre = document.getElementById('nueva-etiqueta-cita').value.trim();
+  const simbolo = document.getElementById('simbolo-etiqueta-cita').value;
+  if (!nombre) return;
+  
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  if (!etiquetas.citas) etiquetas.citas = [];
+  etiquetas.citas.push({ nombre, simbolo });
+  localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+  
+  document.getElementById('nueva-etiqueta-cita').value = '';
+  renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
+}
+
+function eliminarEtiqueta(tipo, index) {
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  if (etiquetas[tipo]) {
+    etiquetas[tipo].splice(index, 1);
+    localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+    renderizarListaEtiquetas(`etiquetas-${tipo}-lista`, tipo);
+  }
+}
+
+function guardarEtiquetas() {
+  mostrarAlerta('✅ Etiquetas guardadas', 'success');
+}
+
+function obtenerEtiquetaInfo(nombre, tipo) {
+  const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
+  if (!etiquetas[tipo]) return null;
+  return etiquetas[tipo].find(e => e.nombre === nombre);
+}
+
+// ========== HISTORIAL SUAVE (SOFT DELETE) ==========
+function moverAHistorial(item, tipo) {
+  const historial = JSON.parse(localStorage.getItem('historial-eliminados') || '[]');
+  const entrada = {
+    id: Date.now().toString(),
+    tipo: tipo,
+    data: item,
+    fecha_eliminacion: new Date().toISOString(),
+    restaurable: true
+  };
+  
+  historial.push(entrada);
+  if (historial.length > 1000) {
+    historial.splice(0, historial.length - 1000);
+  }
+  
+  localStorage.setItem('historial-eliminados', JSON.stringify(historial));
+  
+  // Guardar en Firebase
+  if (isFirebaseInitialized) {
+    db.collection('historial').add(entrada).catch(error => {
+      console.error('Error guardando en historial:', error);
+    });
+  }
+}
+
 window.guardarSentimiento = guardarSentimiento;
 window.aplicarVisibilidadSecciones = aplicarVisibilidadSecciones;
+window.inicializarEtiquetas = inicializarEtiquetas;
+window.cargarEtiquetasEnSelect = cargarEtiquetasEnSelect;
+window.renderizarListaEtiquetas = renderizarListaEtiquetas;
+window.agregarEtiquetaTarea = agregarEtiquetaTarea;
+window.agregarEtiquetaCita = agregarEtiquetaCita;
+window.eliminarEtiqueta = eliminarEtiqueta;
+window.guardarEtiquetas = guardarEtiquetas;
+window.obtenerEtiquetaInfo = obtenerEtiquetaInfo;
+window.moverAHistorial = moverAHistorial;

@@ -69,6 +69,12 @@ function renderizarCriticas() {
     texto.className = 'tarea-texto';
     texto.style.cursor = 'pointer';
     let contenido = `<strong>${escapeHtml(tarea.titulo)}</strong>`;
+    if (tarea.etiqueta) {
+      const etiquetaInfo = obtenerEtiquetaInfo(tarea.etiqueta, 'tareas');
+      if (etiquetaInfo) {
+        contenido += ` <span style="background: rgba(78, 205, 196, 0.1); color: #2d5a27; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 5px;">${etiquetaInfo.simbolo} ${etiquetaInfo.nombre}</span>`;
+      }
+    }
     if (tarea.fecha_fin) {
       const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
       contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${tarea.fecha_fin}</small>`;
@@ -116,16 +122,18 @@ function renderizarCriticas() {
       
       if (necesitaConfirmacion) {
         mostrarCuentaRegresiva(() => {
+          moverAHistorial(tarea, 'tarea_critica');
           appState.agenda.tareas_criticas.splice(realIndex, 1);
           renderizar();
           guardarJSON(true);
-          mostrarAlerta('🗑️ Tarea crítica eliminada', 'info');
+          mostrarAlerta('🗑️ Tarea crítica movida al historial', 'info');
         });
       } else {
+        moverAHistorial(tarea, 'tarea_critica');
         appState.agenda.tareas_criticas.splice(realIndex, 1);
         renderizar();
         await guardarJSON(true);
-        mostrarAlerta('🗑️ Tarea crítica eliminada', 'info');
+        mostrarAlerta('🗑️ Tarea crítica movida al historial', 'info');
       }
     };
     div.appendChild(btnBorrar);
@@ -271,6 +279,12 @@ function renderizarTareas() {
     texto.className = 'tarea-texto';
     texto.style.cursor = 'pointer';
     let contenido = escapeHtml(tarea.texto);
+    if (tarea.etiqueta) {
+      const etiquetaInfo = obtenerEtiquetaInfo(tarea.etiqueta, 'tareas');
+      if (etiquetaInfo) {
+        contenido += ` <span style="background: rgba(78, 205, 196, 0.1); color: #2d5a27; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-left: 5px;">${etiquetaInfo.simbolo} ${etiquetaInfo.nombre}</span>`;
+      }
+    }
     if (tarea.fecha_fin) {
       const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
       contenido += ` <small style="background: ${esFechaHoy(tarea.fecha_fin) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esFechaHoy(tarea.fecha_fin) ? 'bold' : 'normal'}; font-size: 10px;">hacer antes de 📅 ${tarea.fecha_fin}</small>`;
@@ -307,16 +321,18 @@ function renderizarTareas() {
       
       if (necesitaConfirmacion) {
         mostrarCuentaRegresiva(() => {
+          moverAHistorial(tarea, 'tarea');
           appState.agenda.tareas.splice(realIndex, 1);
           renderizar();
           guardarJSON(true);
-          mostrarAlerta('🗑️ Tarea eliminada', 'info');
+          mostrarAlerta('🗑️ Tarea movida al historial', 'info');
         });
       } else {
+        moverAHistorial(tarea, 'tarea');
         appState.agenda.tareas.splice(realIndex, 1);
         renderizar();
         await guardarJSON(true);
-        mostrarAlerta('🗑️ Tarea eliminada', 'info');
+        mostrarAlerta('🗑️ Tarea movida al historial', 'info');
       }
     };
     div.appendChild(btnBorrar);
@@ -511,6 +527,14 @@ function abrirModal(id) {
     if (id === 'modal-migrar') {
       setupPersonasAutocomplete();
     }
+    // Cargar etiquetas en selects
+    if (id === 'modal-critica') {
+      cargarEtiquetasEnSelect('critica-etiqueta', 'tareas');
+    } else if (id === 'modal-tarea') {
+      cargarEtiquetasEnSelect('tarea-etiqueta', 'tareas');
+    } else if (id === 'modal-nueva-cita') {
+      cargarEtiquetasEnSelect('nueva-cita-etiqueta', 'citas');
+    }
   }, 100);
 }
 
@@ -535,6 +559,7 @@ function nuevaTareaCritica() {
 async function agregarTareaCritica() {
   const titulo = document.getElementById('critica-titulo').value.trim();
   const fecha = document.getElementById('critica-fecha').value;
+  const etiqueta = document.getElementById('critica-etiqueta').value;
   
   if (!titulo) {
     alert('Por favor, ingresa un título');
@@ -553,6 +578,7 @@ async function agregarTareaCritica() {
     const tarea = appState.agenda.tareas_criticas[appState.ui.criticaEditando];
     tarea.titulo = titulo;
     tarea.fecha_fin = fecha;
+    tarea.etiqueta = etiqueta || null;
     appState.ui.criticaEditando = null;
   } else {
     // Nueva tarea crítica
@@ -561,6 +587,7 @@ async function agregarTareaCritica() {
       titulo,
       razon: '',
       fecha_fin: fecha,
+      etiqueta: etiqueta || null,
       completada: false,
       estado: 'pendiente',
       fecha_creacion: new Date().toISOString()
@@ -581,6 +608,7 @@ function nuevaTarea() {
 async function agregarTarea() {
   const texto = document.getElementById('tarea-texto').value.trim();
   const fecha = document.getElementById('tarea-fecha').value;
+  const etiqueta = document.getElementById('tarea-etiqueta').value;
   
   if (!texto) {
     alert('Por favor, ingresa una descripción');
@@ -599,6 +627,7 @@ async function agregarTarea() {
     const tarea = appState.agenda.tareas[appState.ui.tareaEditando];
     tarea.texto = texto;
     tarea.fecha_fin = fecha;
+    tarea.etiqueta = etiqueta || null;
     appState.ui.tareaEditando = null;
   } else {
     // Nueva tarea
@@ -606,6 +635,7 @@ async function agregarTarea() {
       id: Date.now().toString(),
       texto,
       fecha_fin: fecha,
+      etiqueta: etiqueta || null,
       completada: false,
       estado: 'pendiente',
       fecha_creacion: new Date().toISOString()
