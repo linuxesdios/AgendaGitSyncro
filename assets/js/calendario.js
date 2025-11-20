@@ -77,10 +77,13 @@ function renderCalendar() {
         eventsDiv.className = 'day-events';
         
         appointments.slice(0, 3).forEach(cita => {
+          if (!cita || !cita.nombre) return; // Validación para evitar errores
+
           const eventDiv = document.createElement('div');
           eventDiv.className = 'day-event';
           // Extraer solo la descripción después de la hora
-          const descripcion = cita.nombre.includes(' - ') ? cita.nombre.split(' - ')[1] : cita.nombre;
+          const nombre = cita.nombre || '';
+          const descripcion = nombre.includes(' - ') ? nombre.split(' - ')[1] : nombre;
           eventDiv.textContent = descripcion.length > 12 ? descripcion.substring(0, 12) + '...' : descripcion;
           eventsDiv.appendChild(eventDiv);
         });
@@ -113,18 +116,31 @@ function renderCalendar() {
 }
 
 function showAppointments(date) {
-  const appointments = appState.agenda.citas.filter(cita => cita.fecha === date);
+  console.log('🔍 showAppointments llamado para fecha:', date);
+  console.log('📊 Total citas en appState:', appState.agenda.citas.length);
+
+  const appointments = appState.agenda.citas.filter(cita => cita && cita.fecha === date);
+  console.log('🎯 Citas encontradas para', date, ':', appointments.length);
+
   const list = document.getElementById('appointmentsList');
-  if (!list) return;
-  
+  if (!list) {
+    console.warn('⚠️ No se encontró el elemento appointmentsList');
+    return;
+  }
+
   list.innerHTML = '';
-  
+
   if (appointments.length === 0) {
     list.innerHTML = '<div style="color:#777;padding:6px">No hay citas para este día</div>';
     return;
   }
-  
+
   appointments.forEach(cita => {
+    if (!cita || !cita.nombre) {
+      console.warn('⚠️ Cita inválida encontrada:', cita);
+      return;
+    }
+
     const appt = document.createElement('div');
     appt.className = 'cita-item';
     appt.innerHTML = `
@@ -133,6 +149,8 @@ function showAppointments(date) {
     `;
     list.appendChild(appt);
   });
+
+  console.log('✅ showAppointments completado, elementos agregados:', appointments.length);
 }
 
 function renderAllAppointmentsList() {
@@ -195,74 +213,131 @@ function promptAddAppointmentForDay(dateStr) {
   document.getElementById('cita-descripcion').focus();
 }
 
-function confirmarCita() {
+async function confirmarCita() {
   const hora = document.getElementById('hora-select').value;
   const minuto = document.getElementById('minuto-select').value;
   const descripcion = document.getElementById('cita-descripcion').value.trim();
-  
+
   if (!descripcion) {
     alert('Por favor, ingresa una descripción');
     return;
   }
-  
+
+  if (!window.isFirebaseInitialized) {
+    alert('❌ Firebase no está disponible. No se puede crear la cita.');
+    return;
+  }
+
   const citaCompleta = `${hora}:${minuto} - ${descripcion}`;
-  appState.agenda.citas.push({ fecha: appState.calendar.tempDate, nombre: citaCompleta });
-  
-  // Limpiar modal
-  document.getElementById('cita-descripcion').value = '';
-  document.getElementById('hora-select').value = '14';
-  document.getElementById('minuto-select').value = '00';
-  
-  cerrarModal('modal-hora');
-  renderCalendar();
-  renderAllAppointmentsList();
-  showAppointments(appState.calendar.tempDate);
-  renderCitasPanel();
-  guardarJSON(true);
+  const nuevaCita = {
+    id: Date.now().toString(),
+    fecha: appState.calendar.tempDate,
+    nombre: citaCompleta,
+    etiqueta: null
+  };
+
+  console.log('🔥 Creando cita directamente en Firebase:', nuevaCita);
+
+  try {
+    // Limpiar modal primero
+    document.getElementById('cita-descripcion').value = '';
+    document.getElementById('hora-select').value = '14';
+    document.getElementById('minuto-select').value = '00';
+    cerrarModal('modal-hora');
+
+    mostrarAlerta('🔄 Creando cita en Firebase...', 'info');
+
+    // Obtener citas actuales de Firebase
+    const citasDoc = await window.db.collection('citas').doc('data').get();
+    const citasExistentes = citasDoc.exists ? (citasDoc.data().citas || []) : [];
+
+    // Agregar nueva cita
+    citasExistentes.push(nuevaCita);
+
+    // Guardar en Firebase
+    await window.db.collection('citas').doc('data').set({
+      citas: citasExistentes,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log('✅ Cita guardada en Firebase');
+
+    // Registrar acción
+    if (typeof registrarAccion === 'function') {
+      registrarAccion('Crear cita', citaCompleta);
+    }
+
+    // Sincronizar desde Firebase
+    if (typeof extendsClassPull === 'function') {
+      extendsClassPull();
+    }
+
+    mostrarAlerta('✅ Cita creada y sincronizada desde Firebase', 'success');
+
+  } catch (error) {
+    console.error('❌ Error creando cita en Firebase:', error);
+    mostrarAlerta(`❌ Error: ${error.message}`, 'error');
+  }
 }
 
 async function deleteCita(fecha, nombre) {
-  if (!nombre) return;
+  if (!nombre) {
+    console.warn('⚠️ deleteCita: nombre vacío');
+    return;
+  }
+
+  console.log('🗑️ Intentando eliminar cita:', { fecha, nombre });
+  console.log('📊 Total citas antes de eliminar:', appState.agenda.citas.length);
+
   const nombreDecodificado = nombre.replace(/&#39;/g, "'");
-  
-  const index = appState.agenda.citas.findIndex(c => 
-    c && c.fecha === fecha && c.nombre && (c.nombre === nombre || c.nombre === nombreDecodificado)
-  );
-  
+
+  const index = appState.agenda.citas.findIndex((c, i) => {
+    console.log(`Cita ${i}:`, c);
+    if (!c || c.fecha !== fecha) return false;
+    return c.id === nombre || c.nombre === nombre || c.nombre === nombreDecodificado;
+  });
+
   if (index > -1) {
     const cita = appState.agenda.citas[index];
-    console.log('🎯 Eliminando cita:', cita);
-    
+    console.log('🎯 Cita encontrada para eliminar:', cita, 'en índice:', index);
+
     // Verificar configuración de confirmación
     const configFuncionales = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
     const necesitaConfirmacion = configFuncionales.confirmacionBorrar !== false;
-    
+
     const eliminarCita = () => {
+      console.log('💥 Ejecutando eliminación de cita...');
+
       if (typeof moverAHistorial === 'function') {
         moverAHistorial(cita, 'cita');
       }
       if (typeof registrarAccion === 'function') {
         registrarAccion('Eliminar cita', cita.nombre);
       }
+
       appState.agenda.citas.splice(index, 1);
-  
       
-      renderCalendar();
-      renderAllAppointmentsList();
-      showAppointments(fecha);
-      renderCitasPanel();
-      
-      // Actualizar calendario integrado si está visible
-      const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-      if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-        console.log('🔄 Actualizando calendario integrado después de eliminar...');
-        renderCalendarioIntegrado();
+      // Guardar SOLO en Firebase
+      if (window.db) {
+        window.db.collection('citas').doc('data').set({
+          citas: appState.agenda.citas,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          renderCalendar();
+          renderAllAppointmentsList();
+          showAppointments(fecha);
+          renderCitasPanel();
+          
+          const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
+          if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
+            renderCalendarioIntegrado();
+          }
+          
+          mostrarAlerta('🗑️ Cita eliminada', 'info');
+        });
       }
-      
-      guardarJSON(true);
-      mostrarAlerta('🗑️ Cita movida al historial', 'info');
     };
-    
+
     if (necesitaConfirmacion && typeof mostrarCuentaRegresiva === 'function') {
       mostrarCuentaRegresiva(eliminarCita);
     } else if (necesitaConfirmacion) {
@@ -274,6 +349,7 @@ async function deleteCita(fecha, nombre) {
     }
   } else {
     console.error('❌ No se encontró la cita para eliminar');
+    console.log('📋 Todas las citas disponibles:', appState.agenda.citas);
   }
 }
 
@@ -453,18 +529,25 @@ function guardarNuevaCita() {
   console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
   
   cerrarModal('modal-nueva-cita');
-  renderCalendar();
-  renderAllAppointmentsList();
-  renderCitasPanel();
   
-  // Actualizar calendario integrado si está visible
-  const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-  if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-    console.log('🔄 Actualizando calendario integrado...');
-    renderCalendarioIntegrado();
+  // Guardar SOLO en Firebase
+  if (window.db) {
+    window.db.collection('citas').doc('data').set({
+      citas: appState.agenda.citas,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      renderCalendar();
+      renderAllAppointmentsList();
+      renderCitasPanel();
+      
+      const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
+      if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
+        renderCalendarioIntegrado();
+      }
+      
+      mostrarAlerta('📅 Cita añadida', 'success');
+    });
   }
-  
-  guardarJSON(true);
   
   // Programar notificaciones para esta nueva cita
   programarNotificacionesCita(nuevaCita);
@@ -892,17 +975,27 @@ window.programarNotificacionesCita = programarNotificacionesCita;
 
 // ========== EDITOR DE CITAS ==========
 function abrirEditorCita(fecha, nombre) {
-  if (!nombre) return;
-  
+  if (!nombre) {
+    console.warn('⚠️ abrirEditorCita: nombre vacío');
+    return;
+  }
+
+  console.log('✏️ Abriendo editor para cita:', { fecha, nombre });
+
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'modal-editor-cita';
-  
-  // Extraer hora y descripción
-  const partes = nombre.includes(' - ') ? nombre.split(' - ') : ['14:00', nombre];
+
+  // Extraer hora y descripción de forma más robusta
+  const nombreSafe = nombre || '';
+  const partes = nombreSafe.includes(' - ') ? nombreSafe.split(' - ') : ['14:00', nombreSafe];
   const hora = partes[0] || '14:00';
-  const descripcion = partes[1] || nombre;
-  const [horas, minutos] = hora.includes(':') ? hora.split(':') : ['14', '00'];
+  const descripcion = partes[1] || nombreSafe || 'Sin descripción';
+
+  // Validar formato de hora
+  const horaPartes = hora.includes(':') ? hora.split(':') : ['14', '00'];
+  const horas = horaPartes[0] && /^\d{1,2}$/.test(horaPartes[0]) ? horaPartes[0] : '14';
+  const minutos = horaPartes[1] && /^\d{1,2}$/.test(horaPartes[1]) ? horaPartes[1] : '00';
   
   modal.innerHTML = `
     <div class="modal-content">
@@ -936,8 +1029,9 @@ function abrirEditorCita(fecha, nombre) {
         </div>
       </div>
       <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarEdicionCita('${fecha}', '${escapeHtml(nombre)}')">Guardar</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-editor-cita')">Cancelar</button>
+        <button class="btn-primario" onclick="guardarEdicionCita('${fecha}', '${escapeHtml(nombre)}')">💾 Guardar</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-editor-cita')">❌ Cancelar</button>
+        <button class="btn-eliminar" onclick="confirmarEliminarCitaDesdeEditor('${fecha}', '${escapeHtml(nombre)}')" style="background:#f44336;color:white;margin-left:10px;">🗑️ Eliminar</button>
       </div>
     </div>
   `;
@@ -947,43 +1041,79 @@ function abrirEditorCita(fecha, nombre) {
 }
 
 function guardarEdicionCita(fechaOriginal, nombreOriginal) {
+  console.log('💾 Guardando edición de cita:', { fechaOriginal, nombreOriginal });
+
   const nuevaFecha = document.getElementById('editor-cita-fecha').value;
   const nuevaDesc = document.getElementById('editor-cita-desc').value.trim();
   const nuevaHora = document.getElementById('editor-cita-hora').value;
   const nuevosMinutos = document.getElementById('editor-cita-minutos').value;
-  
+
   if (!nuevaFecha || !nuevaDesc) {
     alert('La fecha y descripción son obligatorias');
     return;
   }
-  
+
+  console.log('📝 Nuevos datos:', { nuevaFecha, nuevaDesc, nuevaHora, nuevosMinutos });
+
   const index = appState.agenda.citas.findIndex(c => c && c.fecha === fechaOriginal && c.nombre === nombreOriginal);
+  console.log('🔍 Índice encontrado:', index);
+
   if (index > -1) {
+    const citaAnterior = { ...appState.agenda.citas[index] };
     const nuevoNombre = `${nuevaHora}:${nuevosMinutos} - ${nuevaDesc}`;
-    appState.agenda.citas[index] = { 
+
+    appState.agenda.citas[index] = {
       id: appState.agenda.citas[index].id || Date.now().toString(),
-      fecha: nuevaFecha, 
+      fecha: nuevaFecha,
       nombre: nuevoNombre,
       etiqueta: appState.agenda.citas[index].etiqueta || null
     };
-    
-    cerrarModal('modal-editor-cita');
-    renderCalendar();
-    renderAllAppointmentsList();
-    renderCitasPanel();
-    
-    const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-    if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-      renderCalendarioIntegrado();
+
+    console.log('🔄 Cita actualizada:', { anterior: citaAnterior, nueva: appState.agenda.citas[index] });
+
+    // Registrar la acción
+    if (typeof registrarAccion === 'function') {
+      registrarAccion('Editar cita', `${fechaOriginal} → ${nuevaFecha}: ${nuevoNombre}`);
     }
-    
-    guardarJSON(true);
-    mostrarAlerta('✅ Cita actualizada', 'success');
+
+    cerrarModal('modal-editor-cita');
+
+    // Guardar SOLO en Firebase
+    if (window.db) {
+      window.db.collection('citas').doc('data').set({
+        citas: appState.agenda.citas,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        renderCalendar();
+        renderAllAppointmentsList();
+        renderCitasPanel();
+        showAppointments(nuevaFecha);
+
+        const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
+        if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
+          renderCalendarioIntegrado();
+        }
+
+        mostrarAlerta('✅ Cita actualizada', 'success');
+      });
+    }
+  } else {
+    console.error('❌ No se encontró la cita para editar');
+    mostrarAlerta('❌ Error: No se encontró la cita para actualizar', 'error');
+  }
+}
+
+// Nueva función para eliminar desde el editor
+function confirmarEliminarCitaDesdeEditor(fecha, nombre) {
+  if (confirm('¿Estás seguro de que quieres eliminar esta cita?')) {
+    cerrarModal('modal-editor-cita');
+    deleteCita(fecha, nombre);
   }
 }
 
 window.abrirEditorCita = abrirEditorCita;
 window.guardarEdicionCita = guardarEdicionCita;
+window.confirmarEliminarCitaDesdeEditor = confirmarEliminarCitaDesdeEditor;
 
 // ========== CALENDARIO INTEGRADO EN LA PÁGINA ==========
 let calendarioIntegradoState = {

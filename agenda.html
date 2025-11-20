@@ -26,7 +26,6 @@
     <div style="display: flex; flex-direction: column; align-items: flex-end; width:120px; gap:5px;">
       <button id="btn-progreso" class="boton-cargar tooltip" onclick="mostrarDashboardMotivacional()" style="padding:6px 12px;font-size:12px;" data-tooltip="Mi Progreso">📊</button>
       <button id="btn-resumen" class="boton-cargar tooltip" onclick="mostrarResumenDiarioManual()" style="padding:6px 12px;font-size:12px;" data-tooltip="Resumen del Día">🌅</button>
-      <button id="btn-historial" class="boton-cargar tooltip" onclick="abrirVisorHistorial()" style="padding:6px 12px;font-size:12px;" data-tooltip="Ver Historial">📋</button>
       <button id="btn-config" class="boton-cargar tooltip" onclick="toggleConfigFloating()" style="padding:6px 12px;font-size:12px;" data-tooltip="Configuración">⚙️</button>
     </div>
   </div>
@@ -734,21 +733,15 @@
       <div style="margin-bottom:15px;text-align:center;">
         <p style="font-size:12px;color:#666;">🔄 Sincronización automática cada 30s</p>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+      <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:15px;">
         <button class="btn-primario" onclick="guardarJSON()">💾 Guardar Ahora</button>
         <button class="btn-secundario" onclick="extendsClassPull()">🔄 Sincronizar</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
         <button class="btn-secundario" onclick="hacerCopia()">📋 Copiar JSON</button>
         <button class="btn-secundario" onclick="crearBackupManual()">💾 Descargar</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:15px;">
         <button class="btn-secundario" onclick="restaurarBackup()">📥 Importar JSON</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:15px;">
         <button class="btn-secundario" onclick="mostrarDashboardMotivacional()">📊 Mi Progreso</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+        <button class="btn-secundario" onclick="abrirVisorHistorial()">📋 Ver Historial</button>
+        <button class="btn-secundario" onclick="abrirEditorBaseDatos()">🔧 Editar BD</button>
         <button class="btn-primario" onclick="solicitarPermisoNotificaciones()">🔔 Solicitar Permisos</button>
       </div>
     </div>

@@ -83,8 +83,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Firebase se inicializa automáticamente en sincronizacion-simple.js
   
-  // Inicializar calendario integrado si está visible
+  // Normalizar citas al cargar
   setTimeout(() => {
+    if (appState.agenda.citas && appState.agenda.citas.length > 0) {
+      let normalizado = false;
+      appState.agenda.citas = appState.agenda.citas.map(cita => {
+        if (cita.titulo && cita.hora && !cita.nombre) {
+          normalizado = true;
+          return {
+            id: cita.id || Date.now().toString(),
+            fecha: cita.fecha,
+            nombre: `${cita.hora} - ${cita.descripcion || cita.titulo}`,
+            etiqueta: cita.etiqueta || null
+          };
+        }
+        return cita;
+      });
+      
+      if (normalizado && window.db) {
+        window.db.collection('citas').doc('data').set({
+          citas: appState.agenda.citas,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    }
+    
     const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
     if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
       if (typeof initializeCalendarioIntegrado === 'function') {
@@ -522,3 +545,452 @@ window.cargarConfigVisualEnFormulario = cargarConfigVisualEnFormulario;
 window.cargarConfigFuncionalesEnFormulario = cargarConfigFuncionalesEnFormulario;
 window.guardarConfigFuncionales = guardarConfigFuncionales;
 window.toggleConfigFloating = toggleConfigFloating;
+
+// ========== EDITOR DE BASE DE DATOS ==========
+function abrirEditorBaseDatos() {
+  // Verificar si Firebase está disponible de múltiples formas
+  const firebaseDisponible = window.db &&
+    (window.isFirebaseInitialized ||
+     (typeof window.firebase !== 'undefined' && window.firebase.apps && window.firebase.apps.length > 0));
+
+  if (!firebaseDisponible) {
+    mostrarAlerta('❌ Firebase no está inicializado. No se puede acceder a la base de datos.', 'error');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-editor-db';
+  modal.style.zIndex = '2000';
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:900px;height:85vh;">
+      <h4>🔧 Editor de Base de Datos Firebase</h4>
+      <p style="font-size:12px;color:#666;margin-bottom:15px;">
+        ⚠️ <strong>Advertencia:</strong> Estás editando directamente Firebase.
+        Los cambios se aplicarán inmediatamente en la nube.
+      </p>
+
+      <div style="display:flex;gap:10px;margin-bottom:15px;">
+        <label style="font-weight:bold;align-self:center;">📋 Tabla:</label>
+        <select id="selector-tabla" onchange="cargarTablaFirebase()" style="flex:1;padding:8px;border-radius:4px;border:1px solid #ddd;">
+          <option value="">Selecciona una tabla...</option>
+          <option value="tareas">📝 Tareas</option>
+          <option value="citas">📅 Citas</option>
+          <option value="notas">📄 Notas</option>
+          <option value="sentimientos">💭 Sentimientos</option>
+          <option value="historial/eliminados">🗑️ Historial Eliminados</option>
+          <option value="config/settings">⚙️ Configuración</option>
+          <option value="personas/asignadas">👥 Personas</option>
+          <option value="log/acciones">📊 Log de Acciones</option>
+        </select>
+        <button class="btn-secundario" onclick="cargarTablaFirebase()" style="padding:8px 12px;">🔄 Cargar</button>
+      </div>
+
+      <div id="info-tabla" style="margin-bottom:15px;padding:8px;background:#f5f5f5;border-radius:4px;display:none;"></div>
+
+      <div style="margin-bottom:15px;">
+        <textarea
+          id="editor-firebase-datos"
+          style="width:100%;height:400px;font-family:monospace;font-size:12px;border:1px solid #ddd;border-radius:4px;padding:10px;resize:vertical;"
+          placeholder="Selecciona una tabla para comenzar a editar..."
+          readonly
+        ></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:15px;">
+        <button class="btn-secundario" onclick="validarJSONFirebase()" style="flex:1;">✅ Validar</button>
+        <button class="btn-secundario" onclick="formatearJSONFirebase()" style="flex:1;">🎨 Formatear</button>
+        <button class="btn-secundario" onclick="restaurarTablaFirebase()" style="flex:1;">🔄 Restaurar</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:15px;">
+        <button class="btn-secundario" onclick="forzarSincronizacion()" style="flex:1;">⚡ Sincronizar App</button>
+        <button class="btn-secundario" onclick="limpiarDatosLocales()" style="flex:1;">🧹 Limpiar Local</button>
+      </div>
+
+      <div id="estado-firebase" style="margin-bottom:15px;padding:10px;border-radius:4px;display:none;"></div>
+
+      <div class="modal-botones">
+        <button id="btn-guardar-firebase" class="btn-primario" onclick="guardarTablaFirebase()" disabled>💾 Guardar en Firebase</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-editor-db')">❌ Cerrar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.style.display = 'block';
+}
+
+let datosOriginalesFirebase = null;
+let tablaActualFirebase = null;
+
+async function cargarTablaFirebase() {
+  const selector = document.getElementById('selector-tabla');
+  const textarea = document.getElementById('editor-firebase-datos');
+  const info = document.getElementById('info-tabla');
+  const estado = document.getElementById('estado-firebase');
+  const btnGuardar = document.getElementById('btn-guardar-firebase');
+
+  if (!selector || !textarea) return;
+
+  const tabla = selector.value;
+  if (!tabla) {
+    textarea.value = '';
+    textarea.readOnly = true;
+    btnGuardar.disabled = true;
+    info.style.display = 'none';
+    estado.style.display = 'none';
+    return;
+  }
+
+  estado.style.display = 'block';
+  estado.style.background = '#fff3cd';
+  estado.innerHTML = '🔄 Cargando datos de Firebase...';
+
+  try {
+    tablaActualFirebase = tabla;
+    const [collection, documento] = tabla.includes('/') ? tabla.split('/') : [tabla, 'data'];
+
+    console.log(`🔍 Cargando: ${collection}/${documento}`);
+
+    const docRef = window.db.collection(collection).doc(documento);
+    const docSnap = await docRef.get();
+
+    let datos = {};
+    if (docSnap.exists) {
+      datos = docSnap.data();
+    } else {
+      console.warn(`⚠️ Documento ${collection}/${documento} no existe`);
+      datos = { mensaje: 'Documento no existe en Firebase' };
+    }
+
+    datosOriginalesFirebase = JSON.parse(JSON.stringify(datos));
+    textarea.value = JSON.stringify(datos, null, 2);
+    textarea.readOnly = false;
+    btnGuardar.disabled = false;
+
+    // Mostrar información de la tabla
+    let infoExtra = '';
+    if (collection === 'citas' && datos.citas) {
+      const citasConFormatos = datos.citas.reduce((acc, cita) => {
+        if (cita.hora && cita.descripcion) acc.nuevas++;
+        else if (cita.nombre) acc.viejas++;
+        else acc.inconsistentes++;
+        return acc;
+      }, { nuevas: 0, viejas: 0, inconsistentes: 0 });
+
+      infoExtra = `<br>🔍 ${datos.citas.length} citas: ${citasConFormatos.viejas} formato viejo, ${citasConFormatos.nuevas} formato nuevo`;
+      if (citasConFormatos.inconsistentes > 0) {
+        infoExtra += `, ⚠️ ${citasConFormatos.inconsistentes} inconsistentes`;
+      }
+    }
+
+    info.style.display = 'block';
+    info.innerHTML = `
+      📋 <strong>${collection}/${documento}</strong><br>
+      📊 Tamaño: ${JSON.stringify(datos).length} caracteres<br>
+      🔑 Campos: ${Object.keys(datos).length}${infoExtra}
+    `;
+
+    estado.style.display = 'block';
+    estado.style.background = '#e8f5e8';
+    estado.style.color = '#2e7d32';
+    estado.innerHTML = '✅ Datos cargados correctamente desde Firebase';
+
+  } catch (error) {
+    console.error('Error cargando tabla:', error);
+    estado.style.display = 'block';
+    estado.style.background = '#ffe6e6';
+    estado.style.color = '#d32f2f';
+    estado.innerHTML = `❌ Error: ${error.message}`;
+
+    textarea.value = '';
+    textarea.readOnly = true;
+    btnGuardar.disabled = true;
+    datosOriginalesFirebase = null;
+  }
+}
+
+function validarJSONFirebase() {
+  const textarea = document.getElementById('editor-firebase-datos');
+  const estado = document.getElementById('estado-firebase');
+
+  if (!textarea || !estado) return;
+
+  try {
+    const datos = JSON.parse(textarea.value);
+    estado.style.display = 'block';
+    estado.style.background = '#e8f5e8';
+    estado.style.color = '#2e7d32';
+    estado.innerHTML = `✅ <strong>JSON válido</strong><br>🔑 ${Object.keys(datos).length} campos, ${JSON.stringify(datos).length} caracteres`;
+  } catch (error) {
+    estado.style.display = 'block';
+    estado.style.background = '#ffe6e6';
+    estado.style.color = '#d32f2f';
+    estado.innerHTML = `❌ <strong>Error de sintaxis JSON:</strong><br>${error.message}`;
+  }
+}
+
+function formatearJSONFirebase() {
+  const textarea = document.getElementById('editor-firebase-datos');
+  if (!textarea || textarea.readOnly) return;
+
+  try {
+    const datos = JSON.parse(textarea.value);
+    textarea.value = JSON.stringify(datos, null, 2);
+    mostrarAlerta('🎨 JSON formateado correctamente', 'success');
+  } catch (error) {
+    mostrarAlerta('❌ Error: JSON inválido, no se puede formatear', 'error');
+  }
+}
+
+function restaurarTablaFirebase() {
+  const textarea = document.getElementById('editor-firebase-datos');
+  const estado = document.getElementById('estado-firebase');
+
+  if (!textarea || !datosOriginalesFirebase) return;
+
+  textarea.value = JSON.stringify(datosOriginalesFirebase, null, 2);
+
+  if (estado) {
+    estado.style.display = 'block';
+    estado.style.background = '#fff3cd';
+    estado.innerHTML = '🔄 Datos restaurados al estado original de Firebase';
+  }
+
+  mostrarAlerta('🔄 Datos restaurados desde Firebase', 'info');
+}
+
+async function guardarTablaFirebase() {
+  const textarea = document.getElementById('editor-firebase-datos');
+  const estado = document.getElementById('estado-firebase');
+
+  if (!textarea || !tablaActualFirebase) {
+    mostrarAlerta('❌ No hay tabla seleccionada', 'error');
+    return;
+  }
+
+  try {
+    const nuevosDatos = JSON.parse(textarea.value);
+
+    const confirmacion = confirm(`
+🔥 ¿Guardar cambios en Firebase?
+
+📋 Tabla: ${tablaActualFirebase}
+📊 Campos: ${Object.keys(nuevosDatos).length}
+📏 Tamaño: ${JSON.stringify(nuevosDatos).length} caracteres
+
+⚠️ Esta acción actualizará directamente la base de datos en la nube.
+¿Continuar?`);
+
+    if (!confirmacion) return;
+
+    estado.style.display = 'block';
+    estado.style.background = '#fff3cd';
+    estado.innerHTML = '🔄 Procesando y guardando cambios en Firebase...';
+
+    const [collection, documento] = tablaActualFirebase.includes('/') ?
+      tablaActualFirebase.split('/') : [tablaActualFirebase, 'data'];
+
+    // Normalizar datos específicos para citas
+    let datosNormalizados = { ...nuevosDatos };
+    if (collection === 'citas' && datosNormalizados.citas && Array.isArray(datosNormalizados.citas)) {
+      console.log('📝 Normalizando estructura de citas...');
+
+      datosNormalizados.citas = datosNormalizados.citas.map(cita => {
+        // Si la cita tiene la estructura nueva (hora, descripcion separadas)
+        if (cita.hora && cita.descripcion && !cita.nombre) {
+          return {
+            id: cita.id || Date.now().toString(),
+            fecha: cita.fecha,
+            nombre: `${cita.hora} - ${cita.descripcion}`,
+            etiqueta: cita.etiqueta || null
+          };
+        }
+        // Si ya tiene la estructura correcta (nombre con formato "hora - descripcion")
+        else if (cita.nombre && cita.fecha) {
+          return {
+            id: cita.id || Date.now().toString(),
+            fecha: cita.fecha,
+            nombre: cita.nombre,
+            etiqueta: cita.etiqueta || null
+          };
+        }
+        // Estructura fallback
+        else {
+          console.warn('⚠️ Cita con estructura inconsistente:', cita);
+          return {
+            id: cita.id || Date.now().toString(),
+            fecha: cita.fecha || new Date().toISOString().slice(0, 10),
+            nombre: cita.nombre || cita.titulo || cita.descripcion || 'Sin descripción',
+            etiqueta: cita.etiqueta || null
+          };
+        }
+      });
+
+      console.log(`✅ ${datosNormalizados.citas.length} citas normalizadas`);
+    }
+
+    // Añadir timestamp de última actualización
+    const datosConTimestamp = {
+      ...datosNormalizados,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    console.log('💾 Guardando en Firebase:', { collection, documento, datos: datosConTimestamp });
+
+    await window.db.collection(collection).doc(documento).set(datosConTimestamp);
+
+    // Actualizar los datos originales con los normalizados
+    datosOriginalesFirebase = JSON.parse(JSON.stringify(datosNormalizados));
+
+    // Registrar la acción
+    if (typeof registrarAccion === 'function') {
+      registrarAccion('Editar Firebase', `Tabla ${tablaActualFirebase} actualizada manualmente`);
+    }
+
+    estado.style.display = 'block';
+    estado.style.background = '#e8f5e8';
+    estado.style.color = '#2e7d32';
+    estado.innerHTML = '✅ Cambios guardados exitosamente en Firebase';
+
+    mostrarAlerta('💾 Tabla actualizada en Firebase', 'success');
+
+    // Si es una tabla que afecta la aplicación local, sincronizar
+    if (['tareas', 'citas', 'notas'].includes(collection)) {
+      setTimeout(() => {
+        if (typeof extendsClassPull === 'function') {
+          extendsClassPull();
+          mostrarAlerta('🔄 Sincronizando cambios localmente...', 'info');
+        }
+      }, 1500);
+    }
+
+    // Recargar los datos desde Firebase para confirmar que se guardaron
+    setTimeout(() => {
+      cargarTablaFirebase();
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error guardando en Firebase:', error);
+    estado.style.display = 'block';
+    estado.style.background = '#ffe6e6';
+    estado.style.color = '#d32f2f';
+    estado.innerHTML = `❌ Error guardando: ${error.message}`;
+    mostrarAlerta(`❌ Error: ${error.message}`, 'error');
+  }
+}
+
+// ========== FUNCIÓN DE SINCRONIZACIÓN FORZADA ==========
+function forzarSincronizacion() {
+  const estado = document.getElementById('estado-firebase');
+
+  if (estado) {
+    estado.style.display = 'block';
+    estado.style.background = '#fff3cd';
+    estado.innerHTML = '⚡ Forzando sincronización completa desde Firebase...';
+  }
+
+  console.log('⚡ Iniciando sincronización forzada...');
+
+  if (typeof extendsClassPull === 'function') {
+    extendsClassPull();
+
+    setTimeout(() => {
+      if (estado) {
+        estado.style.display = 'block';
+        estado.style.background = '#e8f5e8';
+        estado.style.color = '#2e7d32';
+        estado.innerHTML = '✅ Sincronización forzada completada';
+      }
+      mostrarAlerta('⚡ Aplicación sincronizada desde Firebase', 'success');
+
+      // Recargar la tabla actual para mostrar los datos actualizados
+      setTimeout(() => {
+        cargarTablaFirebase();
+      }, 500);
+    }, 2000);
+  } else {
+    if (estado) {
+      estado.style.display = 'block';
+      estado.style.background = '#ffe6e6';
+      estado.style.color = '#d32f2f';
+      estado.innerHTML = '❌ Función de sincronización no disponible';
+    }
+    mostrarAlerta('❌ Error: Función de sincronización no encontrada', 'error');
+  }
+}
+
+// ========== FUNCIÓN DE LIMPIEZA DE DATOS LOCALES ==========
+function limpiarDatosLocales() {
+  const confirmacion = confirm(`
+🧹 ¿Limpiar TODOS los datos locales?
+
+Esta acción eliminará:
+• Estado actual de la aplicación
+• Datos en memoria (appState)
+• NO afecta Firebase ni localStorage
+
+Después de limpiar, se sincronizará desde Firebase.
+¿Continuar?`);
+
+  if (!confirmacion) return;
+
+  const estado = document.getElementById('estado-firebase');
+
+  if (estado) {
+    estado.style.display = 'block';
+    estado.style.background = '#fff3cd';
+    estado.innerHTML = '🧹 Limpiando datos locales...';
+  }
+
+  console.log('🧹 Iniciando limpieza de datos locales...');
+
+  // Limpiar appState
+  if (window.appState && window.appState.agenda) {
+    console.log('📊 Datos ANTES de limpiar:', {
+      citas: window.appState.agenda.citas ? window.appState.agenda.citas.length : 0,
+      tareas: window.appState.agenda.tareas ? window.appState.agenda.tareas.length : 0,
+      tareas_criticas: window.appState.agenda.tareas_criticas ? window.appState.agenda.tareas_criticas.length : 0
+    });
+
+    window.appState.agenda.citas = [];
+    window.appState.agenda.tareas = [];
+    window.appState.agenda.tareas_criticas = [];
+    window.appState.agenda.notas = '';
+    window.appState.agenda.sentimientos = '';
+
+    console.log('✅ appState limpiado');
+  }
+
+  // Re-renderizar inmediatamente
+  if (typeof renderizar === 'function') {
+    renderizar();
+    console.log('🔄 Interfaz re-renderizada después de limpiar');
+  }
+
+  setTimeout(() => {
+    if (estado) {
+      estado.style.display = 'block';
+      estado.style.background = '#e8f5e8';
+      estado.style.color = '#2e7d32';
+      estado.innerHTML = '✅ Datos locales limpiados - Sincronizando desde Firebase...';
+    }
+
+    // Forzar sincronización desde Firebase
+    if (typeof extendsClassPull === 'function') {
+      extendsClassPull();
+    }
+
+    mostrarAlerta('🧹 Datos locales limpiados y sincronizados', 'success');
+  }, 500);
+}
+
+window.abrirEditorBaseDatos = abrirEditorBaseDatos;
+window.cargarTablaFirebase = cargarTablaFirebase;
+window.validarJSONFirebase = validarJSONFirebase;
+window.formatearJSONFirebase = formatearJSONFirebase;
+window.restaurarTablaFirebase = restaurarTablaFirebase;
+window.guardarTablaFirebase = guardarTablaFirebase;
+window.forzarSincronizacion = forzarSincronizacion;
+window.limpiarDatosLocales = limpiarDatosLocales;

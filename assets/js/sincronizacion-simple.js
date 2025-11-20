@@ -34,6 +34,11 @@ function initFirebase() {
     
     db = firebase.firestore();
     isFirebaseInitialized = true;
+
+    // Actualizar exportaciones globales
+    window.isFirebaseInitialized = isFirebaseInitialized;
+    window.db = db;
+
     console.log('✅ Firebase inicializado');
     return true;
   } catch (error) {
@@ -147,7 +152,29 @@ function extendsClassPull() {
     }
     
     console.log('📥 Sincronizado desde Firebase');
+    console.log('📊 Datos recibidos:', {
+      tareas_criticas: data.tareas_criticas.length,
+      tareas: data.tareas.length,
+      citas: data.citas.length,
+      notas: data.notas.length
+    });
+
     procesarJSON(data);
+
+    // IMPORTANTE: Re-renderizar la interfaz después de sincronizar
+    if (typeof renderizar === 'function') {
+      renderizar();
+      console.log('🔄 Interfaz re-renderizada después de sincronización');
+    }
+
+    // Actualizar calendarios si están visibles
+    if (typeof renderCalendar === 'function') {
+      renderCalendar();
+    }
+    if (typeof renderCitasPanel === 'function') {
+      renderCitasPanel();
+    }
+
     // Actualizar filtros después de cargar datos
     setTimeout(() => {
       actualizarFiltrosPersonas();
@@ -155,7 +182,8 @@ function extendsClassPull() {
       // Mostrar resumen diario después de cargar datos
       setTimeout(() => mostrarResumenDiario(), 500);
     }, 100);
-    mostrarAlerta('✅ Datos sincronizados', 'success');
+
+    mostrarAlerta('✅ Datos sincronizados desde Firebase', 'success');
   }).catch((error) => {
     console.error('Error:', error);
     mostrarAlerta('❌ Error: ' + error.message, 'error');
@@ -259,7 +287,14 @@ function aplicarConfiguracionSincronizada() {
 
 function procesarJSON(data) {
   if (!data) return;
-  
+
+  console.log('🔄 procesarJSON recibió:', {
+    citas: data.citas ? data.citas.length : 'undefined',
+    citasData: data.citas
+  });
+
+  console.log('📊 appState.agenda.citas ANTES:', appState.agenda.citas ? appState.agenda.citas.length : 'undefined');
+
   appState.agenda.fecha = data.fecha || new Date().toISOString().slice(0, 10);
   appState.agenda.dia_semana = data.dia_semana || '';
   appState.agenda.tareas_criticas = data.tareas_criticas || [];
@@ -267,6 +302,9 @@ function procesarJSON(data) {
   appState.agenda.notas = data.notas || '';
   appState.agenda.sentimientos = data.sentimientos || '';
   appState.agenda.citas = data.citas || [];
+
+  console.log('📊 appState.agenda.citas DESPUÉS:', appState.agenda.citas.length);
+  console.log('📋 Contenido de citas:', appState.agenda.citas);
   
   // Actualizar textarea de notas
   const notasEl = document.getElementById('notas-texto');
@@ -1202,6 +1240,10 @@ window.guardarConfigFuncionales = guardarConfigFuncionales;
 window.cargarConfigFuncionales = cargarConfigFuncionales;
 window.guardarConfigExtendsClass = guardarConfigFirebase;
 window.probarConexionExtendsClass = probarConexionFirebase;
+
+// Exportar estado de Firebase
+window.isFirebaseInitialized = isFirebaseInitialized;
+window.db = db;
 
 // ========== HISTORIAL DE SENTIMIENTOS ==========
 function guardarSentimiento(texto) {
