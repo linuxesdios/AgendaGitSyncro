@@ -473,7 +473,7 @@
           <p>Configura Firebase para sincronización en tiempo real.</p>
           <div class="form-group">
             <label>API Key:</label>
-            <input type="text" id="firebase-apikey" placeholder="AIzaSy...">
+            <input type="password" id="firebase-apikey" placeholder="AIzaSy...">
           </div>
           <div class="form-group">
             <label>Project ID:</label>
@@ -481,11 +481,11 @@
           </div>
           <div class="form-group">
             <label>Messaging Sender ID (opcional):</label>
-            <input type="text" id="firebase-messagingsenderid" placeholder="123456789">
+            <input type="password" id="firebase-messagingsenderid" placeholder="123456789">
           </div>
           <div class="form-group">
             <label>App ID (opcional):</label>
-            <input type="text" id="firebase-appid" placeholder="1:123:web:abc">
+            <input type="password" id="firebase-appid" placeholder="1:123:web:abc">
           </div>
           <button class="btn-primario" onclick="guardarConfigFirebase()">Guardar Config</button>
           <button class="btn-secundario" onclick="probarConexionFirebase()">Probar</button>
@@ -612,16 +612,21 @@
           <!-- Sección: Listas Personalizadas -->
           <div
             style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-              <h4 style="margin:0;color:white;font-size:16px;">📋 Listas Personalizadas</h4>
-              <button onclick="renderizarListasPersonalizadas()"
-                style="background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:white;cursor:pointer;padding:4px 8px;font-size:12px;"
-                title="Recargar listas">
-                🔄
-              </button>
-            </div>
+            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">📋 Listas Personalizadas</h4>
             <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Crea listas adicionales que
               aparecerán después de "Listas para hacer"</p>
+
+            <!-- Botones de depuración -->
+            <div style="display:flex;gap:8px;margin-bottom:15px;">
+              <button onclick="console.log('📊 Listas en memoria:', window.configVisual?.listasPersonalizadas?.length || 0, window.configVisual?.listasPersonalizadas); alert('Listas: ' + (window.configVisual?.listasPersonalizadas?.length || 0));"
+                style="padding:6px 12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:white;cursor:pointer;font-size:11px;">
+                📊 Info
+              </button>
+              <button onclick="renderizarListasPersonalizadas();"
+                style="padding:6px 12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:white;cursor:pointer;font-size:11px;">
+                🔄 Actualizar
+              </button>
+            </div>
 
             <!-- Lista actual de listas personalizadas -->
             <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">

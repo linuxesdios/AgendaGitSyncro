@@ -308,7 +308,29 @@ async function extendsClassPull() {
       window.configFuncionales = configFirebase.funcionales || {};
       window.configOpciones = configFirebase.opciones || {};
 
+      // Aplicar tema INMEDIATAMENTE después de cargar desde Firebase
+      const tema = visualRemote.tema || 'verde';
+      console.log('🎨 Aplicando tema desde Firebase:', tema);
+      document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+      document.body.classList.add('tema-' + tema);
+      console.log('✅ Tema aplicado desde Firebase. Clases:', document.body.className);
+
       aplicarConfiguracionSincronizada();
+
+      // Si el panel de configuración está abierto, actualizar la vista de listas personalizadas
+      const modalConfig = document.getElementById('modal-config');
+      if (modalConfig && modalConfig.style.display === 'block') {
+        // El modal está abierto, actualizar el contenido de listas personalizadas
+        const visualTab = document.getElementById('tab-visual');
+        if (visualTab && visualTab.classList.contains('active')) {
+          // La pestaña Visual está activa, renderizar las listas
+          if (typeof renderizarListasPersonalizadas === 'function') {
+            setTimeout(() => {
+              renderizarListasPersonalizadas();
+            }, 100);
+          }
+        }
+      }
     }
 
     // Cargar datos auxiliares DIRECTAMENTE en memoria (NO localStorage)
@@ -477,24 +499,61 @@ function aplicarConfiguracionSincronizada() {
   console.log('🔄 EJECUTANDO aplicarConfiguracionSincronizada()');
 
   try {
-    // Aplicar configuración visual desde memoria global (NO localStorage)
-    console.log('📝 Llamando a cargarConfigVisual() desde app.js...');
-    if (typeof cargarConfigVisual === 'function') {
-      cargarConfigVisual();
-    } else {
-      console.log('⚠️ cargarConfigVisual no disponible, usando versión básica');
-      cargarConfigVisualBasico();
+    const configVisual = window.configVisual || {};
+
+    // 1. Aplicar TEMA
+    const tema = configVisual.tema || 'verde';
+    console.log('🎨 Aplicando tema:', tema);
+    document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+    document.body.classList.add('tema-' + tema);
+
+    // 2. Aplicar NOMBRE
+    const nombre = configVisual.nombre || 'Pablo';
+    const titulo = document.getElementById('titulo-agenda');
+    if (titulo) titulo.textContent = '🧠 Agenda de ' + nombre + ' 😊';
+
+    // 3. Aplicar MODO VISUALIZACIÓN
+    console.log('🎯 Modo visualización:', configVisual.modoVisualizacion || 'estado');
+
+    // 4. Aplicar COLUMNAS
+    if (typeof aplicarConfiguracionColumnas === 'function') {
+      aplicarConfiguracionColumnas();
     }
-    console.log('✅ cargarConfigVisual() completado');
 
-    console.log('📝 Llamando a aplicarVisibilidadSecciones()...');
+    // 5. Aplicar VISIBILIDAD DE SECCIONES
     aplicarVisibilidadSecciones();
-    console.log('✅ aplicarVisibilidadSecciones() completado');
 
-    // Aplicar configuración funcional desde memoria global (NO localStorage)
+    // 6. Aplicar CALENDARIO
+    const calendarioCitas = configVisual.calendarioCitas || 'boton';
+    const btnCalendario = document.getElementById('btn-calendario-citas');
+    const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
+    if (calendarioCitas === 'integrado') {
+      if (btnCalendario) btnCalendario.style.display = 'none';
+      if (calendarioIntegrado) {
+        calendarioIntegrado.style.cssText = 'display: block !important; visibility: visible !important;';
+        if (typeof initializeCalendarioIntegrado === 'function') {
+          setTimeout(() => initializeCalendarioIntegrado(), 100);
+        }
+      }
+    } else {
+      if (btnCalendario) btnCalendario.style.display = 'inline-block';
+      if (calendarioIntegrado) calendarioIntegrado.style.display = 'none';
+    }
+
+    // 7. Aplicar NOTIFICACIONES
     const configFuncionales = window.configFuncionales || {};
     if (configFuncionales.notificacionesActivas) {
       iniciarSistemaNotificaciones();
+    }
+
+    // 8. Regenerar LISTAS PERSONALIZADAS
+    if (typeof regenerarSeccionesListasPersonalizadas === 'function') {
+      setTimeout(() => {
+        regenerarSeccionesListasPersonalizadas();
+        if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
+          renderizarTodasLasListasPersonalizadas();
+        }
+      }, 200);
     }
 
     console.log('✅ aplicarConfiguracionSincronizada() completado exitosamente');
@@ -645,12 +704,44 @@ function cargarConfigVisualBasico() {
 
 function toggleConfigFloating() {
   const modal = document.getElementById('modal-config');
-  if (modal) {
-    modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-    if (modal.style.display === 'block') {
-      cargarConfiguracionesModal();
-    }
+  if (!modal) return;
+
+  // Toggle modal visibility
+  if (modal.style.display === 'block') {
+    modal.style.display = 'none';
+    return;
   }
+
+  modal.style.display = 'block';
+
+  // Función auxiliar para forzar el renderizado
+  const forzarRenderizado = () => {
+    if (typeof renderizarListasPersonalizadas === 'function') {
+      renderizarListasPersonalizadas();
+    }
+  };
+
+  // Configurar pestaña visual y renderizar con reintentos
+  setTimeout(() => {
+    // 1. Cambiar a pestaña Visual
+    document.querySelectorAll('.config-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+    const visualTab = document.getElementById('tab-visual');
+    if (visualTab) visualTab.classList.add('active');
+
+    const visualBtn = document.querySelector('.config-tab[onclick*="visual"]');
+    if (visualBtn) visualBtn.classList.add('active');
+
+    // 2. Cargar configuración en formulario
+    cargarConfiguracionesModal();
+
+    // 3. Estrategia de Fuerza Bruta: Renderizar múltiples veces
+    forzarRenderizado();
+    setTimeout(() => forzarRenderizado(), 100);
+    setTimeout(() => forzarRenderizado(), 300);
+    setTimeout(() => forzarRenderizado(), 600);
+  }, 100);
 }
 
 function switchTab(tabName) {
@@ -764,14 +855,14 @@ function cargarConfigFuncionales() {
 function mostrarResumenDiario() {
   // Usar configuración DESDE FIREBASE (variables globales)
   const config = window.configFuncionales || {};
-  
+
   // Opciones: 'nunca', 'una_vez', 'siempre'
   const modoPopup = config.popupDiario || 'una_vez';
-  
+
   if (modoPopup === 'nunca') return;
 
   const hoy = new Date().toISOString().slice(0, 10);
-  
+
   // Si es 'una_vez', verificar si ya se mostró hoy usando localStorage
   if (modoPopup === 'una_vez') {
     const ultimoPopup = localStorage.getItem('ultimo-popup-diario');

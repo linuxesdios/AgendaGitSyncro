@@ -62,6 +62,7 @@ const isDesktop = () => {
 
 // ========== INICIALIZACIÓN PRINCIPAL ==========
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('🔄 ========== PÁGINA CARGADA (DOMContentLoaded) ==========');
   console.log('Iniciando aplicación...');
   window.appStartTime = Date.now();
 
@@ -348,8 +349,11 @@ function cargarConfigVisual() {
     asegurarListaPorHacerComoPersonalizada();
 
     const tema = config.tema || 'verde';
-    document.body.classList.remove('tema-verde', 'tema-azul', 'tema-amarillo', 'tema-oscuro');
+    console.log('🎨 Aplicando tema:', tema);
+    console.log('📊 Config completa:', config);
+    document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
     document.body.classList.add('tema-' + tema);
+    console.log('✅ Tema aplicado. Clases del body:', document.body.className);
 
     // Actualizar título si hay nombre configurado
     const nombre = config.nombre || 'Pablo';
@@ -769,6 +773,13 @@ async function guardarConfigVisualPanel() {
     console.log('🔥 Guardando en Firebase...');
     const guardado = await guardarConfigEnFirebase();
     if (guardado) {
+      // APLICAR tema INMEDIATAMENTE
+      const tema = config.tema || 'verde';
+      console.log('🎨 Aplicando tema:', tema);
+      document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+      document.body.classList.add('tema-' + tema);
+      console.log('✅ Clases del body:', document.body.className);
+
       // APLICAR configuración DESPUÉS del guardado exitoso
       console.log('✅ Firebase guardado OK - Aplicando configuración visual...');
       cargarConfigVisual();
@@ -787,6 +798,10 @@ async function guardarConfigVisualPanel() {
 }
 
 function switchTab(tabName) {
+  console.log('📊 ========== CAMBIANDO DE PESTAÑA ==========');
+  console.log('  - Pestaña destino:', tabName);
+  console.log('  - Listas en memoria:', window.configVisual?.listasPersonalizadas?.length || 0);
+
   // Ocultar todos los contenidos
   document.querySelectorAll('.tab-content').forEach(tab => {
     tab.classList.remove('active');
@@ -814,10 +829,16 @@ function switchTab(tabName) {
 
   // Cargar datos específicos del tab
   if (tabName === 'visual') {
+    console.log('🎨 Cambiando a pestaña VISUAL');
     cargarConfigVisualEnFormulario();
-    // Forzar renderizado explícito de listas personalizadas
+    // Renderizar listas personalizadas inmediatamente
+    console.log('📋 Intentando renderizar listas...');
+    console.log('  - Función disponible:', typeof renderizarListasPersonalizadas);
+    console.log('  - Listas en memoria:', window.configVisual?.listasPersonalizadas?.length || 0);
     if (typeof renderizarListasPersonalizadas === 'function') {
-      setTimeout(renderizarListasPersonalizadas, 50);
+      renderizarListasPersonalizadas();
+    } else {
+      console.error('❌ renderizarListasPersonalizadas NO está disponible');
     }
   } else if (tabName === 'funcionales') {
     cargarConfigFuncionalesEnFormulario();
@@ -944,27 +965,64 @@ async function guardarConfigFuncionales() {
   }
 }
 
+// Función que espera a que las listas estén cargadas antes de renderizar
+function esperarYRenderizarListas(intentos = 0, maxIntentos = 20) {
+  console.log(`🔍 Intento ${intentos + 1}/${maxIntentos} - Verificando disponibilidad de listas...`);
+
+  const listasDisponibles = window.configVisual?.listasPersonalizadas?.length > 0;
+  console.log(`📊 Listas en memoria: ${window.configVisual?.listasPersonalizadas?.length || 0}`);
+
+  if (listasDisponibles) {
+    console.log('✅ ¡LISTAS ENCONTRADAS! Renderizando ahora...');
+    if (typeof renderizarListasPersonalizadas === 'function') {
+      renderizarListasPersonalizadas();
+    }
+    return true;
+  }
+
+  if (intentos >= maxIntentos - 1) {
+    console.log('⚠️ Timeout alcanzado. Renderizando con listas vacías...');
+    if (typeof renderizarListasPersonalizadas === 'function') {
+      renderizarListasPersonalizadas();
+    }
+    return false;
+  }
+
+  // Intentar de nuevo en 200ms
+  setTimeout(() => esperarYRenderizarListas(intentos + 1, maxIntentos), 200);
+}
+
 function toggleConfigFloating() {
   abrirModal('modal-config');
 
-  // Cargar configuración visual desde Firebase PRIMERO
-  console.log('🔄 Abriendo panel de configuración...');
-
-  // Esperar a que se cargue la configuración de Firebase
-  setTimeout(() => {
-    cargarConfigVisualEnFormulario();
-
-    // Renderizar listas personalizadas DESPUÉS de cargar config
-    console.log('📋 Renderizando listas personalizadas...');
-    console.log('  Config disponible:', window.configVisual);
-    console.log('  Listas:', window.configVisual?.listasPersonalizadas?.length || 0);
-
+  // Función auxiliar para forzar el renderizado
+  const forzarRenderizado = () => {
     if (typeof renderizarListasPersonalizadas === 'function') {
       renderizarListasPersonalizadas();
-    } else {
-      console.error('❌ renderizarListasPersonalizadas no disponible');
     }
-  }, 200);
+  };
+
+  // Configurar pestaña visual y renderizar con reintentos
+  setTimeout(() => {
+    // 1. Cambiar a pestaña Visual
+    document.querySelectorAll('.config-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+    const visualTab = document.getElementById('tab-visual');
+    if (visualTab) visualTab.classList.add('active');
+
+    const visualBtn = document.querySelector('.config-tab[onclick*="visual"]');
+    if (visualBtn) visualBtn.classList.add('active');
+
+    // 2. Cargar configuración en formulario
+    cargarConfigVisualEnFormulario();
+
+    // 3. Estrategia de Fuerza Bruta: Renderizar múltiples veces
+    forzarRenderizado();
+    setTimeout(() => forzarRenderizado(), 100);
+    setTimeout(() => forzarRenderizado(), 300);
+    setTimeout(() => forzarRenderizado(), 600);
+  }, 100);
 }
 
 window.guardarConfigVisualPanel = guardarConfigVisualPanel;
@@ -1542,13 +1600,25 @@ function eliminarListaPersonalizada(id) {
 }
 
 function renderizarListasPersonalizadas() {
+  console.log('📋 EJECUTANDO renderizarListasPersonalizadas()');
+
   const contenedor = document.getElementById('listas-personalizadas-contenido');
-  if (!contenedor) return;
+  console.log('  Contenedor encontrado:', !!contenedor);
+
+  if (!contenedor) {
+    console.error('❌ No se encontró el contenedor listas-personalizadas-contenido');
+    return;
+  }
 
   const configVisual = window.configVisual || {};
   const listasPersonalizadas = configVisual.listasPersonalizadas || [];
 
+  console.log('  window.configVisual:', configVisual);
+  console.log('  Listas personalizadas:', listasPersonalizadas);
+  console.log('  Número de listas:', listasPersonalizadas.length);
+
   if (listasPersonalizadas.length === 0) {
+    console.log('  ⚠️ No hay listas personalizadas, mostrando mensaje por defecto');
     contenedor.innerHTML = `
       <div style="text-align:center;color:#666;padding:20px;font-style:italic;">
         <span style="font-size:20px;">📝</span> Añade tus listas personalizadas...
@@ -1557,8 +1627,10 @@ function renderizarListasPersonalizadas() {
     return;
   }
 
+  console.log('  ✅ Generando HTML para', listasPersonalizadas.length, 'listas');
   let html = '';
-  listasPersonalizadas.forEach(lista => {
+  listasPersonalizadas.forEach((lista, index) => {
+    console.log(`    Lista ${index + 1}:`, lista.nombre, '- Tareas:', lista.tareas?.length || 0);
     html += `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:8px;background:rgba(255,255,255,0.7);border-radius:6px;border-left:4px solid ${lista.color};">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -1574,6 +1646,8 @@ function renderizarListasPersonalizadas() {
   });
 
   contenedor.innerHTML = html;
+  console.log('  ✅ HTML insertado en el contenedor');
+  console.log('  Contenido final del contenedor:', contenedor.innerHTML.substring(0, 200) + '...');
 }
 
 // ========== FUNCIONES PARA SECCIONES PRINCIPALES DE LISTAS ==========
@@ -1892,17 +1966,32 @@ function renderizarListaPersonalizada(listaId) {
 
 // ========== GESTIÓN DE SUBTAREAS EN LISTAS PERSONALIZADAS ==========
 function abrirModalSubtareaListaPersonalizada(listaId, tareaIndex) {
-  const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
-  const lista = listas.find(l => l.id === listaId);
-  if (!lista || !lista.tareas[tareaIndex]) return;
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-subtarea-lp';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h4>📝 Nueva Subtarea</h4>
+      <div class="form-group">
+        <label>Descripción:</label>
+        <input type="text" id="subtarea-lp-texto" placeholder="Ej: Revisar documentos">
+      </div>
+      <div class="modal-botones">
+        <button class="btn-primario" onclick="agregarSubtareaListaPersonalizada('${listaId}', ${tareaIndex})">Añadir</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-subtarea-lp')">Cancelar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.style.display = 'block';
+  setTimeout(() => document.getElementById('subtarea-lp-texto').focus(), 100);
+}
 
-  const tarea = lista.tareas[tareaIndex];
-
-  // Usar prompt nativo por simplicidad y consistencia con otras partes
-  const texto = prompt(`Añadir subtarea a: ${tarea.texto}`);
-  if (texto && texto.trim()) {
-    guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto.trim());
+function agregarSubtareaListaPersonalizada(listaId, tareaIndex) {
+  const texto = document.getElementById('subtarea-lp-texto').value.trim();
+  if (texto) {
+    guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto);
+    cerrarModal('modal-subtarea-lp');
   }
 }
 
@@ -1947,12 +2036,12 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
     subtarea.estado = 'migrada';
     subtarea.completada = false;
     appState.ui.subtareaSeleccionada = { tipo: 'lista_personalizada', listaId, tareaIndex, subIndex };
-    
+
     // Actualizar estado global
     window.configVisual = { ...configVisual, listasPersonalizadas: listas };
     renderizarListaPersonalizada(listaId);
     guardarConfigEnFirebase();
-    
+
     abrirModal('modal-migrar');
     return;
   } else if (subtarea.estado === 'migrada') {
@@ -1985,9 +2074,9 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const lista = listas.find(l => l.id === listaId);
-  
+
   if (!lista || !lista.tareas[tareaIndex] || !lista.tareas[tareaIndex].subtareas[subIndex]) return;
-  
+
   const subtarea = lista.tareas[tareaIndex].subtareas[subIndex];
 
   const modal = document.createElement('div');
@@ -2027,9 +2116,9 @@ function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex)
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
-  
+
   if (listaIndex === -1) return;
-  
+
   const tarea = listas[listaIndex].tareas[tareaIndex];
   const subtarea = tarea.subtareas[subIndex];
   const texto = document.getElementById('editor-subtarea-lp-texto').value.trim();
@@ -2049,7 +2138,7 @@ function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex)
 
   // Actualizar estado global
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
-  
+
   cerrarModal('modal-editor-subtarea-lp');
   renderizarListaPersonalizada(listaId);
   guardarConfigEnFirebase();
@@ -2073,14 +2162,14 @@ function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subI
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
-  
+
   if (listaIndex === -1) return;
-  
+
   listas[listaIndex].tareas[tareaIndex].subtareas.splice(subIndex, 1);
-  
+
   // Actualizar estado global
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
-  
+
   renderizarListaPersonalizada(listaId);
   guardarConfigEnFirebase();
   mostrarAlerta('🗑️ Subtarea eliminada', 'info');
@@ -2237,7 +2326,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
   }
 
   const lista = listasPersonalizadas[listaIndex];
-  
+
   if (!lista.tareas || tareaIndex < 0 || tareaIndex >= lista.tareas.length) {
     console.error('❌ Índice de tarea inválido:', tareaIndex);
     return;
@@ -2257,7 +2346,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
 
   // Guardar en Firebase
   guardarConfigEnFirebase();
-  
+
   // Renderizar
   renderizarListaPersonalizada(listaId);
 
@@ -2463,6 +2552,10 @@ window.inicializarListasPersonalizadas = inicializarListasPersonalizadas;
 window.modificarModalTareaParaListasPersonalizadas = modificarModalTareaParaListasPersonalizadas;
 window.asegurarListaPorHacerComoPersonalizada = asegurarListaPorHacerComoPersonalizada;
 window.ocultarSeccionListaPorHacerOriginal = ocultarSeccionListaPorHacerOriginal;
+function toggleSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
+  cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex);
+}
+
 window.cambiarEstadoSubtareaListaPersonalizada = cambiarEstadoSubtareaListaPersonalizada;
 window.abrirEditorSubtareaListaPersonalizada = abrirEditorSubtareaListaPersonalizada;
 window.guardarEdicionSubtareaListaPersonalizada = guardarEdicionSubtareaListaPersonalizada;
