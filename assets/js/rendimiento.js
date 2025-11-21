@@ -100,7 +100,7 @@ const performanceMonitor = {
 };
 
 // Prevenir zoom accidental en tablet
-if (isMobile()) {
+if (typeof isMobile === 'function' && isMobile()) {
   // Disable tactile feedback globally
   document.body.style.WebkitTapHighlightColor = 'transparent';
 

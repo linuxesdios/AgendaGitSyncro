@@ -2,16 +2,127 @@
 
 let db = null;
 let isFirebaseInitialized = false;
+let isOnline = navigator.onLine;
+let conectividadModal = null;
 
-function getFirebaseConfig() {
-  const saved = localStorage.getItem('firebase-config');
-  if (saved) {
-    return JSON.parse(saved);
+// ========== SISTEMA DE DETECTAR CONECTIVIDAD ==========
+function mostrarAlertaConectividad(mensaje, tipo = 'warning', persistente = false) {
+  // Crear modal de conectividad si no existe
+  if (!conectividadModal) {
+    conectividadModal = document.createElement('div');
+    conectividadModal.id = 'modal-conectividad';
+    conectividadModal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 10000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    `;
+    document.body.appendChild(conectividadModal);
   }
-  return { apiKey: '', projectId: '', messagingSenderId: '', appId: '' };
+
+  const color = tipo === 'error' ? '#f44336' : tipo === 'success' ? '#4caf50' : '#ff9800';
+  const icono = tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : '⚠️';
+
+  conectividadModal.innerHTML = `
+    <div style="
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      border: 3px solid ${color};
+    ">
+      <div style="font-size: 48px; margin-bottom: 20px;">${icono}</div>
+      <h3 style="margin: 0 0 15px 0; color: ${color};">ESTADO DE CONECTIVIDAD</h3>
+      <p style="font-size: 18px; margin: 15px 0; color: #333;">${mensaje}</p>
+      ${!persistente ? `<button onclick="cerrarModalConectividad()" style="
+        background: ${color};
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 15px;
+      ">Entendido</button>` : ''}
+    </div>
+  `;
+
+  conectividadModal.style.display = 'flex';
+
+  if (!persistente) {
+    setTimeout(() => {
+      cerrarModalConectividad();
+    }, 5000);
+  }
 }
 
-function initFirebase() {
+function cerrarModalConectividad() {
+  if (conectividadModal) {
+    conectividadModal.style.display = 'none';
+  }
+}
+
+function verificarConectividad() {
+  return new Promise((resolve) => {
+    if (!navigator.onLine) {
+      resolve(false);
+      return;
+    }
+
+    if (!isFirebaseInitialized) {
+      resolve(false);
+      return;
+    }
+
+    // Probar conexión real con Firebase
+    db.collection('test').doc('connectivity').set({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      test: true
+    }).then(() => {
+      resolve(true);
+    }).catch(() => {
+      resolve(false);
+    });
+  });
+}
+
+// Monitoreo de conectividad
+window.addEventListener('online', async () => {
+  isOnline = true;
+  const conectado = await verificarConectividad();
+  if (conectado) {
+    mostrarAlertaConectividad('🟢 Conexión restaurada. Los datos se están sincronizando automáticamente.', 'success');
+    // Forzar sincronización cuando se recupere la conexión
+    setTimeout(() => {
+      extendsClassPull();
+    }, 1000);
+  }
+});
+
+window.addEventListener('offline', () => {
+  isOnline = false;
+  mostrarAlertaConectividad('🔴 SIN CONEXIÓN A INTERNET<br><br>⚠️ CUIDADO: No se está guardando ni cargando nada.<br>Los cambios se perderán al cerrar la aplicación.', 'error', true);
+});
+
+function getFirebaseConfig() {
+  // Configuración directa de Firebase
+  return {
+    apiKey: 'AIzaSyDbZBugeuekmI44sng37Fj3Q9ab5cNiRUY',
+    projectId: 'agenda-pablo-f6d0d',
+    messagingSenderId: '679447909448'
+  };
+}
+
+async function initFirebase() {
   const config = getFirebaseConfig();
   if (!config.apiKey || !config.projectId) {
     console.log('⚠️ Firebase no configurado');
@@ -31,7 +142,7 @@ function initFirebase() {
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
-    
+
     db = firebase.firestore();
     isFirebaseInitialized = true;
 
@@ -39,30 +150,64 @@ function initFirebase() {
     window.isFirebaseInitialized = isFirebaseInitialized;
     window.db = db;
 
+    // Verificar conectividad inicial
+    const conectado = await verificarConectividad();
+    if (!conectado) {
+      mostrarAlertaConectividad('🔴 SIN CONEXIÓN CON FIREBASE<br><br>⚠️ CUIDADO: No se puede guardar ni cargar datos.<br>Verifica tu conexión a internet.', 'error');
+    }
+
     console.log('✅ Firebase inicializado');
     return true;
   } catch (error) {
     console.error('❌ Error inicializando Firebase:', error);
+    mostrarAlertaConectividad('❌ ERROR DE FIREBASE<br><br>No se pudo conectar a la base de datos.<br>Verifica la configuración.', 'error');
+    return false;
+  }
+}
+
+// ========== FUNCIÓN AUXILIAR PARA VERIFICAR CONECTIVIDAD ==========
+async function ejecutarOperacionFirebase(operacion, mensajeError = 'No se puede realizar la operación sin conexión') {
+  const conectado = await verificarConectividad();
+  if (!conectado) {
+    mostrarAlertaConectividad(`🔴 ${mensajeError}<br><br>⚠️ CUIDADO: No hay conexión con Firebase.`, 'error');
+    return false;
+  }
+
+  try {
+    const resultado = await operacion();
+    return resultado;
+  } catch (error) {
+    console.error('Error en operación Firebase:', error);
+    mostrarAlertaConectividad(`❌ Error de Firebase: ${error.message}`, 'error');
     return false;
   }
 }
 
 function setupAutoSync() {
   if (!isFirebaseInitialized) return;
-  
-  // Sincronización automática cada 30 segundos
-  setInterval(() => {
-    guardarJSON(true);
+
+  // Sincronización automática cada 30 segundos (solo si hay conexión)
+  setInterval(async () => {
+    const conectado = await verificarConectividad();
+    if (conectado) {
+      guardarJSON(true);
+    }
   }, 30000);
-  
-  // Guardar al cambiar de pestaña/cerrar
-  window.addEventListener('beforeunload', () => {
-    guardarJSON(true);
+
+  // Guardar al cambiar de pestaña/cerrar (solo si hay conexión)
+  window.addEventListener('beforeunload', async () => {
+    const conectado = await verificarConectividad();
+    if (conectado) {
+      guardarJSON(true);
+    }
   });
-  
-  // Guardar al perder foco
-  window.addEventListener('blur', () => {
-    guardarJSON(true);
+
+  // Guardar al perder foco (solo si hay conexión)
+  window.addEventListener('blur', async () => {
+    const conectado = await verificarConectividad();
+    if (conectado) {
+      guardarJSON(true);
+    }
   });
 }
 
@@ -71,7 +216,7 @@ function guardarConfigFirebase() {
   const projectId = document.getElementById('firebase-projectid')?.value || '';
   const messagingSenderId = document.getElementById('firebase-messagingsenderid')?.value || '';
   const appId = document.getElementById('firebase-appid')?.value || '';
-  
+
   if (!apiKey || !projectId) {
     mostrarAlerta('❌ Completa API Key y Project ID', 'error');
     return;
@@ -79,7 +224,7 @@ function guardarConfigFirebase() {
 
   const config = { apiKey, projectId, messagingSenderId, appId };
   localStorage.setItem('firebase-config', JSON.stringify(config));
-  
+
   if (initFirebase()) {
     mostrarAlerta('✅ Firebase configurado correctamente', 'success');
     setupAutoSync();
@@ -107,21 +252,31 @@ function probarConexionFirebase() {
   });
 }
 
-function extendsClassPull() {
+async function extendsClassPull() {
+  const conectado = await verificarConectividad();
+  if (!conectado) {
+    mostrarAlertaConectividad('🔴 No se pueden sincronizar los datos<br><br>⚠️ Sin conexión a Firebase', 'error');
+    return;
+  }
+
   if (!isFirebaseInitialized) {
     mostrarAlerta('⚠️ Firebase no disponible', 'warning');
     return;
   }
 
-  Promise.all([
-    db.collection('tareas').doc('data').get(),
-    db.collection('citas').doc('data').get(),
-    db.collection('notas').doc('data').get(),
-    db.collection('sentimientos').doc('data').get(),
-    db.collection('historial').doc('eliminados').get(),
-    db.collection('config').doc('settings').get(),
-    db.collection('personas').doc('asignadas').get()
-  ]).then(([tareasDoc, citasDoc, notasDoc, sentimientosDoc, historialDoc, configDoc, personasDoc]) => {
+  return ejecutarOperacionFirebase(async () => {
+    const [tareasDoc, citasDoc, notasDoc, sentimientosDoc, historialDoc, configDoc, personasDoc, etiquetasDoc, historialTareasDoc] = await Promise.all([
+      db.collection('tareas').doc('data').get(),
+      db.collection('citas').doc('data').get(),
+      db.collection('notas').doc('data').get(),
+      db.collection('sentimientos').doc('data').get(),
+      db.collection('historial').doc('eliminados').get(),
+      db.collection('config').doc('settings').get(),
+      db.collection('personas').doc('asignadas').get(),
+      db.collection('etiquetas').doc('data').get(),
+      db.collection('historial').doc('tareas').get()
+    ]);
+
     const data = {
       tareas_criticas: tareasDoc.exists ? (tareasDoc.data().tareas_criticas || []) : [],
       tareas: tareasDoc.exists ? (tareasDoc.data().tareas || []) : [],
@@ -129,34 +284,69 @@ function extendsClassPull() {
       notas: notasDoc.exists ? (notasDoc.data().notas || '') : '',
       sentimientos: sentimientosDoc.exists ? (sentimientosDoc.data().sentimientos || '') : ''
     };
-    
-    // Sincronizar historial eliminados
-    if (historialDoc.exists) {
-      const historialFirebase = historialDoc.data().items || [];
-      localStorage.setItem('historial-eliminados', JSON.stringify(historialFirebase));
-    }
-    
-    // Sincronizar configuración
+
+    // Cargar configuraciones DIRECTAMENTE en memoria (NO localStorage)
     if (configDoc.exists) {
       const configFirebase = configDoc.data();
-      if (configFirebase.visual) localStorage.setItem('config-visual', JSON.stringify(configFirebase.visual));
-      if (configFirebase.funcionales) localStorage.setItem('config-funcionales', JSON.stringify(configFirebase.funcionales));
-      if (configFirebase.etiquetas) localStorage.setItem('etiquetas', JSON.stringify(configFirebase.etiquetas));
+
+      // Guardar configuraciones en variables globales para acceso directo
+      const visualRemote = configFirebase.visual || {};
+
+      // PROTECCIÓN CONTRA SOBRESCRITURA DE LISTAS PERSONALIZADAS
+      // Si Firebase devuelve 0 listas (o undefined) pero localmente tenemos listas,
+      // es probable que sea una condición de carrera o lectura de caché antigua.
+      // En este caso, PRESERVAMOS las listas locales para no perder datos recién creados.
+      const listasLocales = window.configVisual && window.configVisual.listasPersonalizadas;
+      const listasRemotas = visualRemote.listasPersonalizadas;
+
+      if ((!listasRemotas || listasRemotas.length === 0) && (listasLocales && listasLocales.length > 0)) {
+        console.warn(`🛡️ PROTECCIÓN ACTIVADA: Firebase devolvió 0 listas pero hay ${listasLocales.length} locales. Preservando listas locales.`);
+        visualRemote.listasPersonalizadas = listasLocales;
+      }
+
+      window.configVisual = visualRemote;
+      window.configFuncionales = configFirebase.funcionales || {};
+      window.configOpciones = configFirebase.opciones || {};
+
       aplicarConfiguracionSincronizada();
     }
-    
-    // Sincronizar personas
-    if (personasDoc.exists) {
-      const personasFirebase = personasDoc.data().lista || [];
-      localStorage.setItem('personas-asignadas', JSON.stringify(personasFirebase));
+
+    // Cargar datos auxiliares DIRECTAMENTE en memoria (NO localStorage)
+    if (historialDoc.exists) {
+      window.historialEliminados = historialDoc.data().items || [];
     }
-    
+
+    if (personasDoc.exists) {
+      window.personasAsignadas = personasDoc.data().lista || [];
+    }
+
+    if (etiquetasDoc.exists) {
+      window.etiquetasData = etiquetasDoc.data() || {};
+    }
+
+    // Cargar historial de tareas completadas en memoria global
+    if (historialTareasDoc.exists) {
+      window.historialTareas = historialTareasDoc.data().items || [];
+    } else {
+      window.historialTareas = [];
+    }
+
     console.log('📥 Sincronizado desde Firebase');
     console.log('📊 Datos recibidos:', {
       tareas_criticas: data.tareas_criticas.length,
       tareas: data.tareas.length,
       citas: data.citas.length,
       notas: data.notas.length
+    });
+
+    console.log('🔍 DETALLE DE TAREAS:');
+    console.log('  📋 Tareas normales (van a "Por hacer"):', data.tareas.length);
+    data.tareas.forEach((t, i) => {
+      console.log(`    ${i + 1}. ${t.texto} (estado: ${t.estado})`);
+    });
+    console.log('  🚨 Tareas críticas:', data.tareas_criticas.length);
+    data.tareas_criticas.forEach((t, i) => {
+      console.log(`    ${i + 1}. ${t.titulo} (estado: ${t.estado})`);
     });
 
     procesarJSON(data);
@@ -184,104 +374,132 @@ function extendsClassPull() {
     }, 100);
 
     mostrarAlerta('✅ Datos sincronizados desde Firebase', 'success');
-  }).catch((error) => {
-    console.error('Error:', error);
-    mostrarAlerta('❌ Error: ' + error.message, 'error');
-  });
+    return true;
+  }, 'No se pueden sincronizar los datos');
 }
 
-function guardarJSON(silent = false) {
+async function guardarJSON(silent = false) {
   if (!isFirebaseInitialized) {
     if (!silent) mostrarAlerta('⚠️ Firebase no disponible', 'warning');
     return false;
   }
 
-  // Guardar en colecciones separadas
-  const batch = db.batch();
-  
-  // Tareas
-  const tareasRef = db.collection('tareas').doc('data');
-  batch.set(tareasRef, {
-    tareas_criticas: appState.agenda.tareas_criticas || [],
-    tareas: appState.agenda.tareas || [],
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  
-  // Citas
-  const citasRef = db.collection('citas').doc('data');
-  batch.set(citasRef, {
-    citas: appState.agenda.citas || [],
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  
-  // Notas
-  const notasRef = db.collection('notas').doc('data');
-  batch.set(notasRef, {
-    notas: appState.agenda.notas || '',
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  
-  // Sentimientos
-  const sentimientosRef = db.collection('sentimientos').doc('data');
-  batch.set(sentimientosRef, {
-    sentimientos: appState.agenda.sentimientos || '',
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  const conectado = await verificarConectividad();
+  if (!conectado) {
+    if (!silent) {
+      mostrarAlertaConectividad('🔴 No se puede guardar<br><br>⚠️ Sin conexión a Firebase', 'error');
+    }
+    return false;
+  }
 
-  batch.commit().then(() => {
+  return ejecutarOperacionFirebase(async () => {
+    // Guardar en colecciones separadas
+    const batch = db.batch();
+
+    // Tareas
+    const tareasRef = db.collection('tareas').doc('data');
+    batch.set(tareasRef, {
+      tareas_criticas: appState.agenda.tareas_criticas || [],
+      tareas: appState.agenda.tareas || [],
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Citas
+    const citasRef = db.collection('citas').doc('data');
+    batch.set(citasRef, {
+      citas: appState.agenda.citas || [],
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Notas
+    const notasRef = db.collection('notas').doc('data');
+    batch.set(notasRef, {
+      notas: appState.agenda.notas || '',
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Sentimientos
+    const sentimientosRef = db.collection('sentimientos').doc('data');
+    batch.set(sentimientosRef, {
+      sentimientos: appState.agenda.sentimientos || '',
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await batch.commit();
+
     if (!silent) {
       console.log('✅ Guardado en Firebase');
       mostrarAlerta('💾 Guardado automáticamente', 'success');
     }
-  }).catch((error) => {
-    if (!silent) {
-      console.error('Error guardando:', error);
-      mostrarAlerta('❌ Error: ' + error.message, 'error');
-    }
-  });
 
-  return true;
+    return true;
+  }, 'No se puede guardar sin conexión');
 }
 
-function guardarConfigEnFirebase() {
-  if (!isFirebaseInitialized) return;
-  
-  const configCompleta = {
-    visual: JSON.parse(localStorage.getItem('config-visual') || '{}'),
-    funcionales: JSON.parse(localStorage.getItem('config-funcionales') || '{}'),
-    etiquetas: JSON.parse(localStorage.getItem('etiquetas') || '{}'),
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  };
-  
-  const personas = JSON.parse(localStorage.getItem('personas-asignadas') || '[]');
-  
-  // Guardar configuración
-  db.collection('config').doc('settings').set(configCompleta).then(() => {
-    console.log('✅ Configuración guardada en Firebase');
-  }).catch(error => {
-    console.error('Error guardando configuración:', error);
-  });
-  
-  // Guardar personas
-  db.collection('personas').doc('asignadas').set({
-    lista: personas,
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    console.log('✅ Personas guardadas en Firebase');
-  }).catch(error => {
-    console.error('Error guardando personas:', error);
-  });
+async function guardarConfigEnFirebase() {
+  if (!isFirebaseInitialized) return false;
+
+  return ejecutarOperacionFirebase(async () => {
+    const configCompleta = {
+      visual: window.configVisual || {},
+      funcionales: window.configFuncionales || {},
+      opciones: window.configOpciones || {},
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const batch = db.batch();
+
+    // Guardar configuración
+    const configRef = db.collection('config').doc('settings');
+    batch.set(configRef, configCompleta);
+
+    // Guardar personas
+    const personasRef = db.collection('personas').doc('asignadas');
+    batch.set(personasRef, {
+      lista: window.personasAsignadas || [],
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Guardar etiquetas
+    const etiquetasRef = db.collection('etiquetas').doc('data');
+    batch.set(etiquetasRef, {
+      ...window.etiquetasData || {},
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await batch.commit();
+    console.log('✅ Configuración completa guardada en Firebase');
+    return true;
+  }, 'No se puede guardar la configuración sin conexión');
 }
 
 function aplicarConfiguracionSincronizada() {
-  // Aplicar configuración visual
-  cargarConfigVisual();
-  aplicarVisibilidadSecciones();
-  
-  // Aplicar configuración funcional
-  const configFuncionales = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
-  if (configFuncionales.notificacionesActivas) {
-    iniciarSistemaNotificaciones();
+  console.log('🔄 EJECUTANDO aplicarConfiguracionSincronizada()');
+
+  try {
+    // Aplicar configuración visual desde memoria global (NO localStorage)
+    console.log('📝 Llamando a cargarConfigVisual() desde app.js...');
+    if (typeof cargarConfigVisual === 'function') {
+      cargarConfigVisual();
+    } else {
+      console.log('⚠️ cargarConfigVisual no disponible, usando versión básica');
+      cargarConfigVisualBasico();
+    }
+    console.log('✅ cargarConfigVisual() completado');
+
+    console.log('📝 Llamando a aplicarVisibilidadSecciones()...');
+    aplicarVisibilidadSecciones();
+    console.log('✅ aplicarVisibilidadSecciones() completado');
+
+    // Aplicar configuración funcional desde memoria global (NO localStorage)
+    const configFuncionales = window.configFuncionales || {};
+    if (configFuncionales.notificacionesActivas) {
+      iniciarSistemaNotificaciones();
+    }
+
+    console.log('✅ aplicarConfiguracionSincronizada() completado exitosamente');
+  } catch (error) {
+    console.error('❌ Error en aplicarConfiguracionSincronizada():', error);
   }
 }
 
@@ -307,21 +525,25 @@ function procesarJSON(data) {
 
   console.log('📊 appState.agenda.citas DESPUÉS:', appState.agenda.citas.length);
   console.log('📋 Contenido de citas:', appState.agenda.citas);
-  
+
   // Actualizar textarea de notas
   const notasEl = document.getElementById('notas-texto');
   if (notasEl && appState.agenda.notas) {
     notasEl.value = appState.agenda.notas;
-    autoResizeTextarea(notasEl);
+    if (typeof autoResizeTextarea === 'function') {
+      autoResizeTextarea(notasEl);
+    }
   }
-  
+
   // Actualizar textarea de sentimientos
   const sentimientosEl = document.getElementById('sentimientos-texto');
   if (sentimientosEl && appState.agenda.sentimientos) {
     sentimientosEl.value = appState.agenda.sentimientos;
-    autoResizeTextarea(sentimientosEl);
+    if (typeof autoResizeTextarea === 'function') {
+      autoResizeTextarea(sentimientosEl);
+    }
   }
-  
+
   if (typeof renderizar === 'function') {
     renderizar();
   }
@@ -351,9 +573,9 @@ function mostrarStatusFirebase(mensaje, tipo) {
 }
 
 function cargarConfiguracionesModal() {
-  const visualConfig = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  const visualConfig = window.configVisual || {};
   const firebaseConfig = getFirebaseConfig();
-  
+
   const temaEl = document.getElementById('config-tema-select');
   const nombreEl = document.getElementById('config-nombre-input');
   const frasesEl = document.getElementById('config-frases-motivacionales');
@@ -377,14 +599,14 @@ function cargarConfiguracionesModal() {
   if (projectIdEl) projectIdEl.value = firebaseConfig.projectId || '';
   if (messagingSenderIdEl) messagingSenderIdEl.value = firebaseConfig.messagingSenderId || '';
   if (appIdEl) appIdEl.value = firebaseConfig.appId || '';
-  
+
   // Cargar configuraciones funcionales
   cargarConfigFuncionales();
-  
+
   // Cargar etiquetas
   renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
   renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
-  
+
   // Cargar log, backups y personas
   cargarLog();
   cargarListaSalvados();
@@ -394,12 +616,19 @@ function cargarConfiguracionesModal() {
 }
 
 function cambiarFraseMotivacional() {
-  const frases = [
-    "El éxito es la suma de pequeños esfuerzos repetidos día tras día",
-    "Cada día es una nueva oportunidad para mejorar",
-    "La disciplina es el puente entre metas y logros"
-  ];
-  
+  // Usar frases personalizadas DESDE FIREBASE (variables globales)
+  const configVisual = window.configVisual || {};
+  let frases = configVisual.frases || [];
+
+  // Si no hay frases personalizadas, usar frases por defecto
+  if (frases.length === 0) {
+    frases = [
+      "El éxito es la suma de pequeños esfuerzos repetidos día tras día",
+      "Cada día es una nueva oportunidad para mejorar",
+      "La disciplina es el puente entre metas y logros"
+    ];
+  }
+
   const fraseEl = document.getElementById('frase-motivacional');
   if (fraseEl) {
     const nuevaFrase = frases[Math.floor(Math.random() * frases.length)];
@@ -407,8 +636,9 @@ function cambiarFraseMotivacional() {
   }
 }
 
-function cargarConfigVisual() {
-  const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
+function cargarConfigVisualBasico() {
+  // Función básica para aplicar tema - no conflictúa con la principal en app.js
+  const config = window.configVisual || {};
   const tema = config.tema || 'verde';
   document.body.classList.add('tema-' + tema);
 }
@@ -431,68 +661,51 @@ function switchTab(tabName) {
   document.querySelectorAll('.config-tab').forEach(tab => {
     tab.classList.remove('active');
   });
-  
+
   // Activar nueva pestaña
   const newTab = document.getElementById('tab-' + tabName);
   if (newTab) {
     newTab.classList.add('active');
   }
-  
+
   // Activar botón de pestaña
   if (event && event.target) {
     event.target.classList.add('active');
   }
 }
 
-function guardarConfigVisualPanel() {
-  const tema = document.getElementById('config-tema-select')?.value || 'verde';
-  const nombre = document.getElementById('config-nombre-input')?.value || 'Pablo';
-  const frasesTexto = document.getElementById('config-frases-motivacionales')?.value || '';
-  const popupCelebracion = document.getElementById('config-popup-celebracion')?.checked || false;
-  const mostrarNotas = document.getElementById('config-mostrar-notas')?.checked !== false;
-  const mostrarSentimientos = document.getElementById('config-mostrar-sentimientos')?.checked !== false;
-  const modoVisualizacion = document.getElementById('config-modo-visualizacion')?.value || 'estado';
-  
-  // Procesar frases (una por línea, filtrar vacías)
-  const frases = frasesTexto.split('\n')
-    .map(f => f.trim())
-    .filter(f => f.length > 0);
-  
-  const config = { tema, nombre, frases, popupCelebracion, mostrarNotas, mostrarSentimientos, modoVisualizacion };
-  localStorage.setItem('config-visual', JSON.stringify(config));
-  
-  // Aplicar tema
-  document.body.classList.remove('modo-oscuro', 'tema-verde', 'tema-azul', 'tema-amarillo');
-  document.body.classList.add('tema-' + tema);
-  
-  // Actualizar título
-  const titulo = document.getElementById('titulo-agenda');
-  if (titulo) {
-    titulo.textContent = '🧠 Agenda de ' + nombre + ' 😊';
-  }
-  
-  // Mostrar/ocultar secciones
-  aplicarVisibilidadSecciones();
-  
-  // Re-renderizar tareas con nuevo modo de visualización
-  renderizar();
-  
-  // Guardar en Firebase
-  guardarConfigEnFirebase();
-  
-  registrarAccion('Cambiar configuración visual', `tema: ${tema}, modo: ${modoVisualizacion}`);
-  mostrarAlerta('✅ Configuración visual aplicada', 'success');
-}
+// Función guardarConfigVisualPanel eliminada de aquí porque ya existe en app.js
+// Se debe usar la versión de app.js para evitar conflictos y SyntaxError
 
-function guardarConfigOpciones() {
+async function guardarConfigOpciones() {
   const config = {
     forzarFecha: document.getElementById('config-forzar-fecha')?.checked || false,
     sinTactil: document.getElementById('config-sin-tactil')?.checked || false,
     mostrarTodo: document.getElementById('config-mostrar-todo')?.checked || false,
     botonesBorrar: document.getElementById('config-botones-borrar')?.checked || false
   };
-  
-  localStorage.setItem('config-opciones', JSON.stringify(config));
+
+  console.log('💾 Guardando configuración de opciones en Firebase:', config);
+
+  // Verificar conectividad
+  const conectado = await verificarConectividad();
+  if (!conectado) {
+    mostrarAlertaConectividad('🔴 No se puede guardar las opciones<br><br>⚠️ Sin conexión a Firebase', 'error');
+    return;
+  }
+
+  // Guardar DIRECTAMENTE en variables globales (NO localStorage)
+  window.configOpciones = config;
+
+  // Guardar en Firebase
+  if (typeof guardarConfigEnFirebase === 'function') {
+    const guardado = await guardarConfigEnFirebase();
+    if (guardado) {
+      mostrarAlerta('✅ Opciones guardadas en Firebase', 'success');
+    }
+  } else {
+    mostrarAlerta('⚠️ No se pudo sincronizar las opciones con Firebase', 'warning');
+  }
 }
 
 function guardarConfigFuncionales() {
@@ -505,27 +718,28 @@ function guardarConfigFuncionales() {
     notif2Horas: document.getElementById('config-notif-2-horas')?.checked || false,
     notif30Min: document.getElementById('config-notif-30-min')?.checked || false,
     popupCelebracion: document.getElementById('config-popup-celebracion')?.checked || false,
-    popupDiario: document.getElementById('config-popup-diario')?.checked || false
+    popupDiario: document.getElementById('config-popup-diario')?.value || 'una_vez'
   };
-  
-  localStorage.setItem('config-funcionales', JSON.stringify(config));
-  
+
+  // Guardar DIRECTAMENTE en variable global (NO localStorage)
+  window.configFuncionales = config;
+
   // Reiniciar el sistema de notificaciones si está activo
   if (config.notificacionesActivas) {
     iniciarSistemaNotificaciones();
   } else {
     detenerSistemaNotificaciones();
   }
-  
+
   // Guardar en Firebase
   guardarConfigEnFirebase();
-  
+
   mostrarAlerta('✅ Configuración funcional guardada', 'success');
 }
 
 function cargarConfigFuncionales() {
-  const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
-  
+  const config = window.configFuncionales || {};
+
   const fechaObligatoriaEl = document.getElementById('config-fecha-obligatoria');
   const confirmacionBorrarEl = document.getElementById('config-confirmacion-borrar');
   const autoMayusculaEl = document.getElementById('config-auto-mayuscula');
@@ -535,46 +749,51 @@ function cargarConfigFuncionales() {
   const notif30MinEl = document.getElementById('config-notif-30-min');
   const popupCelebracionEl = document.getElementById('config-popup-celebracion');
   const popupDiarioEl = document.getElementById('config-popup-diario');
-  
+
   if (fechaObligatoriaEl) fechaObligatoriaEl.checked = config.fechaObligatoria || false;
-  if (confirmacionBorrarEl) confirmacionBorrarEl.checked = config.confirmacionBorrar !== false; // Por defecto true
-  if (autoMayusculaEl) autoMayusculaEl.checked = config.autoMayuscula !== false; // Por defecto true
+  if (confirmacionBorrarEl) confirmacionBorrarEl.checked = config.confirmacionBorrar !== false;
+  if (autoMayusculaEl) autoMayusculaEl.checked = config.autoMayuscula !== false;
   if (notificacionesActivasEl) notificacionesActivasEl.checked = config.notificacionesActivas || false;
-  if (notif1DiaEl) notif1DiaEl.checked = config.notif1Dia !== false; // Por defecto true
-  if (notif2HorasEl) notif2HorasEl.checked = config.notif2Horas !== false; // Por defecto true
-  if (notif30MinEl) notif30MinEl.checked = config.notif30Min !== false; // Por defecto true
-  if (popupCelebracionEl) popupCelebracionEl.checked = config.popupCelebracion !== false; // Por defecto true
-  if (popupDiarioEl) popupDiarioEl.checked = config.popupDiario !== false; // Por defecto true
+  if (notif1DiaEl) notif1DiaEl.checked = config.notif1Dia !== false;
+  if (notif2HorasEl) notif2HorasEl.checked = config.notif2Horas !== false;
+  if (notif30MinEl) notif30MinEl.checked = config.notif30Min !== false;
+  if (popupCelebracionEl) popupCelebracionEl.checked = config.popupCelebracion !== false;
+  if (popupDiarioEl) popupDiarioEl.value = config.popupDiario || 'una_vez';
 }
 
 function mostrarResumenDiario() {
-  const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
-  if (config.popupDiario === false) return;
+  // Usar configuración DESDE FIREBASE (variables globales)
+  const config = window.configFuncionales || {};
   
+  // Opciones: 'nunca', 'una_vez', 'siempre'
+  const modoPopup = config.popupDiario || 'una_vez';
+  
+  if (modoPopup === 'nunca') return;
+
   const hoy = new Date().toISOString().slice(0, 10);
-  const ultimaVez = localStorage.getItem('ultimo-popup-diario');
   
-  // Solo mostrar si es la primera vez del día
-  if (ultimaVez === hoy) return;
-  
+  // Si es 'una_vez', verificar si ya se mostró hoy
+  if (modoPopup === 'una_vez' && window.ultimoPopupDiario === hoy) return;
+
   // Buscar tareas del día
   const tareasHoy = [...(appState.agenda.tareas_criticas || []), ...(appState.agenda.tareas || [])]
     .filter(t => !t.completada && (t.fecha_fin === hoy || t.fecha_migrar === hoy));
-  
+
   // Buscar tareas pasadas
   const tareasPasadas = [...(appState.agenda.tareas_criticas || []), ...(appState.agenda.tareas || [])]
     .filter(t => !t.completada && ((t.fecha_fin && esFechaPasada(t.fecha_fin)) || (t.fecha_migrar && esFechaPasada(t.fecha_migrar))));
-  
+
   // Buscar citas del día
   const citasHoy = (appState.agenda.citas || []).filter(c => c.fecha === hoy);
-  
+
   if (tareasHoy.length === 0 && citasHoy.length === 0 && tareasPasadas.length === 0) {
-    localStorage.setItem('ultimo-popup-diario', hoy);
+    // Usar variable global (NO localStorage)
+    window.ultimoPopupDiario = hoy;
     return;
   }
-  
+
   let contenido = `🌅 RESUMEN DEL DÍA - ${hoy}\n\n`;
-  
+
   if (tareasPasadas.length > 0) {
     contenido += `⚠️ TAREAS ATRASADAS (${tareasPasadas.length}):\n`;
     tareasPasadas.forEach((t, i) => {
@@ -585,7 +804,7 @@ function mostrarResumenDiario() {
     });
     contenido += '\n';
   }
-  
+
   if (tareasHoy.length > 0) {
     contenido += `📝 TAREAS DE HOY (${tareasHoy.length}):\n`;
     tareasHoy.forEach((t, i) => {
@@ -595,7 +814,7 @@ function mostrarResumenDiario() {
     });
     contenido += '\n';
   }
-  
+
   if (citasHoy.length > 0) {
     contenido += `📅 CITAS DE HOY (${citasHoy.length}):\n`;
     citasHoy.forEach((c, i) => {
@@ -604,9 +823,9 @@ function mostrarResumenDiario() {
       contenido += `${i + 1}. 🕰️ ${hora} - ${descripcion}\n`;
     });
   }
-  
+
   contenido += '\n💪 ¡Que tengas un día productivo!';
-  
+
   // Crear overlay
   const overlay = document.createElement('div');
   overlay.className = 'dashboard-overlay';
@@ -618,12 +837,13 @@ function mostrarResumenDiario() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(overlay);
   overlay.classList.add('show');
-  
+
   // Marcar como mostrado hoy
-  localStorage.setItem('ultimo-popup-diario', hoy);
+  // Usar variable global (NO localStorage)
+  window.ultimoPopupDiario = hoy;
 }
 
 function cerrarResumenDiario() {
@@ -664,51 +884,73 @@ function hacerCopia() {
 
 function abrirHistoricoTareas() {
   const total = appState.agenda.tareas.length + appState.agenda.tareas_criticas.length;
-  const completadas = appState.agenda.tareas.filter(t => t.completada).length + 
-                     appState.agenda.tareas_criticas.filter(t => t.completada).length;
+  const completadas = appState.agenda.tareas.filter(t => t.completada).length +
+    appState.agenda.tareas_criticas.filter(t => t.completada).length;
   const pendientes = total - completadas;
-  
+
   mostrarAlerta(`📊 Total: ${total} | Completadas: ${completadas} | Pendientes: ${pendientes}`, 'info');
 }
 
 // ========== HISTORIAL Y CELEBRACIONES ==========
-function guardarTareaCompletada(tarea, esCritica = false) {
-  const historial = JSON.parse(localStorage.getItem('historial-tareas') || '[]');
-  const fecha = new Date().toISOString().slice(0, 10);
-  const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  
-  const tareaHistorial = {
-    id: Date.now(),
-    texto: tarea.titulo || tarea.texto,
-    fecha: fecha,
-    hora: hora,
-    esCritica: esCritica,
-    fechaLimite: tarea.fecha_fin || null
-  };
-  
-  historial.push(tareaHistorial);
-  
-  // Mantener solo últimos 1000 registros
-  if (historial.length > 1000) {
-    historial.splice(0, historial.length - 1000);
+async function guardarTareaCompletada(tarea, esCritica = false) {
+  const conectado = await verificarConectividad();
+  if (!conectado) {
+    console.warn('⚠️ No se puede guardar historial de tarea completada sin conexión');
+    // Mostrar popup de celebración de todas formas
+    mostrarPopupCelebracion();
+    return;
   }
-  
-  localStorage.setItem('historial-tareas', JSON.stringify(historial));
-  
-  // Mostrar popup de celebración
-  mostrarPopupCelebracion();
+
+  return ejecutarOperacionFirebase(async () => {
+    const fecha = new Date().toISOString().slice(0, 10);
+    const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    const tareaHistorial = {
+      id: Date.now(),
+      texto: tarea.titulo || tarea.texto,
+      fecha: fecha,
+      hora: hora,
+      esCritica: esCritica,
+      fechaLimite: tarea.fecha_fin || null,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Obtener historial actual de Firebase
+    const historialRef = db.collection('historial').doc('tareas');
+    const historialDoc = await historialRef.get();
+    const historial = historialDoc.exists ? (historialDoc.data().items || []) : [];
+
+    historial.push(tareaHistorial);
+
+    // Mantener solo últimos 1000 registros
+    if (historial.length > 1000) {
+      historial.splice(0, historial.length - 1000);
+    }
+
+    // Guardar en Firebase
+    await historialRef.set({
+      items: historial,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log('✅ Historial de tarea guardado en Firebase');
+
+    // Mostrar popup de celebración
+    mostrarPopupCelebracion();
+    return true;
+  }, 'No se puede guardar el historial sin conexión');
 }
 
 function mostrarPopupCelebracion() {
-  // Verificar si los popups están activados
-  const visualConfig = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  // Verificar si los popups están activados DESDE FIREBASE (variables globales)
+  const visualConfig = window.configVisual || {};
   if (visualConfig.popupCelebracion === false) {
     return;
   }
-  
+
   // Obtener frases personalizadas
   const frasesPersonalizadas = visualConfig.frases || [];
-  
+
   const frasesDefault = [
     "¡Excelente trabajo! 🎉",
     "¡Una tarea menos! 💪",
@@ -721,21 +963,21 @@ function mostrarPopupCelebracion() {
     "¡Vas muy bien! 🎯",
     "¡Imparable! 🔥"
   ];
-  
+
   // Usar frases personalizadas si existen, sino usar las por defecto
   const frases = frasesPersonalizadas.length > 0 ? frasesPersonalizadas : frasesDefault;
   const frase = frases[Math.floor(Math.random() * frases.length)];
-  
+
   // Crear overlay transparente como el dashboard
   const overlay = document.createElement('div');
   overlay.className = 'dashboard-overlay';
   overlay.innerHTML = `<div class="dashboard-content celebration-style">${frase}</div>`;
-  
+
   document.body.appendChild(overlay);
-  
+
   // Mostrar inmediatamente
   overlay.classList.add('show');
-  
+
   // Remover después de 1 segundo
   setTimeout(() => {
     overlay.classList.remove('show');
@@ -747,23 +989,23 @@ function mostrarResumenHoy() {
   const hoy = new Date().toISOString().slice(0, 10);
   const historial = JSON.parse(localStorage.getItem('historial-tareas') || '[]');
   const tareasHoy = historial.filter(t => t.fecha === hoy);
-  
+
   const totalHoy = appState.agenda.tareas.length + appState.agenda.tareas_criticas.length;
   const completadasHoy = tareasHoy.length;
   const pendientesHoy = totalHoy - appState.agenda.tareas.filter(t => t.completada).length - appState.agenda.tareas_criticas.filter(t => t.completada).length;
-  
+
   let resumen = `📅 RESUMEN DE HOY (${hoy})\n\n`;
   resumen += `✅ Completadas: ${completadasHoy}\n`;
   resumen += `⏳ Pendientes: ${pendientesHoy}\n`;
   resumen += `📊 Total: ${totalHoy}\n\n`;
-  
+
   if (tareasHoy.length > 0) {
     resumen += "TAREAS COMPLETADAS HOY:\n";
     tareasHoy.forEach((t, i) => {
       resumen += `${i + 1}. ${t.texto} (${t.hora})${t.esCritica ? ' 🚨' : ''}\n`;
     });
   }
-  
+
   const popup = window.open('', '_blank', 'width=600,height=500');
   popup.document.write(`
     <html><head><title>Resumen de Hoy</title></head>
@@ -774,40 +1016,42 @@ function mostrarResumenHoy() {
 }
 
 function mostrarDashboardMotivacional() {
-  const historial = JSON.parse(localStorage.getItem('historial-tareas') || '[]');
+  // Usar historial DESDE VARIABLES GLOBALES (cargadas desde Firebase)
+  const historial = window.historialTareas || [];
+
   const hoy = new Date();
   const hace7Dias = new Date();
   hace7Dias.setDate(hoy.getDate() - 7);
-  
+
   // Datos de hoy
   const hoyStr = hoy.toISOString().slice(0, 10);
   const tareasHoy = historial.filter(t => t.fecha === hoyStr);
   const totalActual = appState.agenda.tareas.length + appState.agenda.tareas_criticas.length;
   const completadasActuales = appState.agenda.tareas.filter(t => t.completada).length + appState.agenda.tareas_criticas.filter(t => t.completada).length;
   const pendientesHoy = totalActual - completadasActuales;
-  
+
   // Datos semanales
   const tareasSemana = historial.filter(t => {
     const fechaTarea = new Date(t.fecha + 'T00:00:00');
     return fechaTarea >= hace7Dias && fechaTarea <= hoy;
   });
-  
+
   // Crear gráfico visual simple
   const completadasSemana = tareasSemana.length;
   const criticasSemana = tareasSemana.filter(t => t.esCritica).length;
   const promedioDiario = Math.round(completadasSemana / 7 * 10) / 10;
-  
+
   // Barra de progreso visual
   const porcentajeHoy = totalActual > 0 ? Math.round((tareasHoy.length / totalActual) * 100) : 0;
   const barraProgreso = '█'.repeat(Math.floor(porcentajeHoy / 5)) + '░'.repeat(20 - Math.floor(porcentajeHoy / 5));
-  
+
   // Mensaje motivacional
   let mensaje = '';
   if (tareasHoy.length >= 5) mensaje = '🎆 ¡Eres imparable hoy!';
   else if (tareasHoy.length >= 3) mensaje = '🚀 ¡Excelente ritmo!';
   else if (tareasHoy.length >= 1) mensaje = '🌟 ¡Buen comienzo!';
   else mensaje = '💪 ¡Es hora de brillar!';
-  
+
   const dashboard = `🎆 MI PROGRESO SEMANAL
 
 ${mensaje}
@@ -827,17 +1071,17 @@ ${completadasSemana > 10 ? '🔥 ¡Racha de fuego!' : completadasSemana > 5 ? '�
 
 📝 ÚLTIMAS TAREAS COMPLETADAS:
 ${tareasHoy.slice(-3).map((t, i) => `${i + 1}. ${t.texto} (${t.hora})${t.esCritica ? ' 🚨' : ''}`).join('\n') || 'Aún no hay tareas completadas hoy'}`;
-  
+
   // Crear overlay transparente
   const overlay = document.createElement('div');
   overlay.className = 'dashboard-overlay';
   overlay.innerHTML = `<div class="dashboard-content"><pre>${dashboard}</pre></div>`;
-  
+
   document.body.appendChild(overlay);
-  
+
   // Mostrar inmediatamente
   overlay.classList.add('show');
-  
+
   // Cerrar al hacer clic
   overlay.addEventListener('click', () => {
     overlay.classList.remove('show');
@@ -853,13 +1097,13 @@ function solicitarPermisoNotificaciones() {
     mostrarAlerta('❌ Tu navegador no soporta notificaciones', 'error');
     return;
   }
-  
+
   if (Notification.permission === 'granted') {
     mostrarAlerta('✅ Permisos ya concedidos', 'success');
     iniciarSistemaNotificaciones();
     return;
   }
-  
+
   if (Notification.permission !== 'denied') {
     Notification.requestPermission().then(permission => {
       if (permission === 'granted') {
@@ -875,22 +1119,22 @@ function solicitarPermisoNotificaciones() {
 }
 
 function iniciarSistemaNotificaciones() {
-  const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
-  
+  const config = window.configFuncionales || {};
+
   if (!config.notificacionesActivas || Notification.permission !== 'granted') {
     return;
   }
-  
+
   // Limpiar intervalos anteriores
   detenerSistemaNotificaciones();
-  
+
   // Verificar notificaciones cada minuto
   const intervalo = setInterval(verificarNotificaciones, 60000);
   intervalosNotificaciones.push(intervalo);
-  
+
   // Verificar inmediatamente
   verificarNotificaciones();
-  
+
   console.log('🔔 Sistema de notificaciones iniciado');
 }
 
@@ -901,27 +1145,27 @@ function detenerSistemaNotificaciones() {
 }
 
 function verificarNotificaciones() {
-  const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
+  const config = window.configFuncionales || {};
   const ahora = new Date();
-  
+
   if (!config.notificacionesActivas || !appState.agenda.citas) {
     return;
   }
-  
+
   appState.agenda.citas.forEach(cita => {
     const fechaCita = parsearFechaCita(cita);
     if (!fechaCita) return;
-    
+
     const diferenciaMilisegundos = fechaCita.getTime() - ahora.getTime();
     const diferenciaMinutos = Math.floor(diferenciaMilisegundos / (1000 * 60));
-    
+
     // Verificar si necesita notificación
     const necesitaNotificacion = (
       (config.notif1Dia && diferenciaMinutos <= 1440 && diferenciaMinutos > 1439) || // 1 día = 1440 min
       (config.notif2Horas && diferenciaMinutos <= 120 && diferenciaMinutos > 119) || // 2 horas = 120 min
       (config.notif30Min && diferenciaMinutos <= 30 && diferenciaMinutos > 29) // 30 min
     );
-    
+
     if (necesitaNotificacion && !yaNotificado(cita, diferenciaMinutos)) {
       enviarNotificacion(cita, diferenciaMinutos);
       marcarComoNotificado(cita, diferenciaMinutos);
@@ -934,15 +1178,15 @@ function parsearFechaCita(cita) {
     // Extraer hora de la descripción (formato: "HH:MM - Descripción")
     const partes = cita.nombre.split(' - ');
     if (partes.length < 2) return null;
-    
+
     const hora = partes[0].trim();
     const [horas, minutos] = hora.split(':').map(n => parseInt(n));
-    
+
     if (isNaN(horas) || isNaN(minutos)) return null;
-    
+
     const fechaCita = new Date(cita.fecha + 'T00:00:00');
     fechaCita.setHours(horas, minutos, 0, 0);
-    
+
     return fechaCita;
   } catch (error) {
     console.error('Error parseando fecha de cita:', error);
@@ -953,7 +1197,7 @@ function parsearFechaCita(cita) {
 function enviarNotificacion(cita, minutosRestantes) {
   const descripcion = cita.nombre.split(' - ')[1] || cita.nombre;
   let tiempoTexto = '';
-  
+
   if (minutosRestantes <= 30) {
     tiempoTexto = '30 minutos';
   } else if (minutosRestantes <= 120) {
@@ -961,17 +1205,17 @@ function enviarNotificacion(cita, minutosRestantes) {
   } else {
     tiempoTexto = '1 día';
   }
-  
+
   const notification = new Notification('📅 Recordatorio de Cita', {
     body: `${descripcion}\nEn ${tiempoTexto} - ${cita.fecha}`,
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>',
     tag: `cita-${cita.fecha}-${cita.nombre}`,
     requireInteraction: true
   });
-  
+
   // Auto-cerrar después de 10 segundos
   setTimeout(() => notification.close(), 10000);
-  
+
   console.log(`🔔 Notificación enviada: ${descripcion} en ${tiempoTexto}`);
 }
 
@@ -990,7 +1234,7 @@ function marcarComoNotificado(cita, minutosRestantes) {
 function limpiarNotificacionesAntiguas() {
   const hace7Dias = new Date();
   hace7Dias.setDate(hace7Dias.getDate() - 7);
-  
+
   Object.keys(localStorage).forEach(clave => {
     if (clave.startsWith('notif-')) {
       try {
@@ -1010,7 +1254,7 @@ function limpiarNotificacionesAntiguas() {
 if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
+      const config = window.configFuncionales || {};
       if (config.notificacionesActivas) {
         iniciarSistemaNotificaciones();
       }
@@ -1020,10 +1264,10 @@ if (typeof window !== 'undefined') {
 
 function abrirHistoricoTareas() {
   const total = appState.agenda.tareas.length + appState.agenda.tareas_criticas.length;
-  const completadas = appState.agenda.tareas.filter(t => t.completada).length + 
-                     appState.agenda.tareas_criticas.filter(t => t.completada).length;
+  const completadas = appState.agenda.tareas.filter(t => t.completada).length +
+    appState.agenda.tareas_criticas.filter(t => t.completada).length;
   const pendientes = total - completadas;
-  
+
   mostrarAlerta(`📊 Total: ${total} | Completadas: ${completadas} | Pendientes: ${pendientes}`, 'info');
 }
 
@@ -1032,10 +1276,10 @@ function abrirGraficos() {
     tareas: appState.agenda.tareas.length,
     criticas: appState.agenda.tareas_criticas.length,
     citas: appState.agenda.citas.length,
-    completadas: appState.agenda.tareas.filter(t => t.completada).length + 
-                appState.agenda.tareas_criticas.filter(t => t.completada).length
+    completadas: appState.agenda.tareas.filter(t => t.completada).length +
+      appState.agenda.tareas_criticas.filter(t => t.completada).length
   };
-  
+
   mostrarAlerta(`📈 Tareas: ${stats.tareas} | Críticas: ${stats.criticas} | Citas: ${stats.citas} | Completadas: ${stats.completadas}`, 'info');
 }
 
@@ -1050,7 +1294,7 @@ function restaurarBackup() {
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          
+
           // Validar estructura básica
           if (typeof data === 'object') {
             // Asegurar que existan las propiedades necesarias
@@ -1061,7 +1305,7 @@ function restaurarBackup() {
             appState.agenda.notas = data.notas || '';
             appState.agenda.citas = Array.isArray(data.citas) ? data.citas : [];
             appState.agenda.personas = Array.isArray(data.personas) ? data.personas : [];
-            
+
             // Asegurar IDs únicos
             appState.agenda.tareas_criticas.forEach((tarea, i) => {
               if (!tarea.id) tarea.id = 'critica_' + Date.now() + '_' + i;
@@ -1072,7 +1316,7 @@ function restaurarBackup() {
             appState.agenda.citas.forEach((cita, i) => {
               if (!cita.id) cita.id = 'cita_' + Date.now() + '_' + i;
             });
-            
+
             renderizar();
             guardarJSON();
             mostrarAlerta('✅ JSON importado correctamente', 'success');
@@ -1129,30 +1373,30 @@ function enviarNotificacion(titulo, mensaje) {
 
 function iniciarRecordatorios() {
   if (localStorage.getItem('notificaciones-activas') !== 'true') return;
-  
+
   // Revisar cada 30 minutos
   setInterval(() => {
     const hoy = new Date().toISOString().slice(0, 10);
-    
+
     // Tareas críticas de hoy
-    const criticasHoy = appState.agenda.tareas_criticas.filter(t => 
+    const criticasHoy = appState.agenda.tareas_criticas.filter(t =>
       !t.completada && (t.fecha_fin === hoy || t.fecha_migrar === hoy)
     );
-    
+
     if (criticasHoy.length > 0) {
       enviarNotificacion('🚨 Tareas Críticas', `Tienes ${criticasHoy.length} tareas críticas para hoy`);
     }
-    
+
     // Citas próximas (próximas 2 horas)
     const ahora = new Date();
     const dosHoras = new Date(ahora.getTime() + 2 * 60 * 60 * 1000);
-    
+
     const citasProximas = appState.agenda.citas.filter(cita => {
       if (!cita.fecha || !cita.hora) return false;
       const fechaCita = new Date(cita.fecha + 'T' + cita.hora + ':00');
       return fechaCita > ahora && fechaCita <= dosHoras;
     });
-    
+
     if (citasProximas.length > 0) {
       const cita = citasProximas[0];
       enviarNotificacion('📅 Cita Próxima', `${cita.descripcion} a las ${cita.hora}`);
@@ -1163,10 +1407,10 @@ function iniciarRecordatorios() {
 
 
 function aplicarVisibilidadSecciones() {
-  const config = JSON.parse(localStorage.getItem('config-visual') || '{}');
+  const config = window.configVisual || {};
   const mostrarNotas = config.mostrarNotas !== false;
   const mostrarSentimientos = config.mostrarSentimientos !== false;
-  
+
   const seccionNotas = document.getElementById('seccion-notas');
   const seccionSentimientos = document.getElementById('seccion-sentimientos');
   if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
@@ -1188,7 +1432,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.log('💡 Configura Firebase en ⚙️ → Firebase');
   }
-  
+
   // Aplicar visibilidad de secciones al cargar
   setTimeout(() => {
     aplicarVisibilidadSecciones();
@@ -1202,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => mostrarResumenDiario(), 1000);
     }, 200);
   }, 100);
-  
+
   // Iniciar notificaciones si están activadas
   if (localStorage.getItem('notificaciones-activas') === 'true') {
     iniciarRecordatorios();
@@ -1221,7 +1465,7 @@ window.extendsClassPull = extendsClassPull;
 window.guardarJSON = guardarJSON;
 window.procesarJSON = procesarJSON;
 window.mostrarStatusFirebase = mostrarStatusFirebase;
-window.cargarConfigVisual = cargarConfigVisual;
+// window.cargarConfigVisual = cargarConfigVisual; // Eliminado para evitar ReferenceError y conflicto con app.js
 window.toggleConfigFloating = toggleConfigFloating;
 window.switchTab = switchTab;
 window.guardarConfigVisualPanel = guardarConfigVisualPanel;
@@ -1250,10 +1494,10 @@ window.db = db;
 // ========== HISTORIAL DE SENTIMIENTOS ==========
 function guardarSentimiento(texto) {
   if (!texto || !texto.trim()) return;
-  
+
   const fecha = new Date().toISOString().slice(0, 10);
   const hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  
+
   const sentimientoHistorial = {
     id: Date.now(),
     texto: texto.trim(),
@@ -1261,7 +1505,7 @@ function guardarSentimiento(texto) {
     hora: hora,
     timestamp: new Date().toISOString()
   };
-  
+
   // Guardar en localStorage (backup)
   const historialLocal = JSON.parse(localStorage.getItem('historial-sentimientos') || '[]');
   historialLocal.push(sentimientoHistorial);
@@ -1269,7 +1513,7 @@ function guardarSentimiento(texto) {
     historialLocal.splice(0, historialLocal.length - 500);
   }
   localStorage.setItem('historial-sentimientos', JSON.stringify(historialLocal));
-  
+
   // Guardar en Firebase
   if (isFirebaseInitialized) {
     db.collection('sentimientos').add(sentimientoHistorial).then(() => {
@@ -1305,7 +1549,7 @@ function cargarEtiquetasEnSelect(selectId, tipo) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   const select = document.getElementById(selectId);
   if (!select || !etiquetas[tipo]) return;
-  
+
   select.innerHTML = '<option value="">Sin etiqueta</option>';
   etiquetas[tipo].forEach(etiqueta => {
     const option = document.createElement('option');
@@ -1319,7 +1563,7 @@ function renderizarListaEtiquetas(containerId, tipo) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   const container = document.getElementById(containerId);
   if (!container || !etiquetas[tipo]) return;
-  
+
   container.innerHTML = '';
   etiquetas[tipo].forEach((etiqueta, index) => {
     const div = document.createElement('div');
@@ -1338,12 +1582,12 @@ function agregarEtiquetaTarea() {
   const simbolo = document.getElementById('simbolo-etiqueta-tarea').value;
   const color = document.getElementById('color-etiqueta-tarea').value;
   if (!nombre) return;
-  
+
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   if (!etiquetas.tareas) etiquetas.tareas = [];
   etiquetas.tareas.push({ nombre, simbolo, color });
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
-  
+
   guardarConfigEnFirebase();
   registrarAccion('Añadir etiqueta de tarea', `${simbolo} ${nombre}`);
   document.getElementById('nueva-etiqueta-tarea').value = '';
@@ -1356,12 +1600,12 @@ function agregarEtiquetaCita() {
   const simbolo = document.getElementById('simbolo-etiqueta-cita').value;
   const color = document.getElementById('color-etiqueta-cita').value;
   if (!nombre) return;
-  
+
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   if (!etiquetas.citas) etiquetas.citas = [];
   etiquetas.citas.push({ nombre, simbolo, color });
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
-  
+
   guardarConfigEnFirebase();
   registrarAccion('Añadir etiqueta de cita', `${simbolo} ${nombre}`);
   document.getElementById('nueva-etiqueta-cita').value = '';
@@ -1391,21 +1635,25 @@ function obtenerEtiquetaInfo(nombre, tipo) {
 // ========== HISTORIAL SUAVE (SOFT DELETE) ==========
 function moverAHistorial(item, tipo) {
   const historial = JSON.parse(localStorage.getItem('historial-eliminados') || '[]');
+
+  // Sanitize item to remove any Firestore specific objects like serverTimestamp
+  const sanitizedItem = JSON.parse(JSON.stringify(item));
+
   const entrada = {
     id: Date.now().toString(),
     tipo: tipo,
-    data: item,
+    data: sanitizedItem,
     fecha_eliminacion: new Date().toISOString(),
     restaurable: true
   };
-  
+
   historial.push(entrada);
   if (historial.length > 1000) {
     historial.splice(0, historial.length - 1000);
   }
-  
+
   localStorage.setItem('historial-eliminados', JSON.stringify(historial));
-  
+
   // Guardar en Firebase - crear la colección historial
   if (isFirebaseInitialized) {
     db.collection('historial').doc('eliminados').set({
@@ -1427,7 +1675,7 @@ function registrarAccion(accion, detalles = '') {
     hora: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     timestamp: new Date().toISOString()
   };
-  
+
   // Guardar en localStorage
   const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
   log.push(entrada);
@@ -1435,7 +1683,7 @@ function registrarAccion(accion, detalles = '') {
     log.splice(0, log.length - 2000);
   }
   localStorage.setItem('log-acciones', JSON.stringify(log));
-  
+
   // Guardar en Firebase
   if (isFirebaseInitialized) {
     db.collection('log').doc('acciones').set({
@@ -1450,10 +1698,10 @@ function registrarAccion(accion, detalles = '') {
 // ========== SISTEMA DE SALVADO DIARIO ==========
 function verificarSalvadoDiario() {
   if (!isFirebaseInitialized) return;
-  
+
   const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
   const nombreSalvado = `salvadodiario${hoy}`;
-  
+
   // Verificar si ya existe el salvado de hoy
   db.collection('salvados').doc(nombreSalvado).get().then(doc => {
     if (!doc.exists) {
@@ -1465,14 +1713,25 @@ function verificarSalvadoDiario() {
 }
 
 function crearSalvadoDiario(nombre) {
+  const configVisual = window.configVisual || {};
+  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+
   const salvado = {
     fecha: new Date().toISOString().slice(0, 10),
     timestamp: new Date().toISOString(),
     tareas_criticas: appState.agenda.tareas_criticas || [],
     tareas: appState.agenda.tareas || [],
-    citas: appState.agenda.citas || []
+    citas: appState.agenda.citas || [],
+    listas_personalizadas: listasPersonalizadas  // ← NUEVO: Incluir listas personalizadas
   };
-  
+
+  console.log('💾 Creando salvado con:', {
+    tareas_criticas: salvado.tareas_criticas.length,
+    tareas: salvado.tareas.length,
+    citas: salvado.citas.length,
+    listas_personalizadas: salvado.listas_personalizadas.length
+  });
+
   db.collection('salvados').doc(nombre).set(salvado).then(() => {
     console.log('✅ Salvado diario creado:', nombre);
     registrarAccion('Crear salvado diario', nombre);
@@ -1484,7 +1743,7 @@ function crearSalvadoDiario(nombre) {
 
 function limpiarSalvadosAntiguos() {
   if (!isFirebaseInitialized) return;
-  
+
   db.collection('salvados').get().then(snapshot => {
     const salvados = [];
     snapshot.forEach(doc => {
@@ -1492,10 +1751,10 @@ function limpiarSalvadosAntiguos() {
         salvados.push({ id: doc.id, data: doc.data() });
       }
     });
-    
+
     // Ordenar por fecha (más recientes primero)
     salvados.sort((a, b) => new Date(b.data.timestamp) - new Date(a.data.timestamp));
-    
+
     // Si hay más de 15, eliminar los más antiguos
     if (salvados.length > 15) {
       const aEliminar = salvados.slice(15);
@@ -1512,7 +1771,7 @@ function limpiarSalvadosAntiguos() {
 function cargarListaSalvados() {
   const container = document.getElementById('backups-container');
   if (!container || !isFirebaseInitialized) return;
-  
+
   db.collection('salvados').get().then(snapshot => {
     const salvados = [];
     snapshot.forEach(doc => {
@@ -1520,20 +1779,20 @@ function cargarListaSalvados() {
         salvados.push({ id: doc.id, data: doc.data() });
       }
     });
-    
+
     if (salvados.length === 0) {
       container.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">No hay salvados disponibles</div>';
       return;
     }
-    
+
     // Ordenar por fecha (más recientes primero)
     salvados.sort((a, b) => new Date(b.data.timestamp) - new Date(a.data.timestamp));
-    
+
     container.innerHTML = salvados.map(salvado => {
       const fecha = salvado.data.fecha;
       const tareas = (salvado.data.tareas_criticas?.length || 0) + (salvado.data.tareas?.length || 0);
       const citas = salvado.data.citas?.length || 0;
-      
+
       return `<div style="margin-bottom:8px;padding:10px;border:1px solid #ddd;border-radius:6px;background:white;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
@@ -1552,27 +1811,27 @@ function cargarListaSalvados() {
 
 function restaurarSalvado(nombreSalvado) {
   const confirmacion = confirm('⚠️ ¿Estás seguro de restaurar este salvado?\n\nSe perderán todos los datos actuales (tareas, citas) y se reemplazarán con los del salvado seleccionado.\n\n¿Continuar?');
-  
+
   if (!confirmacion) return;
-  
+
   db.collection('salvados').doc(nombreSalvado).get().then(doc => {
     if (doc.exists) {
       const data = doc.data();
-      
+
       // Restaurar datos
       appState.agenda.tareas_criticas = data.tareas_criticas || [];
       appState.agenda.tareas = data.tareas || [];
       appState.agenda.citas = data.citas || [];
-      
+
       // Guardar en Firebase
       guardarJSON(true);
-      
+
       // Renderizar
       renderizar();
-      
+
       registrarAccion('Restaurar salvado', nombreSalvado);
       mostrarAlerta('✅ Salvado restaurado correctamente', 'success');
-      
+
       // Cerrar modal
       cerrarModal('modal-config');
     } else {
@@ -1587,7 +1846,7 @@ function crearSalvadoManual() {
   const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, '-');
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const nombreSalvado = `salvadodiario${hoy}-manual-${timestamp}`;
-  
+
   crearSalvadoDiario(nombreSalvado);
   setTimeout(() => cargarListaSalvados(), 1000);
   mostrarAlerta('💾 Salvado manual creado', 'success');
@@ -1598,15 +1857,15 @@ function cargarLog() {
   const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
   const container = document.getElementById('log-container');
   if (!container) return;
-  
+
   if (log.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">No hay acciones registradas</div>';
     return;
   }
-  
+
   // Mostrar últimas 50 entradas
   const entradas = log.slice(-50).reverse();
-  container.innerHTML = entradas.map(entrada => 
+  container.innerHTML = entradas.map(entrada =>
     `<div style="margin-bottom:8px;padding:8px;border-left:3px solid #4ecdc4;background:white;">
       <div style="font-weight:bold;color:#2d5a27;">${entrada.accion}</div>
       <div style="color:#666;font-size:11px;">${entrada.fecha} ${entrada.hora}</div>
@@ -1631,10 +1890,10 @@ function limpiarLog() {
 
 function exportarLog() {
   const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
-  const texto = log.map(entrada => 
+  const texto = log.map(entrada =>
     `${entrada.fecha} ${entrada.hora} - ${entrada.accion}${entrada.detalles ? ': ' + entrada.detalles : ''}`
   ).join('\n');
-  
+
   const blob = new Blob([texto], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1662,7 +1921,7 @@ function editarEtiqueta(tipo, index) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   const etiqueta = etiquetas[tipo][index];
   if (!etiqueta) return;
-  
+
   // Crear modal de edición
   const modal = document.createElement('div');
   modal.className = 'modal';
@@ -1704,13 +1963,13 @@ function editarEtiqueta(tipo, index) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
   modal.style.display = 'block';
-  
+
   // Preseleccionar símbolo actual
   document.getElementById('editar-simbolo-etiqueta').value = etiqueta.simbolo;
-  
+
   // Foco en el nombre
   setTimeout(() => document.getElementById('editar-nombre-etiqueta').focus(), 100);
 }
@@ -1719,21 +1978,21 @@ function guardarEdicionEtiqueta(tipo, index) {
   const nombre = document.getElementById('editar-nombre-etiqueta').value.trim();
   const simbolo = document.getElementById('editar-simbolo-etiqueta').value;
   const color = document.getElementById('editar-color-etiqueta').value;
-  
+
   if (!nombre) {
     alert('El nombre no puede estar vacío');
     return;
   }
-  
+
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   etiquetas[tipo][index] = { nombre, simbolo, color };
-  
+
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
   guardarConfigEnFirebase();
   renderizarListaEtiquetas(`etiquetas-${tipo}-lista`, tipo);
   actualizarFiltrosEtiquetas();
   registrarAccion('Editar etiqueta', `${simbolo} ${nombre}`);
-  
+
   cerrarModalEdicion();
   mostrarAlerta('✅ Etiqueta actualizada', 'success');
 }
@@ -1761,13 +2020,13 @@ function cargarListaPersonas() {
   const personas = JSON.parse(localStorage.getItem('personas-asignadas') || '[]');
   const container = document.getElementById('personas-lista');
   if (!container) return;
-  
+
   if (personas.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">No hay personas registradas</div>';
     return;
   }
-  
-  container.innerHTML = personas.map((persona, index) => 
+
+  container.innerHTML = personas.map((persona, index) =>
     `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:5px;background:white;">
       <span style="font-weight:500;">👤 ${persona}</span>
       <button onclick="eliminarPersona(${index})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:11px;">🗑️</button>
@@ -1778,16 +2037,16 @@ function cargarListaPersonas() {
 function agregarPersona() {
   const nombre = document.getElementById('nueva-persona').value.trim();
   if (!nombre) return;
-  
+
   const personas = JSON.parse(localStorage.getItem('personas-asignadas') || '[]');
   if (personas.includes(nombre)) {
     mostrarAlerta('⚠️ Esta persona ya existe', 'warning');
     return;
   }
-  
+
   personas.push(nombre);
   localStorage.setItem('personas-asignadas', JSON.stringify(personas));
-  
+
   // Sincronizar con Firebase
   if (isFirebaseInitialized) {
     db.collection('personas').doc('asignadas').set({
@@ -1795,7 +2054,7 @@ function agregarPersona() {
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     });
   }
-  
+
   document.getElementById('nueva-persona').value = '';
   cargarListaPersonas();
   actualizarFiltrosPersonas();
@@ -1806,11 +2065,11 @@ function agregarPersona() {
 function eliminarPersona(index) {
   const personas = JSON.parse(localStorage.getItem('personas-asignadas') || '[]');
   const nombre = personas[index];
-  
+
   if (confirm(`¿Eliminar a ${nombre}?`)) {
     personas.splice(index, 1);
     localStorage.setItem('personas-asignadas', JSON.stringify(personas));
-    
+
     // Sincronizar con Firebase
     if (isFirebaseInitialized) {
       db.collection('personas').doc('asignadas').set({
@@ -1818,7 +2077,7 @@ function eliminarPersona(index) {
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-    
+
     cargarListaPersonas();
     actualizarFiltrosPersonas();
     registrarAccion('Eliminar persona', nombre);
@@ -1829,7 +2088,7 @@ function eliminarPersona(index) {
 function actualizarFiltrosPersonas() {
   const personas = JSON.parse(localStorage.getItem('personas-asignadas') || '[]');
   const filtros = ['filtro-persona-criticas', 'filtro-persona-tareas'];
-  
+
   filtros.forEach(filtroId => {
     const select = document.getElementById(filtroId);
     if (select) {
@@ -1848,7 +2107,7 @@ function actualizarFiltrosPersonas() {
 
 function actualizarFiltrosEtiquetas() {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  
+
   // Filtros de tareas
   const filtroTareas = document.getElementById('filtro-etiqueta-tareas');
   if (filtroTareas && etiquetas.tareas) {
@@ -1862,7 +2121,7 @@ function actualizarFiltrosEtiquetas() {
       filtroTareas.appendChild(option);
     });
   }
-  
+
   // Filtros de críticas
   const filtroCriticas = document.getElementById('filtro-etiqueta-criticas');
   if (filtroCriticas && etiquetas.tareas) {
@@ -1900,20 +2159,20 @@ window.cerrarResumenDiario = cerrarResumenDiario;
 
 function mostrarResumenDiarioManual() {
   const hoy = new Date().toISOString().slice(0, 10);
-  
+
   // Buscar tareas del día
   const tareasHoy = [...(appState.agenda.tareas_criticas || []), ...(appState.agenda.tareas || [])]
     .filter(t => !t.completada && (t.fecha_fin === hoy || t.fecha_migrar === hoy));
-  
+
   // Buscar tareas pasadas
   const tareasPasadas = [...(appState.agenda.tareas_criticas || []), ...(appState.agenda.tareas || [])]
     .filter(t => !t.completada && ((t.fecha_fin && esFechaPasada(t.fecha_fin)) || (t.fecha_migrar && esFechaPasada(t.fecha_migrar))));
-  
+
   // Buscar citas del día
   const citasHoy = (appState.agenda.citas || []).filter(c => c.fecha === hoy);
-  
+
   let contenido = `🌅 RESUMEN DEL DÍA - ${hoy}\n\n`;
-  
+
   if (tareasHoy.length === 0 && citasHoy.length === 0 && tareasPasadas.length === 0) {
     contenido += '🎉 ¡No tienes tareas ni citas pendientes!\n\n😎 ¡Disfruta tu día libre!';
   } else {
@@ -1927,7 +2186,7 @@ function mostrarResumenDiarioManual() {
       });
       contenido += '\n';
     }
-    
+
     if (tareasHoy.length > 0) {
       contenido += `📝 TAREAS DE HOY (${tareasHoy.length}):\n`;
       tareasHoy.forEach((t, i) => {
@@ -1937,7 +2196,7 @@ function mostrarResumenDiarioManual() {
       });
       contenido += '\n';
     }
-    
+
     if (citasHoy.length > 0) {
       contenido += `📅 CITAS DE HOY (${citasHoy.length}):\n`;
       citasHoy.forEach((c, i) => {
@@ -1947,10 +2206,10 @@ function mostrarResumenDiarioManual() {
       });
       contenido += '\n';
     }
-    
+
     contenido += '💪 ¡Que tengas un día productivo!';
   }
-  
+
   // Crear overlay
   const overlay = document.createElement('div');
   overlay.className = 'dashboard-overlay';
@@ -1962,7 +2221,7 @@ function mostrarResumenDiarioManual() {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(overlay);
   overlay.classList.add('show');
 }
@@ -2073,4 +2332,10 @@ async function cargarHistorialFirebase() {
 }
 
 window.cargarHistorialFirebase = cargarHistorialFirebase;
+
+// ========== EXPORTAR NUEVAS FUNCIONES DE CONECTIVIDAD ==========
+window.mostrarAlertaConectividad = mostrarAlertaConectividad;
+window.cerrarModalConectividad = cerrarModalConectividad;
+window.verificarConectividad = verificarConectividad;
+window.ejecutarOperacionFirebase = ejecutarOperacionFirebase;
 

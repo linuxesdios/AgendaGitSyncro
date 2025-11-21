@@ -1,0 +1,178 @@
+{
+  "fecha": "2025-11-20",
+  "dia_semana": "",
+  "tareas_criticas": [
+    {
+      "estado": "pendiente",
+      "fecha_fin": "2025-11-05",
+      "razon": "",
+      "fecha_creacion": "2025-11-05T00:00:00.000Z",
+      "etiqueta": "Patrimonio",
+      "completada": false,
+      "id": "1762332225671",
+      "titulo": "Rehacer Tasaciones"
+    },
+    {
+      "etiqueta": "Patrimonio",
+      "titulo": "Tasación de Tres cantos",
+      "id": "1763541341606",
+      "completada": false,
+      "razon": "",
+      "estado": "pendiente",
+      "fecha_fin": "2025-11-19",
+      "fecha_creacion": "2025-11-19T08:35:41.606Z"
+    }
+  ],
+  "tareas": [
+    {
+      "completada": false,
+      "texto": "Generar Documentación Obra En Algodor",
+      "etiqueta": "Infraestructura",
+      "fecha_fin": "2025-11-12",
+      "id": "1762332078441",
+      "fecha_creacion": "2025-11-12T00:00:00.000Z",
+      "estado": "migrada"
+    },
+    {
+      "fecha_fin": "2025-11-07",
+      "etiqueta": "Arrendamientos",
+      "fecha_creacion": "2025-11-07T00:00:00.000Z",
+      "completada": false,
+      "texto": "Solicitar Obra De Aranjuez Hablar Con Arrendataria",
+      "id": "1762332161709",
+      "estado": "pendiente"
+    },
+    {
+      "fecha_creacion": "2025-11-10T00:00:00.000Z",
+      "fecha_fin": "2025-11-10",
+      "id": "1762332182515",
+      "estado": "pendiente",
+      "texto": "Problema Factura Del Canal",
+      "etiqueta": "Administración",
+      "completada": false
+    },
+    {
+      "completada": false,
+      "fecha_fin": null,
+      "texto": "Hablar Con Los Del Escorial Sobre La Luz",
+      "fecha_creacion": "2025-11-01T00:00:00.000Z",
+      "estado": "pendiente",
+      "id": "1762332212021",
+      "etiqueta": "Mantenimiento"
+    },
+    {
+      "estado": "pendiente",
+      "etiqueta": "Mantenimiento",
+      "fecha_fin": "2025-11-06",
+      "fecha_creacion": "2025-11-06T00:00:00.000Z",
+      "completada": false,
+      "id": "1762333049795",
+      "texto": "Llamar al canales de Colmenar viejo"
+    },
+    {
+      "estado": "pendiente",
+      "fecha_creacion": "2025-11-01T00:00:00.000Z",
+      "etiqueta": "Comunicación",
+      "fecha_fin": null,
+      "id": "1762331738105",
+      "completada": false,
+      "texto": "Llamar a Soto"
+    },
+    {
+      "texto": "Mandar mail revisión Ciempozuelos",
+      "completada": false,
+      "estado": "pendiente",
+      "etiqueta": "Comunicación",
+      "fecha_fin": null,
+      "fecha_creacion": "2025-11-01T00:00:00.000Z",
+      "id": "1762437734743"
+    },
+    {
+      "fecha_creacion": "2025-11-15T00:00:00.000Z",
+      "texto": "Punto de luz en Maristany",
+      "completada": false,
+      "etiqueta": "Mantenimiento",
+      "id": "1763403523521",
+      "fecha_fin": null,
+      "estado": "pendiente"
+    },
+    {
+      "etiqueta": "Mantenimiento",
+      "id": "1763403540742",
+      "fecha_creacion": "2025-11-15T00:00:00.000Z",
+      "texto": "Avería agua Maristany",
+      "completada": false,
+      "estado": "pendiente",
+      "fecha_fin": null
+    },
+    {
+      "completada": false,
+      "fecha_creacion": "2025-11-15T00:00:00.000Z",
+      "id": "1763403557694",
+      "persona": "Parrilla",
+      "fecha_fin": null,
+      "texto": "Limpieza 3 sitios",
+      "etiqueta": "Mantenimiento",
+      "estado": "migrada",
+      "fecha_migrar": "2025-11-26"
+    },
+    {
+      "texto": "Comenzar contratos",
+      "completada": false,
+      "fecha_creacion": "2025-11-15T00:00:00.000Z",
+      "fecha_fin": null,
+      "estado": "pendiente",
+      "etiqueta": "Administración",
+      "id": "1763403615718"
+    },
+    {
+      "fecha_creacion": "2025-11-17T00:00:00.000Z",
+      "completada": false,
+      "texto": "Email a mantenimiento para ver minitren (mconcepcion@adif.es)",
+      "id": "1763453471432",
+      "etiqueta": "Comunicación",
+      "fecha_fin": "",
+      "estado": "migrada"
+    },
+    {
+      "completada": false,
+      "estado": "pendiente",
+      "texto": "Cristina temas",
+      "fecha_fin": "",
+      "id": "1763537859271",
+      "etiqueta": "Comunicación",
+      "fecha_creacion": "2025-11-19T07:37:39.271Z"
+    },
+    {
+      "estado": "pendiente",
+      "texto": "Árbol de Aranjuez",
+      "etiqueta": "Mantenimiento",
+      "fecha_creacion": "2025-11-19T11:10:22.794Z",
+      "fecha_fin": "2025-11-19",
+      "id": "1763550622794",
+      "completada": false
+    },
+    {
+      "fecha_creacion": "2025-11-20T08:13:51.371Z",
+      "etiqueta": "Salud",
+      "completada": false,
+      "fecha_fin": "2025-11-21",
+      "estado": "pendiente",
+      "texto": "1212",
+      "id": "1763626431371"
+    },
+    {
+      "id": "1763628544949",
+      "texto": "Esta si que se ve al titulo",
+      "fecha_fin": "2025-11-21",
+      "etiqueta": "Salud",
+      "completada": false,
+      "estado": "pendiente",
+      "fecha_creacion": "2025-11-20T08:49:04.949Z"
+    }
+  ],
+  "notas": "Mirar lo de ir de maps a ideadif y viceversa",
+  "sentimientos": "",
+  "citas": [],
+  "personas": []
+}

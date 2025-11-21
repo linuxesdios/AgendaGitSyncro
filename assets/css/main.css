@@ -1614,3 +1614,14 @@ input[type="file"] {
   font-size: 24px !important;
   font-weight: bold;
 }
+
+/* ========== BOTONES DE LISTAS PERSONALIZADAS ========== */
+.boton-add-task {
+  transition: all 0.3s ease !important;
+}
+
+.boton-add-task:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+  filter: brightness(1.1);
+}

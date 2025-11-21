@@ -302,7 +302,7 @@ async function deleteCita(fecha, nombre) {
     console.log('🎯 Cita encontrada para eliminar:', cita, 'en índice:', index);
 
     // Verificar configuración de confirmación
-    const configFuncionales = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
+    const configFuncionales = window.configFuncionales || {};
     const necesitaConfirmacion = configFuncionales.confirmacionBorrar !== false;
 
     const eliminarCita = () => {
@@ -389,9 +389,18 @@ function renderCitasPanel() {
   
   // Actualizar calendario integrado si está visible
   const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
+  console.log('📅 DEBUG renderCitasPanel:');
+  console.log('  - Calendario integrado encontrado:', !!calendarioIntegrado);
+  if (calendarioIntegrado) {
+    console.log('  - Display del calendario:', calendarioIntegrado.style.display);
+    console.log('  - Visible (computed):', window.getComputedStyle(calendarioIntegrado).display);
+  }
+
   if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
     console.log('🔄 Calendario integrado visible, actualizando...');
     setTimeout(() => renderCalendarioIntegrado(), 50);
+  } else {
+    console.log('⚠️ Calendario integrado NO visible o no encontrado');
   }
   
   if(!appState.agenda.citas || appState.agenda.citas.length === 0) {
@@ -400,7 +409,7 @@ function renderCitasPanel() {
   }
   
   // Verificar configuración de mostrar todo
-  const configOpciones = JSON.parse(localStorage.getItem('config-opciones') || '{}');
+  const configOpciones = window.configOpciones || {};
   const mostrarTodoConfig = configOpciones.mostrarTodo || false;
   
   let citasFiltradas = appState.agenda.citas.slice();
@@ -463,7 +472,12 @@ function renderCitasPanel() {
     const hora = partes[0] || '';
     const descripcion = partes[1] || c.nombre || 'Sin descripción';
     
-    let contenidoCita = `<span style="font-size:20px;font-weight:bold;color:#2d5a27;">${hora}</span> ${descripcion} <small style="color:#666;">${c.fecha}</small>`;
+    // Formatear fecha
+    const fechaObj = new Date(c.fecha + 'T00:00:00');
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const fechaFormateada = `${fechaObj.getDate()} de ${meses[fechaObj.getMonth()]} de ${fechaObj.getFullYear()}`;
+    
+    let contenidoCita = `<span style="font-size:20px;font-weight:bold;color:#2d5a27;">${descripcion} ${fechaFormateada} ${hora}</span>`;
     if (c.etiqueta) {
       const etiquetaInfo = obtenerEtiquetaInfo ? obtenerEtiquetaInfo(c.etiqueta, 'citas') : null;
       if (etiquetaInfo) {
@@ -592,7 +606,6 @@ function abrirCalendarioTareas() {
 }
 
 function renderCalendarTareas() {
-  // Similar a renderCalendar pero para tareas
   const grid = document.getElementById('calendarGridTareas');
   if (!grid) return;
   
@@ -602,7 +615,6 @@ function renderCalendarTareas() {
     monthYearEl.textContent = appState.calendar.currentDate.toLocaleString('es-ES', {month:'long', year:'numeric'});
   }
   
-  // Implementación similar a renderCalendar pero mostrando tareas en lugar de citas
   const year = appState.calendar.currentDate.getFullYear();
   const month = appState.calendar.currentDate.getMonth();
   const firstDay = new Date(year, month, 1);
@@ -624,9 +636,39 @@ function renderCalendarTareas() {
       
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
       
-      // Buscar tareas para este día
-      const tareasDelDia = [...appState.agenda.tareas_criticas, ...appState.agenda.tareas]
-        .filter(t => t.fecha_fin === dateStr || t.fecha_migrar === dateStr);
+      // Recopilar TODAS las tareas: críticas, normales y de listas personalizadas
+      const tareasDelDia = [];
+      
+      // Tareas críticas
+      if (appState.agenda.tareas_criticas) {
+        appState.agenda.tareas_criticas.forEach(t => {
+          if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
+            tareasDelDia.push({ texto: t.titulo, tipo: 'critica' });
+          }
+        });
+      }
+      
+      // Tareas normales
+      if (appState.agenda.tareas) {
+        appState.agenda.tareas.forEach(t => {
+          if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
+            tareasDelDia.push({ texto: t.texto, tipo: 'normal' });
+          }
+        });
+      }
+      
+      // Tareas de listas personalizadas
+      const configVisual = window.configVisual || {};
+      const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+      listasPersonalizadas.forEach(lista => {
+        if (lista && lista.tareas && Array.isArray(lista.tareas)) {
+          lista.tareas.forEach(t => {
+            if (t && t.fecha === dateStr) {
+              tareasDelDia.push({ texto: t.texto, tipo: 'personalizada', lista: lista.nombre });
+            }
+          });
+        }
+      });
       
       if (tareasDelDia.length > 0) {
         cell.classList.add('has-events');
@@ -636,8 +678,7 @@ function renderCalendarTareas() {
         tareasDelDia.forEach(tarea => {
           const eventDiv = document.createElement('div');
           eventDiv.className = 'day-event';
-          const texto = tarea.titulo || tarea.texto;
-          eventDiv.textContent = texto; // Mostrar texto completo
+          eventDiv.textContent = tarea.texto;
           eventsDiv.appendChild(eventDiv);
         });
         
@@ -659,13 +700,48 @@ function renderAllTasksList() {
   
   list.innerHTML = '';
   
-  const todasLasTareas = [...appState.agenda.tareas_criticas, ...appState.agenda.tareas]
-    .filter(t => t.fecha_fin || t.fecha_migrar)
-    .sort((a, b) => {
-      const fechaA = a.fecha_fin || a.fecha_migrar;
-      const fechaB = b.fecha_fin || b.fecha_migrar;
-      return fechaA.localeCompare(fechaB);
+  // Recopilar TODAS las tareas con fecha
+  const todasLasTareas = [];
+  
+  // Tareas críticas
+  if (appState.agenda.tareas_criticas) {
+    appState.agenda.tareas_criticas.forEach(t => {
+      if (t) {
+        const fecha = t.fecha_fin || t.fecha_migrar;
+        if (fecha) {
+          todasLasTareas.push({ fecha, texto: t.titulo, tipo: 'critica' });
+        }
+      }
     });
+  }
+  
+  // Tareas normales
+  if (appState.agenda.tareas) {
+    appState.agenda.tareas.forEach(t => {
+      if (t) {
+        const fecha = t.fecha_fin || t.fecha_migrar;
+        if (fecha) {
+          todasLasTareas.push({ fecha, texto: t.texto, tipo: 'normal' });
+        }
+      }
+    });
+  }
+  
+  // Tareas de listas personalizadas
+  const configVisual = window.configVisual || {};
+  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  listasPersonalizadas.forEach(lista => {
+    if (lista && lista.tareas && Array.isArray(lista.tareas)) {
+      lista.tareas.forEach(t => {
+        if (t && t.fecha) {
+          todasLasTareas.push({ fecha: t.fecha, texto: t.texto, tipo: 'personalizada', lista: lista.nombre });
+        }
+      });
+    }
+  });
+  
+  // Ordenar por fecha
+  todasLasTareas.sort((a, b) => a.fecha.localeCompare(b.fecha));
     
   if (todasLasTareas.length === 0) {
     list.innerHTML = '<div style="color:#777;padding:6px;font-size:12px;">No hay tareas con fecha</div>';
@@ -677,14 +753,13 @@ function renderAllTasksList() {
     div.className = 'cita-item';
     div.style.fontSize = '12px';
     
-    const fecha = tarea.fecha_fin || tarea.fecha_migrar;
-    const fechaObj = new Date(fecha + 'T00:00:00');
+    const fechaObj = new Date(tarea.fecha + 'T00:00:00');
     const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemana = diasSemana[fechaObj.getDay()];
     
-    const texto = tarea.titulo || tarea.texto;
+    const etiquetaTipo = tarea.tipo === 'critica' ? '🔴' : (tarea.tipo === 'personalizada' ? '📋' : '📝');
     div.innerHTML = `
-      <span>${diaSemana}, ${fecha}<br><small>${texto}</small></span>
+      <span>${etiquetaTipo} ${diaSemana}, ${tarea.fecha}<br><small>${tarea.texto}</small></span>
     `;
     
     list.appendChild(div);
@@ -904,7 +979,7 @@ function guardarCitasRelativas() {
 
 // ========== PROGRAMACIÓN DE NOTIFICACIONES ==========
 function programarNotificacionesCita(cita) {
-  const config = JSON.parse(localStorage.getItem('config-funcionales') || '{}');
+  const config = window.configFuncionales || {};
   
   if (!config.notificacionesActivas || Notification.permission !== 'granted') {
     return;
@@ -1030,8 +1105,8 @@ function abrirEditorCita(fecha, nombre) {
           <label>Hora:</label>
           <select id="editor-cita-hora">
             ${Array.from({length: 15}, (_, i) => {
-              const h = String(i + 8).padStart(2, '0');
-              return `<option value="${h}" ${h === horas ? 'selected' : ''}>${h}:00</option>`;
+              const h = String(i + 8);
+              return `<option value="${h}" ${h === horas ? 'selected' : ''}>${h}</option>`;
             }).join('')}
           </select>
         </div>
