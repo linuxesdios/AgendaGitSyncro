@@ -1,3 +1,11 @@
+// ========== FUNCIONES HELPER ==========
+function obtenerListasPersonalizadas() {
+  // TEMPORALMENTE: usar estructura antigua hasta completar migración
+  const listas = window.configVisual?.listasPersonalizadas || [];
+  console.log('🔍 Listas obtenidas:', listas.length, listas);
+  return listas;
+}
+
 // ========== ESTADO GLOBAL ==========
 const appState = {
   agenda: {
@@ -8,7 +16,8 @@ const appState = {
     notas: '',
     sentimientos: '',
     citas: [],
-    personas: []
+    personas: [],
+    contrasenas: []
   },
   calendar: {
     currentDate: new Date(),
@@ -84,6 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Inicializar listas personalizadas
   inicializarListasPersonalizadas();
+
+  // Renderizar contraseñas al cargar la página
+  if (typeof renderizarContrasenas === 'function') {
+    setTimeout(() => renderizarContrasenas(), 1000);
+  }
 
   // Firebase se inicializa automáticamente en sincronizacion-simple.js
 
@@ -298,6 +312,13 @@ function scheduleAutoSave() {
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
       });
 
+      // Guardar contraseñas encriptadas
+      const contrasenasRef = window.db.collection('contrasenas').doc('data');
+      batch.set(contrasenasRef, {
+        lista: appState.agenda.contrasenas || [],
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
       batch.commit().then(() => {
         console.log('💾 Auto-guardado en Firebase');
       }).catch(error => {
@@ -365,10 +386,13 @@ function cargarConfigVisual() {
     // Mostrar/ocultar secciones
     const mostrarNotas = config.mostrarNotas !== false;
     const mostrarSentimientos = config.mostrarSentimientos !== false;
+    const mostrarContrasenas = config.mostrarContrasenas !== false;
     const seccionNotas = document.getElementById('seccion-notas');
     const seccionSentimientos = document.getElementById('seccion-sentimientos');
+    const seccionContrasenas = document.getElementById('seccion-contrasenas');
     if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
     if (seccionSentimientos) seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
+    if (seccionContrasenas) seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
 
     // Configurar visualización del calendario de citas
     const calendarioCitas = config.calendarioCitas || 'boton';
@@ -554,8 +578,7 @@ function aplicarConfiguracionColumnas() {
 function asegurarListaPorHacerComoPersonalizada() {
   console.log('🔄 VERIFICANDO LISTA POR HACER COMO PERSONALIZADA');
 
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = obtenerListasPersonalizadas();
 
   // Verificar si ya existe una lista "Lista para hacer"
   const listaPorHacerExistente = listasPersonalizadas.find(lista =>
@@ -749,6 +772,7 @@ async function guardarConfigVisualPanel() {
     popupCelebracion: document.getElementById('config-popup-celebracion')?.checked !== false,
     mostrarNotas: document.getElementById('config-mostrar-notas')?.checked !== false,
     mostrarSentimientos: document.getElementById('config-mostrar-sentimientos')?.checked !== false,
+    mostrarContrasenas: document.getElementById('config-mostrar-contrasenas')?.checked !== false,
     calendarioCitas: document.getElementById('config-calendario-citas')?.value || 'boton',
     columnas: parseInt(document.getElementById('config-columnas')?.value) || 2,
     frases: document.getElementById('config-frases-motivacionales')?.value.split('\n').filter(f => f.trim()) || [],
@@ -883,6 +907,9 @@ function cargarConfigVisualEnFormulario() {
 
   const mostrarSentimientos = document.getElementById('config-mostrar-sentimientos');
   if (mostrarSentimientos) mostrarSentimientos.checked = config.mostrarSentimientos !== false;
+
+  const mostrarContrasenas = document.getElementById('config-mostrar-contrasenas');
+  if (mostrarContrasenas) mostrarContrasenas.checked = config.mostrarContrasenas !== false;
 
   const calendarioCitas = document.getElementById('config-calendario-citas');
   if (calendarioCitas) {
@@ -1025,12 +1052,449 @@ function toggleConfigFloating() {
   }, 100);
 }
 
+// ========== SISTEMA DE CONTRASEÑAS ENCRIPTADAS ==========
+let contrasenaMaestra = null;
+const SALT = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+// Función para generar clave de encriptación desde contraseña maestra
+async function generarClaveEncriptacion(password) {
+  const encoder = new TextEncoder();
+  const passwordKey = await window.crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+
+  return await window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: SALT,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// Función para encriptar texto
+async function encriptarTexto(texto, password) {
+  const encoder = new TextEncoder();
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const clave = await generarClaveEncriptacion(password);
+
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv },
+    clave,
+    encoder.encode(texto)
+  );
+
+  // Combinar IV + datos encriptados en base64
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+
+  return btoa(String.fromCharCode(...combined));
+}
+
+// Función para desencriptar texto
+async function desencriptarTexto(textoEncriptado, password) {
+  try {
+    const decoder = new TextDecoder();
+    const combined = new Uint8Array(atob(textoEncriptado).split('').map(char => char.charCodeAt(0)));
+
+    const iv = combined.slice(0, 12);
+    const encrypted = combined.slice(12);
+
+    const clave = await generarClaveEncriptacion(password);
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      clave,
+      encrypted
+    );
+
+    return decoder.decode(decrypted);
+  } catch (error) {
+    throw new Error('Contraseña maestra incorrecta o datos corruptos');
+  }
+}
+
+// Función para solicitar contraseña maestra
+async function solicitarContrasenaMaestra(proposito = 'acceder a las contraseñas') {
+  return new Promise((resolve, reject) => {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 400px;">
+        <h4 style="color: #e74c3c; text-align: center;">🔐 Contraseña Maestra</h4>
+        <p style="text-align: center; margin: 15px 0;">
+          Necesitas ingresar la contraseña maestra para ${proposito}.
+        </p>
+        <div style="margin: 20px 0;">
+          <input type="password" id="password-maestra-input" placeholder="Contraseña maestra"
+                 style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button onclick="cerrarModalContrasenaMaestra(false)"
+                  style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Cancelar
+          </button>
+          <button onclick="confirmarContrasenaMaestra()"
+                  style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    window.cerrarModalContrasenaMaestra = (exito) => {
+      document.body.removeChild(modal);
+      if (exito) {
+        resolve(contrasenaMaestra);
+      } else {
+        reject(new Error('Cancelado por el usuario'));
+      }
+    };
+
+    window.confirmarContrasenaMaestra = () => {
+      const password = document.getElementById('password-maestra-input').value;
+      if (password.trim() === '') {
+        alert('Por favor, ingresa la contraseña maestra.');
+        return;
+      }
+      contrasenaMaestra = password;
+      cerrarModalContrasenaMaestra(true);
+    };
+
+    // Focus automático y Enter para confirmar
+    setTimeout(() => {
+      const input = document.getElementById('password-maestra-input');
+      if (input) {
+        input.focus();
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            confirmarContrasenaMaestra();
+          }
+        });
+      }
+    }, 100);
+  });
+}
+
+// Función para mostrar/ocultar contraseñas
+function toggleMostrarContrasena(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
+    const button = input.nextElementSibling;
+    if (button) {
+      button.textContent = input.type === 'password' ? '👁️' : '🙈';
+    }
+  }
+}
+
+// Función para renderizar lista de contraseñas
+async function renderizarContrasenas() {
+  const lista = document.getElementById('lista-contrasenas');
+  if (!lista) return;
+
+  const contrasenas = appState.agenda.contrasenas || [];
+
+  if (contrasenas.length === 0) {
+    lista.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No hay contraseñas guardadas aún.</p>';
+    return;
+  }
+
+  let html = '<div class="contrasenas-grid" style="display: grid; gap: 15px;">';
+
+  for (const contrasena of contrasenas) {
+    html += `
+      <div class="contrasena-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #f9f9f9;">
+        <div class="contrasena-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h5 style="margin: 0; color: #2c3e50; font-size: 16px;">${contrasena.servicio}</h5>
+          <div style="display: flex; gap: 5px;">
+            <button onclick="editarContrasena('${contrasena.id}')" title="Editar"
+                    style="background: #3498db; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              ✏️
+            </button>
+            <button onclick="eliminarContrasena('${contrasena.id}')" title="Eliminar"
+                    style="background: #e74c3c; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              🗑️
+            </button>
+          </div>
+        </div>
+        <div class="contrasena-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">👤 Usuario</label>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <input type="password" value="••••••••••" readonly
+                     style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 14px;">
+              <button onclick="revelarCampoContrasena(this, '${contrasena.id}', 'usuario')"
+                      style="background: #95a5a6; color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                👁️
+              </button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">🔑 Contraseña</label>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <input type="password" value="••••••••••••••" readonly
+                     style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 14px;">
+              <button onclick="revelarCampoContrasena(this, '${contrasena.id}', 'contrasena')"
+                      style="background: #95a5a6; color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                👁️
+              </button>
+            </div>
+          </div>
+        </div>
+        ${contrasena.notas ? `
+          <div style="margin-top: 10px;">
+            <label style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">📝 Notas</label>
+            <div style="padding: 6px; background: #ecf0f1; border-radius: 4px; font-size: 13px; color: #555;">
+              ${contrasena.notas}
+            </div>
+          </div>
+        ` : ''}
+        <div style="margin-top: 8px; font-size: 11px; color: #95a5a6; text-align: right;">
+          Creado: ${contrasena.fechaCreacion}
+        </div>
+      </div>
+    `;
+  }
+
+  html += '</div>';
+  lista.innerHTML = html;
+}
+
+// Función para revelar un campo específico
+async function revelarCampoContrasena(button, id, campo) {
+  try {
+    if (!contrasenaMaestra) {
+      contrasenaMaestra = await solicitarContrasenaMaestra(`ver ${campo === 'usuario' ? 'el usuario' : 'la contraseña'}`);
+    }
+
+    const contrasena = appState.agenda.contrasenas.find(c => c.id === id);
+    if (!contrasena) {
+      alert('Contraseña no encontrada');
+      return;
+    }
+
+    const input = button.previousElementSibling;
+    let valorDesencriptado;
+
+    if (campo === 'usuario') {
+      valorDesencriptado = await desencriptarTexto(contrasena.usuarioEncriptado, contrasenaMaestra);
+    } else {
+      valorDesencriptado = await desencriptarTexto(contrasena.contrasenaEncriptada, contrasenaMaestra);
+    }
+
+    // Mostrar temporalmente
+    input.type = 'text';
+    input.value = valorDesencriptado;
+    button.textContent = '🙈';
+    button.style.background = '#e74c3c';
+
+    // Copiar al portapapeles
+    await navigator.clipboard.writeText(valorDesencriptado);
+
+    // Notificación temporal
+    const originalText = button.textContent;
+    button.textContent = '✅';
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 1000);
+
+    // Ocultar después de 10 segundos
+    setTimeout(() => {
+      input.type = 'password';
+      input.value = campo === 'usuario' ? '••••••••••' : '••••••••••••••';
+      button.textContent = '👁️';
+      button.style.background = '#95a5a6';
+    }, 10000);
+
+  } catch (error) {
+    alert('Error al revelar el campo: ' + error.message);
+    contrasenaMaestra = null; // Reset para solicitar nuevamente
+  }
+}
+
+// Función para abrir modal de nueva contraseña
+async function abrirModalNuevaContrasena() {
+  try {
+    if (!contrasenaMaestra) {
+      contrasenaMaestra = await solicitarContrasenaMaestra('crear una nueva contraseña');
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 500px;">
+        <h4 style="color: #e74c3c; text-align: center;">🔐 Nueva Contraseña Encriptada</h4>
+        <form id="form-nueva-contrasena" style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">🏢 Servicio/Lugar:</label>
+            <input type="text" id="nuevo-servicio" required
+                   placeholder="Gmail, Facebook, Banco, etc."
+                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: bold; margin-bottom: 5px;">👤 Usuario:</label>
+              <div style="position: relative;">
+                <input type="password" id="nuevo-usuario" required
+                       placeholder="usuario@email.com"
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; padding-right: 40px;">
+                <button type="button" onclick="toggleMostrarContrasena('nuevo-usuario')"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;">
+                  👁️
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style="display: block; font-weight: bold; margin-bottom: 5px;">🔑 Contraseña:</label>
+              <div style="position: relative;">
+                <input type="password" id="nueva-contrasena" required
+                       placeholder="Contraseña secreta"
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; padding-right: 40px;">
+                <button type="button" onclick="toggleMostrarContrasena('nueva-contrasena')"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;">
+                  👁️
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">📝 Notas (opcional):</label>
+            <textarea id="nuevas-notas" rows="3"
+                      placeholder="Información adicional, preguntas de seguridad, etc."
+                      style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; resize: vertical;"></textarea>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button type="button" onclick="cerrarModalNuevaContrasena()"
+                    style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit"
+                    style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              💾 Guardar Encriptado
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Configurar el formulario
+    document.getElementById('form-nueva-contrasena').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await guardarNuevaContrasena();
+    });
+
+    window.cerrarModalNuevaContrasena = () => {
+      document.body.removeChild(modal);
+    };
+
+    // Focus automático
+    setTimeout(() => {
+      document.getElementById('nuevo-servicio')?.focus();
+    }, 100);
+
+  } catch (error) {
+    alert('No se puede crear contraseña sin la contraseña maestra');
+  }
+}
+
+// Función para guardar nueva contraseña
+async function guardarNuevaContrasena() {
+  try {
+    const servicio = document.getElementById('nuevo-servicio').value.trim();
+    const usuario = document.getElementById('nuevo-usuario').value.trim();
+    const contrasena = document.getElementById('nueva-contrasena').value.trim();
+    const notas = document.getElementById('nuevas-notas').value.trim();
+
+    if (!servicio || !usuario || !contrasena) {
+      alert('Por favor, completa todos los campos obligatorios');
+      return;
+    }
+
+    // Encriptar usuario y contraseña
+    const usuarioEncriptado = await encriptarTexto(usuario, contrasenaMaestra);
+    const contrasenaEncriptada = await encriptarTexto(contrasena, contrasenaMaestra);
+
+    // Crear objeto contraseña
+    const nuevaContrasena = {
+      id: Date.now().toString(),
+      servicio: servicio,
+      usuario: '••••••••', // Mostrar asteriscos
+      usuarioEncriptado: usuarioEncriptado,
+      contrasenaEncriptada: contrasenaEncriptada,
+      notas: notas,
+      fechaCreacion: new Date().toISOString().slice(0, 10),
+      ultimaActualizacion: new Date().toISOString().slice(0, 10),
+      algoritmo: 'AES-256-GCM'
+    };
+
+    // Agregar a la lista
+    if (!appState.agenda.contrasenas) {
+      appState.agenda.contrasenas = [];
+    }
+    appState.agenda.contrasenas.push(nuevaContrasena);
+
+    // Guardar y actualizar interfaz
+    scheduleAutoSave();
+    await renderizarContrasenas();
+    cerrarModalNuevaContrasena();
+
+    // Mostrar confirmación
+    alert('✅ Contraseña guardada y encriptada exitosamente');
+
+  } catch (error) {
+    alert('Error al guardar la contraseña: ' + error.message);
+  }
+}
+
+// Función para eliminar contraseña
+async function eliminarContrasena(id) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta contraseña? Esta acción no se puede deshacer.')) {
+    return;
+  }
+
+  appState.agenda.contrasenas = appState.agenda.contrasenas.filter(c => c.id !== id);
+  scheduleAutoSave();
+  await renderizarContrasenas();
+}
+
+// Función para editar contraseña
+async function editarContrasena(id) {
+  // Por simplicidad, por ahora solo permitimos eliminar
+  // En el futuro se puede implementar edición completa
+  alert('Función de edición en desarrollo. Por ahora puedes eliminar y crear una nueva.');
+}
+
 window.guardarConfigVisualPanel = guardarConfigVisualPanel;
 window.switchTab = switchTab;
 window.cargarConfigVisualEnFormulario = cargarConfigVisualEnFormulario;
 window.cargarConfigFuncionalesEnFormulario = cargarConfigFuncionalesEnFormulario;
 window.guardarConfigFuncionales = guardarConfigFuncionales;
 window.toggleConfigFloating = toggleConfigFloating;
+
+// ========== FUNCIONES GLOBALES DE CONTRASEÑAS ==========
+window.abrirModalNuevaContrasena = abrirModalNuevaContrasena;
+window.renderizarContrasenas = renderizarContrasenas;
+window.revelarCampoContrasena = revelarCampoContrasena;
+window.eliminarContrasena = eliminarContrasena;
+window.editarContrasena = editarContrasena;
+window.toggleMostrarContrasena = toggleMostrarContrasena;
 
 // ========== EDITOR DE BASE DE DATOS ==========
 function abrirEditorBaseDatos() {
@@ -1613,9 +2077,7 @@ function renderizarListasPersonalizadas() {
   const configVisual = window.configVisual || {};
   const listasPersonalizadas = configVisual.listasPersonalizadas || [];
 
-  console.log('  window.configVisual:', configVisual);
-  console.log('  Listas personalizadas:', listasPersonalizadas);
-  console.log('  Número de listas:', listasPersonalizadas.length);
+  // Debug simplificado
 
   if (listasPersonalizadas.length === 0) {
     console.log('  ⚠️ No hay listas personalizadas, mostrando mensaje por defecto');
@@ -1630,7 +2092,21 @@ function renderizarListasPersonalizadas() {
   console.log('  ✅ Generando HTML para', listasPersonalizadas.length, 'listas');
   let html = '';
   listasPersonalizadas.forEach((lista, index) => {
-    console.log(`    Lista ${index + 1}:`, lista.nombre, '- Tareas:', lista.tareas?.length || 0);
+
+    // Verificar si es una lista obligatoria
+    const listasObligatorias = ['Tareas Críticas', 'Lista para hacer', 'tareas-criticas', 'para-hacer'];
+    const esListaObligatoria = listasObligatorias.some(nombre =>
+      lista.nombre.toLowerCase().includes(nombre.toLowerCase()) ||
+      lista.id === nombre ||
+      lista.tipo === 'criticas' ||
+      lista.tipo === 'regular' ||
+      lista.esListaPorDefecto === true
+    );
+
+    const botonEliminar = esListaObligatoria ?
+      '<span style="color:#666;font-size:12px;padding:4px 8px;">🔒 Sistema</span>' :
+      `<button onclick="eliminarListaPersonalizada('${lista.id}')" style="background:#ff4757;color:white;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px;" title="Eliminar lista">🗑️</button>`;
+
     html += `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:8px;background:rgba(255,255,255,0.7);border-radius:6px;border-left:4px solid ${lista.color};">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -1638,16 +2114,12 @@ function renderizarListasPersonalizadas() {
           <span style="font-weight:500;color:#333;">${lista.nombre}</span>
           <small style="color:#666;">(${lista.tareas ? lista.tareas.length : 0} tareas)</small>
         </div>
-        <button onclick="eliminarListaPersonalizada('${lista.id}')" style="background:#ff4757;color:white;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px;" title="Eliminar lista">
-          🗑️
-        </button>
+        ${botonEliminar}
       </div>
     `;
   });
 
   contenedor.innerHTML = html;
-  console.log('  ✅ HTML insertado en el contenedor');
-  console.log('  Contenido final del contenedor:', contenedor.innerHTML.substring(0, 200) + '...');
 }
 
 // ========== FUNCIONES PARA SECCIONES PRINCIPALES DE LISTAS ==========
@@ -1809,8 +2281,7 @@ function limpiarListaPersonalizada(listaId) {
 
 // ========== RENDERIZADO RICO DE LISTAS PERSONALIZADAS ==========
 function renderizarListaPersonalizada(listaId) {
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = obtenerListasPersonalizadas();
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
   if (!lista) return;
@@ -1836,7 +2307,8 @@ function renderizarListaPersonalizada(listaId) {
     if (tarea.estado === 'completada') div.classList.add('tarea-completada');
 
     // Verificar si es urgente (fecha límite es hoy o pasada)
-    const esUrgente = esFechaHoy(tarea.fecha) || esFechaPasada(tarea.fecha);
+    const fechaString = Array.isArray(tarea.fecha) ? fechaArrayToString(tarea.fecha) : tarea.fecha;
+    const esUrgente = esFechaHoy(fechaString) || esFechaPasada(fechaString);
     if (esUrgente && tarea.estado !== 'completada') {
       div.classList.add('urgente');
       div.dataset.urgente = 'true';
@@ -1877,8 +2349,9 @@ function renderizarListaPersonalizada(listaId) {
 
     // Fecha
     if (tarea.fecha) {
-      const colorFecha = (esFechaHoy(tarea.fecha) || esFechaPasada(tarea.fecha)) ? '#ff1744' : '#666';
-      contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${tarea.fecha}</small>`;
+      const fechaMostrar = Array.isArray(tarea.fecha) ? fechaArrayToString(tarea.fecha) : tarea.fecha;
+      const colorFecha = (esFechaHoy(fechaString) || esFechaPasada(fechaString)) ? '#ff1744' : '#666';
+      contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${fechaMostrar}</small>`;
     }
 
     // Persona asignada
@@ -2199,15 +2672,15 @@ function cargarConfigVisual() {
 }
 
 function agregarTareaAListaPersonalizada(listaId, texto, fecha = null) {
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = obtenerListasPersonalizadas();
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
   if (!lista) return;
 
   const nuevaTarea = {
+    id: Date.now(), // ID como number
     texto: texto,
-    fecha: fecha,
+    fecha: fecha ? (typeof fecha === 'string' ? fechaStringToArray(fecha) : fecha) : null, // Fecha como array
     estado: 'pendiente',
     fechaCreacion: new Date().toISOString()
   };
@@ -2357,8 +2830,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
 function eliminarListaPersonalizada(listaId) {
   console.log('🗑️ ELIMINANDO LISTA PERSONALIZADA COMPLETA:', listaId);
 
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = obtenerListasPersonalizadas();
   const listaIndex = listasPersonalizadas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) {
@@ -2367,6 +2839,22 @@ function eliminarListaPersonalizada(listaId) {
   }
 
   const lista = listasPersonalizadas[listaIndex];
+
+  // VALIDAR QUE NO SEA UNA LISTA OBLIGATORIA
+  const listasObligatorias = ['Tareas Críticas', 'Lista para hacer', 'tareas-criticas', 'para-hacer'];
+  const esListaObligatoria = listasObligatorias.some(nombre =>
+    lista.nombre.toLowerCase().includes(nombre.toLowerCase()) ||
+    lista.id === nombre ||
+    lista.tipo === 'criticas' ||
+    lista.tipo === 'regular' ||
+    lista.esListaPorDefecto === true
+  );
+
+  if (esListaObligatoria) {
+    mostrarAlerta(`🚫 No se puede eliminar "${lista.nombre}" porque es una lista obligatoria del sistema.`, 'error');
+    return;
+  }
+
   const numTareas = lista.tareas ? lista.tareas.length : 0;
 
   // VALIDAR QUE LA LISTA ESTÉ VACÍA
@@ -2412,8 +2900,7 @@ function eliminarListaPersonalizada(listaId) {
 function completarTareaListaPersonalizada(listaId, tareaIndex) {
   console.log('🎯 CLICK EN TAREA DE LISTA PERSONALIZADA:', { listaId, tareaIndex });
 
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = obtenerListasPersonalizadas();
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
   if (!lista || !lista.tareas[tareaIndex]) return;
@@ -2505,11 +2992,18 @@ window.editarTareaListaPersonalizada = editarTareaListaPersonalizada;
 window.guardarEdicionListaPersonalizada = guardarEdicionListaPersonalizada;
 
 // ========== FUNCIÓN PRINCIPAL PARA RENDERIZAR TODAS LAS LISTAS ==========
+let renderizarListasTimeout = null;
 function renderizarTodasLasListasPersonalizadas() {
-  console.log('🔄 RENDERIZANDO TODAS LAS LISTAS PERSONALIZADAS');
+  // Debounce para evitar renderizados repetitivos
+  if (renderizarListasTimeout) {
+    clearTimeout(renderizarListasTimeout);
+  }
 
-  const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  renderizarListasTimeout = setTimeout(() => {
+    console.log('🔄 RENDERIZANDO TODAS LAS LISTAS PERSONALIZADAS');
+
+  // Usar función helper para obtener las listas
+  const listasPersonalizadas = obtenerListasPersonalizadas();
 
   console.log('📋 Listas encontradas:', listasPersonalizadas.length);
 
@@ -2522,7 +3016,9 @@ function renderizarTodasLasListasPersonalizadas() {
     console.log(`✅ Lista renderizada: ${lista.nombre}`);
   });
 
-  console.log('✅ Renderizado de listas personalizadas completado');
+    console.log('✅ Renderizado de listas personalizadas completado');
+    renderizarListasTimeout = null;
+  }, 100); // 100ms de debounce
 }
 
 // ========== FUNCIÓN PARA CARGAR LISTAS AL INICIO ==========

@@ -158,6 +158,21 @@
           <textarea id="sentimientos-texto"
             placeholder="Describe cómo te sientes hoy, tus emociones, pensamientos..."></textarea>
         </section>
+
+        <section id="seccion-contrasenas" style="display: block;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">🔐 Contraseñas Encriptadas</h3>
+            <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
+                    style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              ➕ Nueva Contraseña
+            </button>
+          </div>
+          <div id="lista-contrasenas">
+            <p style="text-align: center; color: #666; font-style: italic;">
+              Carga las contraseñas guardadas o agrega una nueva.
+            </p>
+          </div>
+        </section>
       </div>
 
       <div class="columna-derecha">
@@ -396,21 +411,21 @@
         <div>
           <label style="font-size:12px;">Hora:</label>
           <select id="nueva-cita-hora" style="width:100%;padding:6px;">
-            <option value="08">08:00</option>
-            <option value="09">09:00</option>
-            <option value="10">10:00</option>
-            <option value="11">11:00</option>
-            <option value="12">12:00</option>
-            <option value="13">13:00</option>
-            <option value="14" selected>14:00</option>
-            <option value="15">15:00</option>
-            <option value="16">16:00</option>
-            <option value="17">17:00</option>
-            <option value="18">18:00</option>
-            <option value="19">19:00</option>
-            <option value="20">20:00</option>
-            <option value="21">21:00</option>
-            <option value="22">22:00</option>
+            <option value="08">08</option>
+            <option value="09">09</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14" selected>14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
           </select>
         </div>
         <div>
@@ -566,6 +581,13 @@
                 <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()"
                   style="margin:0;">
                 <span style="font-weight:500;">😊 Sección de Sentimientos</span>
+              </label>
+
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()"
+                  style="margin:0;">
+                <span style="font-weight:500;">🔐 Sección de Contraseñas</span>
               </label>
             </div>
 
@@ -1208,22 +1230,23 @@
         <div>
           <label style="font-size:12px;">Hora:</label>
           <select id="periodica-hora" style="width:100%;padding:6px;">
-            <option value="08">08:00</option>
-            <option value="09">09:00</option>
-            <option value="10">10:00</option>
-            <option value="11">11:00</option>
-            <option value="12">12:00</option>
-            <option value="13">13:00</option>
-            <option value="14" selected>14:00</option>
-            <option value="15">15:00</option>
-            <option value="16">16:00</option>
-            <option value="17">17:00</option>
-            <option value="18">18:00</option>
-            <option value="19">19:00</option>
-            <option value="20">20:00</option>
-            <option value="21">21:00</option>
-            <option value="22">22:00</option>
+            <option value="08">08</option>
+            <option value="09">09</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14" selected>14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
           </select>
+          
         </div>
         <div>
           <label style="font-size:12px;">Minutos:</label>
@@ -1315,21 +1338,21 @@
           <div>
             <label style="font-size:12px;">Hora:</label>
             <select id="hora-cita-relativa" style="width:100%;padding:6px;">
-              <option value="08">08:00</option>
-              <option value="09">09:00</option>
-              <option value="10">10:00</option>
-              <option value="11">11:00</option>
-              <option value="12">12:00</option>
-              <option value="13">13:00</option>
-              <option value="14" selected>14:00</option>
-              <option value="15">15:00</option>
-              <option value="16">16:00</option>
-              <option value="17">17:00</option>
-              <option value="18">18:00</option>
-              <option value="19">19:00</option>
-              <option value="20">20:00</option>
-              <option value="21">21:00</option>
-              <option value="22">22:00</option>
+              <option value="08">08</option>
+              <option value="09">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14" selected>14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+              <option value="21">21</option>
+              <option value="22">22</option>
             </select>
           </div>
           <div>

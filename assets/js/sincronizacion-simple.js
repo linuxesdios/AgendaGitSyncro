@@ -1,5 +1,41 @@
 // ========== SINCRONIZACIÓN FIREBASE FIRESTORE ==========
 
+// ========== FUNCIONES HELPER PARA FECHAS ==========
+function fechaArrayToString(fechaArray) {
+  if (!Array.isArray(fechaArray) || fechaArray.length !== 3) return '';
+  const [año, mes, dia] = fechaArray;
+  return `${año}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+}
+
+function fechaStringToArray(fechaString) {
+  if (!fechaString) return [0, 0, 0];
+  return fechaString.split('-').map(n => parseInt(n));
+}
+
+function compararFechaConString(fechaArray, fechaString) {
+  return fechaArrayToString(fechaArray) === fechaString;
+}
+
+// ========== FUNCIONES HELPER PARA TAREAS Y LISTAS ==========
+function obtenerListasPersonalizadas() {
+  return window.tareasData?.listasPersonalizadas || [];
+}
+
+function obtenerTodasLasListas() {
+  const obligatorias = window.tareasData?.listasObligatorias || [];
+  const personalizadas = window.tareasData?.listasPersonalizadas || [];
+  return [...obligatorias, ...personalizadas];
+}
+
+function actualizarListasPersonalizadas(nuevasListas) {
+  if (!window.tareasData) {
+    window.tareasData = { listasObligatorias: [], listasPersonalizadas: [] };
+  }
+  window.tareasData.listasPersonalizadas = nuevasListas;
+}
+
+// Función de migración eliminada - ya no es necesaria
+
 let db = null;
 let isFirebaseInitialized = false;
 let isOnline = navigator.onLine;
@@ -265,11 +301,12 @@ async function extendsClassPull() {
   }
 
   return ejecutarOperacionFirebase(async () => {
-    const [tareasDoc, citasDoc, notasDoc, sentimientosDoc, historialDoc, configDoc, personasDoc, etiquetasDoc, historialTareasDoc] = await Promise.all([
+    const [tareasDoc, citasDoc, notasDoc, sentimientosDoc, contrasenasDoc, historialDoc, configDoc, personasDoc, etiquetasDoc, historialTareasDoc] = await Promise.all([
       db.collection('tareas').doc('data').get(),
       db.collection('citas').doc('data').get(),
       db.collection('notas').doc('data').get(),
       db.collection('sentimientos').doc('data').get(),
+      db.collection('contrasenas').doc('data').get(),
       db.collection('historial').doc('eliminados').get(),
       db.collection('config').doc('settings').get(),
       db.collection('personas').doc('asignadas').get(),
@@ -282,8 +319,54 @@ async function extendsClassPull() {
       tareas: tareasDoc.exists ? (tareasDoc.data().tareas || []) : [],
       citas: citasDoc.exists ? (citasDoc.data().citas || []) : [],
       notas: notasDoc.exists ? (notasDoc.data().notas || '') : '',
-      sentimientos: sentimientosDoc.exists ? (sentimientosDoc.data().sentimientos || '') : ''
+      sentimientos: sentimientosDoc.exists ? (sentimientosDoc.data().sentimientos || '') : '',
+      contrasenas: contrasenasDoc.exists ? (contrasenasDoc.data().lista || []) : []
     };
+
+    // Cargar estructura de tareas (incluye listas personalizadas)
+    if (tareasDoc.exists) {
+      const tareasFirebase = tareasDoc.data();
+      window.tareasData = {
+        listasObligatorias: [
+          {
+            id: 'criticas',
+            nombre: 'Tareas Críticas',
+            tipo: 'criticas',
+            tareas: data.tareas_criticas,
+            editable: false
+          },
+          {
+            id: 'para-hacer',
+            nombre: 'Lista para hacer',
+            tipo: 'regular',
+            tareas: data.tareas,
+            editable: false
+          }
+        ],
+        listasPersonalizadas: tareasFirebase.listasPersonalizadas || []
+      };
+    } else {
+      // Inicializar estructura por defecto
+      window.tareasData = {
+        listasObligatorias: [
+          {
+            id: 'criticas',
+            nombre: 'Tareas Críticas',
+            tipo: 'criticas',
+            tareas: [],
+            editable: false
+          },
+          {
+            id: 'para-hacer',
+            nombre: 'Lista para hacer',
+            tipo: 'regular',
+            tareas: [],
+            editable: false
+          }
+        ],
+        listasPersonalizadas: []
+      };
+    }
 
     // Cargar configuraciones DIRECTAMENTE en memoria (NO localStorage)
     if (configDoc.exists) {
@@ -292,16 +375,12 @@ async function extendsClassPull() {
       // Guardar configuraciones en variables globales para acceso directo
       const visualRemote = configFirebase.visual || {};
 
-      // PROTECCIÓN CONTRA SOBRESCRITURA DE LISTAS PERSONALIZADAS
-      // Si Firebase devuelve 0 listas (o undefined) pero localmente tenemos listas,
-      // es probable que sea una condición de carrera o lectura de caché antigua.
-      // En este caso, PRESERVAMOS las listas locales para no perder datos recién creados.
-      const listasLocales = window.configVisual && window.configVisual.listasPersonalizadas;
-      const listasRemotas = visualRemote.listasPersonalizadas;
+      // Cargar listas personalizadas desde tareas (temporalmente en configVisual)
+      if (window.tareasData?.listasPersonalizadas) {
+        visualRemote.listasPersonalizadas = window.tareasData.listasPersonalizadas;
+        console.log('✅ Cargadas', window.tareasData.listasPersonalizadas.length, 'listas personalizadas desde tareas');
 
-      if ((!listasRemotas || listasRemotas.length === 0) && (listasLocales && listasLocales.length > 0)) {
-        console.warn(`🛡️ PROTECCIÓN ACTIVADA: Firebase devolvió 0 listas pero hay ${listasLocales.length} locales. Preservando listas locales.`);
-        visualRemote.listasPersonalizadas = listasLocales;
+        // Migración completada - ya no es necesaria
       }
 
       window.configVisual = visualRemote;
@@ -361,15 +440,7 @@ async function extendsClassPull() {
       notas: data.notas.length
     });
 
-    console.log('🔍 DETALLE DE TAREAS:');
-    console.log('  📋 Tareas normales (van a "Por hacer"):', data.tareas.length);
-    data.tareas.forEach((t, i) => {
-      console.log(`    ${i + 1}. ${t.texto} (estado: ${t.estado})`);
-    });
-    console.log('  🚨 Tareas críticas:', data.tareas_criticas.length);
-    data.tareas_criticas.forEach((t, i) => {
-      console.log(`    ${i + 1}. ${t.titulo} (estado: ${t.estado})`);
-    });
+    console.log('🔍 Datos sincronizados:', `${data.tareas.length} tareas, ${data.tareas_criticas.length} críticas, ${data.citas?.length || 0} citas`);
 
     procesarJSON(data);
 
@@ -418,11 +489,12 @@ async function guardarJSON(silent = false) {
     // Guardar en colecciones separadas
     const batch = db.batch();
 
-    // Tareas
+    // Tareas (incluye listas personalizadas)
     const tareasRef = db.collection('tareas').doc('data');
     batch.set(tareasRef, {
       tareas_criticas: appState.agenda.tareas_criticas || [],
       tareas: appState.agenda.tareas || [],
+      listasPersonalizadas: window.tareasData?.listasPersonalizadas || [],
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -581,6 +653,7 @@ function procesarJSON(data) {
   appState.agenda.notas = data.notas || '';
   appState.agenda.sentimientos = data.sentimientos || '';
   appState.agenda.citas = data.citas || [];
+  appState.agenda.contrasenas = data.contrasenas || [];
 
   console.log('📊 appState.agenda.citas DESPUÉS:', appState.agenda.citas.length);
   console.log('📋 Contenido de citas:', appState.agenda.citas);
@@ -601,6 +674,11 @@ function procesarJSON(data) {
     if (typeof autoResizeTextarea === 'function') {
       autoResizeTextarea(sentimientosEl);
     }
+  }
+
+  // Renderizar contraseñas
+  if (typeof renderizarContrasenas === 'function') {
+    renderizarContrasenas();
   }
 
   if (typeof renderizar === 'function') {
@@ -881,7 +959,7 @@ function mostrarResumenDiario() {
     .filter(t => !t.completada && ((t.fecha_fin && esFechaPasada(t.fecha_fin)) || (t.fecha_migrar && esFechaPasada(t.fecha_migrar))));
 
   // Buscar citas del día
-  const citasHoy = (appState.agenda.citas || []).filter(c => c.fecha === hoy);
+  const citasHoy = (appState.agenda.citas || []).filter(c => fechaArrayToString(c.fecha) === hoy);
 
   if (tareasHoy.length === 0 && citasHoy.length === 0 && tareasPasadas.length === 0) {
     // Marcar como mostrado hoy en localStorage
@@ -1283,7 +1361,7 @@ function parsearFechaCita(cita) {
 
     if (isNaN(horas) || isNaN(minutos)) return null;
 
-    const fechaCita = new Date(cita.fecha + 'T00:00:00');
+    const fechaCita = new Date(fechaArrayToString(cita.fecha) + 'T00:00:00');
     fechaCita.setHours(horas, minutos, 0, 0);
 
     return fechaCita;
@@ -1306,9 +1384,9 @@ function enviarNotificacion(cita, minutosRestantes) {
   }
 
   const notification = new Notification('📅 Recordatorio de Cita', {
-    body: `${descripcion}\nEn ${tiempoTexto} - ${cita.fecha}`,
+    body: `${descripcion}\nEn ${tiempoTexto} - ${fechaArrayToString(cita.fecha)}`,
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>',
-    tag: `cita-${cita.fecha}-${cita.nombre}`,
+    tag: `cita-${fechaArrayToString(cita.fecha)}-${cita.nombre}`,
     requireInteraction: true
   });
 
@@ -1319,12 +1397,12 @@ function enviarNotificacion(cita, minutosRestantes) {
 }
 
 function yaNotificado(cita, minutosRestantes) {
-  const clave = `notif-${cita.fecha}-${cita.nombre}-${Math.floor(minutosRestantes / 30)}`;
+  const clave = `notif-${fechaArrayToString(cita.fecha)}-${cita.nombre}-${Math.floor(minutosRestantes / 30)}`;
   return localStorage.getItem(clave) === 'true';
 }
 
 function marcarComoNotificado(cita, minutosRestantes) {
-  const clave = `notif-${cita.fecha}-${cita.nombre}-${Math.floor(minutosRestantes / 30)}`;
+  const clave = `notif-${fechaArrayToString(cita.fecha)}-${cita.nombre}-${Math.floor(minutosRestantes / 30)}`;
   localStorage.setItem(clave, 'true');
 }
 
@@ -1492,7 +1570,7 @@ function iniciarRecordatorios() {
 
     const citasProximas = appState.agenda.citas.filter(cita => {
       if (!cita.fecha || !cita.hora) return false;
-      const fechaCita = new Date(cita.fecha + 'T' + cita.hora + ':00');
+      const fechaCita = new Date(fechaArrayToString(cita.fecha) + 'T' + cita.hora + ':00');
       return fechaCita > ahora && fechaCita <= dosHoras;
     });
 
@@ -1509,11 +1587,14 @@ function aplicarVisibilidadSecciones() {
   const config = window.configVisual || {};
   const mostrarNotas = config.mostrarNotas !== false;
   const mostrarSentimientos = config.mostrarSentimientos !== false;
+  const mostrarContrasenas = config.mostrarContrasenas !== false;
 
   const seccionNotas = document.getElementById('seccion-notas');
   const seccionSentimientos = document.getElementById('seccion-sentimientos');
+  const seccionContrasenas = document.getElementById('seccion-contrasenas');
   if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
   if (seccionSentimientos) seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
+  if (seccionContrasenas) seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
 }
 
 // Inicializar Firebase y sincronización
@@ -1626,20 +1707,50 @@ function guardarSentimiento(texto) {
 // ========== SISTEMA DE ETIQUETAS ==========
 function inicializarEtiquetas() {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  if (!etiquetas.tareas) {
-    etiquetas.tareas = [
-      { nombre: 'Salud', simbolo: '🏥' },
-      { nombre: 'Laboral', simbolo: '💼' },
-      { nombre: 'Ocio', simbolo: '🎮' }
+
+  // Migrar estructura antigua si existe
+  if (etiquetas.tareas && Array.isArray(etiquetas.tareas)) {
+    const etiquetasNuevas = [];
+
+    // Agregar etiquetas de tareas con tipo 0
+    etiquetas.tareas.forEach(etiqueta => {
+      etiquetasNuevas.push({
+        ...etiqueta,
+        tipo: 0, // 0 = tareas
+        id: Date.now() + Math.random()
+      });
+    });
+
+    // Agregar etiquetas de citas con tipo 1
+    if (etiquetas.citas) {
+      etiquetas.citas.forEach(etiqueta => {
+        etiquetasNuevas.push({
+          ...etiqueta,
+          tipo: 1, // 1 = citas/calendario
+          id: Date.now() + Math.random()
+        });
+      });
+    }
+
+    etiquetas.lista = etiquetasNuevas;
+    delete etiquetas.tareas;
+    delete etiquetas.citas;
+  }
+
+  // Inicializar estructura nueva si no existe
+  if (!etiquetas.lista) {
+    etiquetas.lista = [
+      // Etiquetas de tareas (tipo 0)
+      { id: 1, nombre: 'Salud', simbolo: '🏥', tipo: 0 },
+      { id: 2, nombre: 'Laboral', simbolo: '💼', tipo: 0 },
+      { id: 3, nombre: 'Ocio', simbolo: '🎮', tipo: 0 },
+      // Etiquetas de citas (tipo 1)
+      { id: 4, nombre: 'Salud', simbolo: '🏥', tipo: 1 },
+      { id: 5, nombre: 'Laboral', simbolo: '💼', tipo: 1 },
+      { id: 6, nombre: 'Ocio', simbolo: '🎮', tipo: 1 }
     ];
   }
-  if (!etiquetas.citas) {
-    etiquetas.citas = [
-      { nombre: 'Salud', simbolo: '🏥' },
-      { nombre: 'Laboral', simbolo: '💼' },
-      { nombre: 'Ocio', simbolo: '🎮' }
-    ];
-  }
+
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
   return etiquetas;
 }
@@ -1647,30 +1758,40 @@ function inicializarEtiquetas() {
 function cargarEtiquetasEnSelect(selectId, tipo) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   const select = document.getElementById(selectId);
-  if (!select || !etiquetas[tipo]) return;
+  if (!select || !etiquetas.lista) return;
+
+  // Convertir tipo string a número si es necesario
+  const tipoNumerico = tipo === 'tareas' ? 0 : (tipo === 'citas' ? 1 : tipo);
 
   select.innerHTML = '<option value="">Sin etiqueta</option>';
-  etiquetas[tipo].forEach(etiqueta => {
-    const option = document.createElement('option');
-    option.value = etiqueta.nombre;
-    option.textContent = `${etiqueta.simbolo} ${etiqueta.nombre}`;
-    select.appendChild(option);
-  });
+  etiquetas.lista
+    .filter(etiqueta => etiqueta.tipo === tipoNumerico)
+    .forEach(etiqueta => {
+      const option = document.createElement('option');
+      option.value = etiqueta.nombre;
+      option.textContent = `${etiqueta.simbolo} ${etiqueta.nombre}`;
+      select.appendChild(option);
+    });
 }
 
 function renderizarListaEtiquetas(containerId, tipo) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
   const container = document.getElementById(containerId);
-  if (!container || !etiquetas[tipo]) return;
+  if (!container || !etiquetas.lista) return;
+
+  // Convertir tipo string a número si es necesario
+  const tipoNumerico = tipo === 'tareas' ? 0 : (tipo === 'citas' ? 1 : tipo);
 
   container.innerHTML = '';
-  etiquetas[tipo].forEach((etiqueta, index) => {
+  const etiquetasFiltradas = etiquetas.lista.filter(etiqueta => etiqueta.tipo === tipoNumerico);
+
+  etiquetasFiltradas.forEach((etiqueta, index) => {
     const div = document.createElement('div');
     div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid #ddd;border-radius:4px;margin-bottom:5px;';
     const colorCircle = etiqueta.color ? `<span style="display:inline-block;width:12px;height:12px;background:${etiqueta.color};border-radius:50%;margin-right:5px;"></span>` : '';
     div.innerHTML = `
-      <span onclick="editarEtiqueta('${tipo}', ${index})" style="cursor:pointer;flex:1;" title="Clic para editar">${colorCircle}${etiqueta.simbolo} ${etiqueta.nombre}</span>
-      <button onclick="eliminarEtiqueta('${tipo}', ${index})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;border-radius:3px;cursor:pointer;">❌</button>
+      <span onclick="editarEtiqueta(${etiqueta.id})" style="cursor:pointer;flex:1;" title="Clic para editar">${colorCircle}${etiqueta.simbolo} ${etiqueta.nombre} ${etiqueta.tipo === 0 ? '📝' : '📅'}</span>
+      <button onclick="eliminarEtiqueta(${etiqueta.id})" style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:2px 6px;border-radius:3px;cursor:pointer;">❌</button>
     `;
     container.appendChild(div);
   });
@@ -1683,8 +1804,16 @@ function agregarEtiquetaTarea() {
   if (!nombre) return;
 
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  if (!etiquetas.tareas) etiquetas.tareas = [];
-  etiquetas.tareas.push({ nombre, simbolo, color });
+  if (!etiquetas.lista) etiquetas.lista = [];
+
+  etiquetas.lista.push({
+    id: Date.now(),
+    nombre,
+    simbolo,
+    color,
+    tipo: 0 // 0 = tareas
+  });
+
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
 
   guardarConfigEnFirebase();
@@ -1701,8 +1830,16 @@ function agregarEtiquetaCita() {
   if (!nombre) return;
 
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  if (!etiquetas.citas) etiquetas.citas = [];
-  etiquetas.citas.push({ nombre, simbolo, color });
+  if (!etiquetas.lista) etiquetas.lista = [];
+
+  etiquetas.lista.push({
+    id: Date.now(),
+    nombre,
+    simbolo,
+    color,
+    tipo: 1 // 1 = citas/calendario
+  });
+
   localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
 
   guardarConfigEnFirebase();
@@ -1712,12 +1849,24 @@ function agregarEtiquetaCita() {
   actualizarFiltrosEtiquetas();
 }
 
-function eliminarEtiqueta(tipo, index) {
+function eliminarEtiqueta(id) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  if (etiquetas[tipo]) {
-    etiquetas[tipo].splice(index, 1);
-    localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
-    renderizarListaEtiquetas(`etiquetas-${tipo}-lista`, tipo);
+  if (etiquetas.lista) {
+    const index = etiquetas.lista.findIndex(etiqueta => etiqueta.id === id);
+    if (index > -1) {
+      const etiquetaEliminada = etiquetas.lista[index];
+      etiquetas.lista.splice(index, 1);
+      localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+
+      // Actualizar las listas correspondientes
+      if (etiquetaEliminada.tipo === 0) {
+        renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
+      } else {
+        renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
+      }
+
+      guardarConfigEnFirebase();
+    }
   }
 }
 
@@ -1889,14 +2038,21 @@ function cargarListaSalvados() {
 
     container.innerHTML = salvados.map(salvado => {
       const fecha = salvado.data.fecha;
+      const timestamp = new Date(salvado.data.timestamp || salvado.data.fecha);
+      const hora = timestamp.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
       const tareas = (salvado.data.tareas_criticas?.length || 0) + (salvado.data.tareas?.length || 0);
       const citas = salvado.data.citas?.length || 0;
+      const listas = salvado.data.listas_personalizadas?.length || 0;
 
       return `<div style="margin-bottom:8px;padding:10px;border:1px solid #ddd;border-radius:6px;background:white;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <div style="font-weight:bold;color:#2d5a27;">💾 ${fecha}</div>
-            <div style="color:#666;font-size:11px;">${tareas} tareas, ${citas} citas</div>
+            <div style="font-weight:bold;color:#2d5a27;">💾 ${fecha} a las ${hora}</div>
+            <div style="color:#666;font-size:11px;">${tareas} tareas, ${citas} citas, ${listas} listas</div>
           </div>
           <button onclick="restaurarSalvado('${salvado.id}')" class="btn-secundario" style="font-size:11px;padding:4px 8px;">🔄 Restaurar</button>
         </div>
@@ -2016,9 +2172,9 @@ window.obtenerEtiquetaInfo = obtenerEtiquetaInfo;
 window.moverAHistorial = moverAHistorial;
 window.registrarAccion = registrarAccion;
 
-function editarEtiqueta(tipo, index) {
+function editarEtiqueta(id) {
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  const etiqueta = etiquetas[tipo][index];
+  const etiqueta = etiquetas.lista?.find(e => e.id === id);
   if (!etiqueta) return;
 
   // Crear modal de edición
@@ -2054,7 +2210,7 @@ function editarEtiqueta(tipo, index) {
         </select>
         <div style="display:flex;gap:3px;align-items:center;">
           <input type="color" id="editar-color-etiqueta" value="${etiqueta.color || '#4ecdc4'}" style="width:35px;height:35px;padding:2px;border:1px solid #ddd;border-radius:4px;">
-          <button onclick="guardarEdicionEtiqueta('${tipo}', ${index})" class="btn-primario" style="padding:6px 12px;white-space:nowrap;">✓ Guardar</button>
+          <button onclick="guardarEdicionEtiqueta(${id})" class="btn-primario" style="padding:6px 12px;white-space:nowrap;">✓ Guardar</button>
         </div>
       </div>
       <div class="modal-botones">
@@ -2073,7 +2229,7 @@ function editarEtiqueta(tipo, index) {
   setTimeout(() => document.getElementById('editar-nombre-etiqueta').focus(), 100);
 }
 
-function guardarEdicionEtiqueta(tipo, index) {
+function guardarEdicionEtiqueta(id) {
   const nombre = document.getElementById('editar-nombre-etiqueta').value.trim();
   const simbolo = document.getElementById('editar-simbolo-etiqueta').value;
   const color = document.getElementById('editar-color-etiqueta').value;
@@ -2084,16 +2240,28 @@ function guardarEdicionEtiqueta(tipo, index) {
   }
 
   const etiquetas = JSON.parse(localStorage.getItem('etiquetas') || '{}');
-  etiquetas[tipo][index] = { nombre, simbolo, color };
+  const index = etiquetas.lista?.findIndex(e => e.id === id);
 
-  localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
-  guardarConfigEnFirebase();
-  renderizarListaEtiquetas(`etiquetas-${tipo}-lista`, tipo);
-  actualizarFiltrosEtiquetas();
-  registrarAccion('Editar etiqueta', `${simbolo} ${nombre}`);
+  if (index > -1) {
+    etiquetas.lista[index] = {
+      ...etiquetas.lista[index],
+      nombre,
+      simbolo,
+      color
+    };
 
-  cerrarModalEdicion();
-  mostrarAlerta('✅ Etiqueta actualizada', 'success');
+    localStorage.setItem('etiquetas', JSON.stringify(etiquetas));
+    guardarConfigEnFirebase();
+
+    // Actualizar la lista correspondiente
+    const tipo = etiquetas.lista[index].tipo === 0 ? 'tareas' : 'citas';
+    renderizarListaEtiquetas(`etiquetas-${tipo}-lista`, tipo);
+    actualizarFiltrosEtiquetas();
+    registrarAccion('Editar etiqueta', `${simbolo} ${nombre}`);
+
+    cerrarModalEdicion();
+    mostrarAlerta('✅ Etiqueta actualizada', 'success');
+  }
 }
 
 function cerrarModalEdicion() {
@@ -2268,7 +2436,7 @@ function mostrarResumenDiarioManual() {
     .filter(t => !t.completada && ((t.fecha_fin && esFechaPasada(t.fecha_fin)) || (t.fecha_migrar && esFechaPasada(t.fecha_migrar))));
 
   // Buscar citas del día
-  const citasHoy = (appState.agenda.citas || []).filter(c => c.fecha === hoy);
+  const citasHoy = (appState.agenda.citas || []).filter(c => fechaArrayToString(c.fecha) === hoy);
 
   let contenido = `🌅 RESUMEN DEL DÍA - ${hoy}\n\n`;
 
