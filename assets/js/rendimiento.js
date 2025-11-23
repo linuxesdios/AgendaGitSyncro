@@ -76,7 +76,6 @@ const performanceMonitor = {
     // Limpiar memoria cada 5 minutos
     window.gcTimer = setInterval(() => {
       performanceOptimizer.cleanup();
-      console.log('🧹 Limpieza de memoria ejecutada');
     }, 300000);
     
     // Detectar si la tablet está bajo estrés

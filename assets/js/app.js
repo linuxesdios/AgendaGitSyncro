@@ -2,7 +2,6 @@
 function obtenerListasPersonalizadas() {
   // TEMPORALMENTE: usar estructura antigua hasta completar migración
   const listas = window.configVisual?.listasPersonalizadas || [];
-  console.log('🔍 Listas obtenidas:', listas.length, listas);
   return listas;
 }
 
@@ -71,8 +70,6 @@ const isDesktop = () => {
 
 // ========== INICIALIZACIÓN PRINCIPAL ==========
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🔄 ========== PÁGINA CARGADA (DOMContentLoaded) ==========');
-  console.log('Iniciando aplicación...');
   window.appStartTime = Date.now();
 
   // Aplicar clases adaptativas
@@ -104,11 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Firebase se inicializa automáticamente en sincronizacion-simple.js
 
-  // Logs de depuración
+  // Inicialización del calendario integrado si es necesario
   setTimeout(() => {
-    console.log('🔍 appState.agenda.citas:', appState.agenda.citas);
-    console.log('🔍 Total citas en memoria:', appState.agenda.citas?.length || 0);
-
     const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
     if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
       if (typeof initializeCalendarioIntegrado === 'function') {
@@ -323,7 +317,6 @@ function scheduleAutoSave() {
       });
 
       batch.commit().then(() => {
-        console.log('💾 Auto-guardado en Firebase');
       }).catch(error => {
         console.error('❌ Error en auto-guardado:', error);
       });

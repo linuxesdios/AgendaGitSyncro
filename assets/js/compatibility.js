@@ -118,8 +118,6 @@ setTimeout(() => {
         mostrarAlerta(`Error: Función ${func} no disponible`, 'error');
       };
     });
-  } else {
-    console.log('✅ Todas las funciones críticas están disponibles');
   }
 }, 1000);
 
@@ -128,7 +126,6 @@ setTimeout(() => {
 
 if (typeof mostrarAlerta === 'undefined') {
   window.mostrarAlerta = function(mensaje, tipo) {
-    console.log(`${tipo.toUpperCase()}: ${mensaje}`);
     alert(mensaje);
   };
 }
@@ -204,8 +201,6 @@ if (typeof appState === 'undefined') {
 // ========== FUNCIONES DE RENDERIZADO DE RESPALDO ==========
 if (typeof renderizar === 'undefined') {
   window.renderizar = function() {
-    console.log('🔄 Renderizando (función de respaldo)');
-    
     // Renderizar tareas críticas básico
     const listaCriticas = document.getElementById('lista-criticas');
     if (listaCriticas && appState.agenda.tareas_criticas) {
@@ -230,21 +225,14 @@ if (typeof renderizar === 'undefined') {
   };
 }
 
-// ========== LOG DE INICIALIZACIÓN ==========
-console.log('🔧 Archivo de compatibilidad cargado');
-console.log('📊 Estado de funciones críticas será verificado en 1 segundo...');
-
 // ========== EXPORT PARA DEBUGGING ==========
 window.compatibilityCheck = {
   verificarFunciones: () => {
     const funcionesFaltantes = funcionesCriticas.filter(func => typeof window[func] === 'undefined');
-    console.log('Funciones faltantes:', funcionesFaltantes);
-    console.log('Funciones disponibles:', funcionesCriticas.filter(func => typeof window[func] !== 'undefined'));
     return funcionesFaltantes.length === 0;
   },
-  
+
   listarFunciones: () => {
-    console.log('Todas las funciones globales:');
     funcionesCriticas.forEach(func => {
       console.log(`${func}: ${typeof window[func]}`);
     });
