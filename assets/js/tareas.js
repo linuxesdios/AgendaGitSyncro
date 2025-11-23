@@ -617,7 +617,7 @@ async function agregarTareaCritica() {
       fecha_creacion: new Date().toISOString()
     };
     appState.agenda.tareas_criticas.push(nuevaTarea);
-    registrarAccion('Crear tarea crítica', titulo);
+    registrarAccion('Crear tarea crítica', `"${titulo}" ${etiqueta ? `[${etiqueta}]` : ''} ${fechaFin ? `(vence: ${fechaFin})` : ''}`.trim());
   }
 
   cerrarModal('modal-critica');
@@ -746,7 +746,7 @@ async function agregarTarea() {
       fecha_creacion: new Date().toISOString()
     };
     appState.agenda.tareas.push(nuevaTarea);
-    registrarAccion('Crear tarea', texto);
+    registrarAccion('Crear tarea', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fechaFin ? `(vence: ${fechaFin})` : ''}`.trim());
   }
 
   cerrarModal('modal-tarea');

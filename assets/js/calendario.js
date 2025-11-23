@@ -1,5 +1,21 @@
 // ========== GESTIÓN DEL CALENDARIO ==========
 
+// ========== FUNCIONES HELPER PARA FECHAS ==========
+function fechaArrayToString(fechaArray) {
+  if (!Array.isArray(fechaArray) || fechaArray.length !== 3) return '';
+  const [año, mes, dia] = fechaArray;
+  return `${año}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+}
+
+function fechaStringToArray(fechaString) {
+  if (!fechaString) return [0, 0, 0];
+  return fechaString.split('-').map(n => parseInt(n));
+}
+
+function compararFechaConString(fechaArray, fechaString) {
+  return fechaArrayToString(fechaArray) === fechaString;
+}
+
 // ========== INICIALIZACIÓN DEL CALENDARIO ==========
 function initializeCalendar() {
   const prevMonthBtn = document.getElementById('prevMonth');
@@ -60,7 +76,7 @@ function renderCalendar() {
       const esHoy = dateStr === hoy;
       
       // Add events preview for appointments on this day
-      const appointments = appState.agenda.citas.filter(cita => cita.fecha === dateStr);
+      const appointments = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
       const tieneCitas = appointments.length > 0;
       
       // Aplicar clases CSS especiales
@@ -119,7 +135,7 @@ function showAppointments(date) {
   console.log('🔍 showAppointments llamado para fecha:', date);
   console.log('📊 Total citas en appState:', appState.agenda.citas.length);
 
-  const appointments = appState.agenda.citas.filter(cita => cita && cita.fecha === date);
+  const appointments = appState.agenda.citas.filter(cita => cita && compararFechaConString(cita.fecha, date));
   console.log('🎯 Citas encontradas para', date, ':', appointments.length);
 
   const list = document.getElementById('appointmentsList');
@@ -166,7 +182,7 @@ function renderAllAppointmentsList() {
   
   const sortedCitas = appState.agenda.citas
     .slice()
-    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+    .sort((a,b) => fechaArrayToString(a.fecha).localeCompare(fechaArrayToString(b.fecha)));
     
   sortedCitas.forEach(c => {
     const div = document.createElement('div');
@@ -175,19 +191,19 @@ function renderAllAppointmentsList() {
     div.style.cursor = 'pointer';
     
     // Obtener día de la semana
-    const fecha = new Date(c.fecha + 'T00:00:00');
+    const fecha = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
     const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemana = diasSemana[fecha.getDay()];
     
     div.innerHTML = `
-      <span>${diaSemana}, ${c.fecha}<br><small>${c.nombre}</small></span>
-      <button onclick="deleteCita('${c.fecha}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
+      <span>${diaSemana}, ${fechaArrayToString(c.fecha)}<br><small>${c.nombre}</small></span>
+      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
     `;
     div.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') {
-        focusCalendarOn(c.fecha);
-        appState.calendar.selectedDate = c.fecha;
-        showAppointments(c.fecha);
+        focusCalendarOn(fechaArrayToString(c.fecha));
+        appState.calendar.selectedDate = fechaArrayToString(c.fecha);
+        showAppointments(fechaArrayToString(c.fecha));
       }
     });
     list.appendChild(div);
@@ -230,8 +246,8 @@ async function confirmarCita() {
 
   const citaCompleta = `${hora}:${minuto} - ${descripcion}`;
   const nuevaCita = {
-    id: Date.now().toString(),
-    fecha: appState.calendar.tempDate,
+    id: Date.now(),
+    fecha: appState.calendar.tempDate.split('-').map(n => parseInt(n)),
     nombre: citaCompleta,
     etiqueta: null
   };
@@ -293,7 +309,7 @@ async function deleteCita(fecha, nombre) {
 
   const index = appState.agenda.citas.findIndex((c, i) => {
     console.log(`Cita ${i}:`, c);
-    if (!c || c.fecha !== fecha) return false;
+    if (!c || !compararFechaConString(c.fecha, fecha)) return false;
     return c.id === nombre || c.nombre === nombre || c.nombre === nombreDecodificado;
   });
 
@@ -389,12 +405,7 @@ function renderCitasPanel() {
   
   // Actualizar calendario integrado si está visible
   const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-  console.log('📅 DEBUG renderCitasPanel:');
-  console.log('  - Calendario integrado encontrado:', !!calendarioIntegrado);
-  if (calendarioIntegrado) {
-    console.log('  - Display del calendario:', calendarioIntegrado.style.display);
-    console.log('  - Visible (computed):', window.getComputedStyle(calendarioIntegrado).display);
-  }
+  // Debug simplificado
 
   if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
     console.log('🔄 Calendario integrado visible, actualizando...');
@@ -426,7 +437,7 @@ function renderCitasPanel() {
     en30Dias.setHours(23, 59, 59, 999);
     
     citasFiltradas = citasFiltradas.filter(cita => {
-      const fechaCita = new Date(cita.fecha + 'T00:00:00');
+      const fechaCita = new Date(fechaArrayToString(cita.fecha) + 'T00:00:00');
       return fechaCita >= hace15Dias && fechaCita <= en30Dias;
     });
   }
@@ -437,7 +448,7 @@ function renderCitasPanel() {
     return;
   }
   
-  const sortedCitas = citasFiltradas.sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const sortedCitas = citasFiltradas.sort((a,b) => fechaArrayToString(a.fecha).localeCompare(fechaArrayToString(b.fecha)));
     
   sortedCitas.forEach(c => {
     const div = document.createElement('div');
@@ -446,13 +457,13 @@ function renderCitasPanel() {
     div.style.cursor = 'pointer';
     
     // Obtener día de la semana
-    const fecha = new Date(c.fecha + 'T00:00:00');
+    const fecha = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const diaSemana = diasSemana[fecha.getDay()];
     
     // Verificar si la cita es hoy o pasada
-    const esHoy = esFechaHoy(c.fecha);
-    const esPasada = esFechaPasada(c.fecha);
+    const esHoy = esFechaHoy(fechaArrayToString(c.fecha));
+    const esPasada = esFechaPasada(fechaArrayToString(c.fecha));
     
     if (esPasada || esHoy) {
       div.style.background = '#ffebee';
@@ -473,7 +484,7 @@ function renderCitasPanel() {
     const descripcion = partes[1] || c.nombre || 'Sin descripción';
     
     // Formatear fecha
-    const fechaObj = new Date(c.fecha + 'T00:00:00');
+    const fechaObj = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
     const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     const fechaFormateada = `${fechaObj.getDate()} de ${meses[fechaObj.getMonth()]} de ${fechaObj.getFullYear()}`;
     
@@ -488,12 +499,12 @@ function renderCitasPanel() {
     div.innerHTML = `
       <span style="${(esHoy || esPasada) ? 'color: #d32f2f; font-weight: bold;' : ''}">${contenidoCita}</span>
       ${alertaHtml}
-      <button onclick="deleteCita('${c.fecha}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
+      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
     `;
     
     div.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') {
-        abrirEditorCita(c.fecha, c.nombre);
+        abrirEditorCita(fechaArrayToString(c.fecha), c.nombre);
       }
     });
     panel.appendChild(div);
@@ -535,9 +546,9 @@ function guardarNuevaCita() {
   }
   
   const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
-  const nuevaCita = { 
-    id: Date.now().toString(),
-    fecha, 
+  const nuevaCita = {
+    id: Date.now(),
+    fecha: fecha.split('-').map(n => parseInt(n)),
     nombre: citaCompleta,
     etiqueta: etiqueta || null
   };
@@ -806,7 +817,11 @@ function crearCitaPeriodica() {
   while (fechaActual <= fin) {
     const fechaStr = fechaActual.toISOString().slice(0, 10);
     const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
-    const nuevaCita = { fecha: fechaStr, nombre: citaCompleta };
+    const nuevaCita = {
+      id: Date.now(),
+      fecha: fechaStr.split('-').map(n => parseInt(n)),
+      nombre: citaCompleta
+    };
     
     appState.agenda.citas.push(nuevaCita);
     citasCreadas.push(fechaStr);
@@ -1147,7 +1162,7 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
 
   console.log('📝 Nuevos datos:', { nuevaFecha, nuevaDesc, nuevaHora, nuevosMinutos });
 
-  const index = appState.agenda.citas.findIndex(c => c && c.fecha === fechaOriginal && c.nombre === nombreOriginal);
+  const index = appState.agenda.citas.findIndex(c => c && compararFechaConString(c.fecha, fechaOriginal) && c.nombre === nombreOriginal);
   console.log('🔍 Índice encontrado:', index);
 
   if (index > -1) {
@@ -1155,8 +1170,8 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
     const nuevoNombre = `${nuevaHora}:${nuevosMinutos} - ${nuevaDesc}`;
 
     appState.agenda.citas[index] = {
-      id: appState.agenda.citas[index].id || Date.now().toString(),
-      fecha: nuevaFecha,
+      id: appState.agenda.citas[index].id || Date.now(),
+      fecha: fechaStringToArray(nuevaFecha),
       nombre: nuevoNombre,
       etiqueta: appState.agenda.citas[index].etiqueta || null
     };
@@ -1280,7 +1295,7 @@ function renderCalendarioIntegrado() {
       const hoy = new Date().toISOString().slice(0, 10);
       const esHoy = dateStr === hoy;
       
-      const appointments = appState.agenda.citas.filter(cita => cita.fecha === dateStr);
+      const appointments = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
       const tieneCitas = appointments.length > 0;
       
       if (esHoy && tieneCitas) {
@@ -1302,7 +1317,7 @@ function renderCalendarioIntegrado() {
           eventDiv.textContent = descripcion;
           eventDiv.onclick = (e) => {
             e.stopPropagation();
-            if (cita.nombre) abrirEditorCita(cita.fecha, cita.nombre);
+            if (cita.nombre) abrirEditorCita(fechaArrayToString(cita.fecha), cita.nombre);
           };
           cell.appendChild(eventDiv);
         });
