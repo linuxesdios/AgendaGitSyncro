@@ -604,6 +604,38 @@
             </div>
           </div>
 
+          <!-- Sección: Gestión de Contraseñas -->
+          <div
+            style="background:linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(231,76,60,0.3);">
+            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔐 Gestión de Contraseñas</h4>
+
+            <div style="margin-bottom:15px;">
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">🔑 Contraseña Maestra:</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button onclick="cambiarContrasenaMaestra()"
+                        style="flex: 1; padding: 10px 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 500;">
+                  🔄 Cambiar Contraseña Maestra
+                </button>
+                <button onclick="cerrarSesionContrasenas()" title="Cerrar sesión de contraseñas"
+                        style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer;">
+                  🚪
+                </button>
+              </div>
+              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cambia la contraseña que protege todas tus contraseñas guardadas</small>
+            </div>
+
+            <div style="margin-bottom:15px;">
+              <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">📊 Estado de Seguridad:</div>
+                <div id="estado-seguridad-contrasenas" style="font-size: 13px; line-height: 1.4;">
+                  🔒 Sesión: No iniciada<br>
+                  🗃️ Contraseñas guardadas: 0<br>
+                  🛡️ Encriptación: AES-256-GCM
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Sección: Motivación y Celebraciones -->
           <div
             style="background:linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,154,158,0.3);">

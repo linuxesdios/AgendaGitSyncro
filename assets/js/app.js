@@ -1228,6 +1228,17 @@ async function renderizarContrasenas() {
   let html = '<div class="contrasenas-grid" style="display: grid; gap: 15px;">';
 
   for (const contrasena of contrasenas) {
+    // Intentar desencriptar usuario si tenemos contraseña maestra
+    let usuarioMostrar = '••••••••••';
+    try {
+      if (contrasenaMaestra && contrasena.usuarioEncriptado) {
+        usuarioMostrar = await desencriptarTexto(contrasena.usuarioEncriptado, contrasenaMaestra);
+      }
+    } catch (error) {
+      // Si falla la desencriptación, mantener asteriscos
+      usuarioMostrar = '••••••••••';
+    }
+
     html += `
       <div class="contrasena-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #f9f9f9;">
         <div class="contrasena-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1247,11 +1258,11 @@ async function renderizarContrasenas() {
           <div>
             <label style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">👤 Usuario</label>
             <div style="display: flex; align-items: center; gap: 5px;">
-              <input type="password" value="••••••••••" readonly
-                     style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 14px;">
-              <button onclick="revelarCampoContrasena(this, '${contrasena.id}', 'usuario')"
-                      style="background: #95a5a6; color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                👁️
+              <input type="text" value="${usuarioMostrar}" readonly
+                     style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; font-size: 14px; color: #495057;">
+              <button onclick="copiarAlPortapapeles('${usuarioMostrar}')" title="Copiar usuario"
+                      style="background: #28a745; color: white; border: none; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                📋
               </button>
             </div>
           </div>
@@ -1284,6 +1295,9 @@ async function renderizarContrasenas() {
 
   html += '</div>';
   lista.innerHTML = html;
+
+  // Actualizar estado de seguridad si el modal está abierto
+  actualizarEstadoSeguridadContrasenas();
 }
 
 // Función para revelar un campo específico
@@ -1577,9 +1591,372 @@ async function eliminarContrasena(id) {
 
 // Función para editar contraseña
 async function editarContrasena(id) {
-  // Por simplicidad, por ahora solo permitimos eliminar
-  // En el futuro se puede implementar edición completa
-  mostrarModalError('Función en desarrollo', 'La edición de contraseñas está en desarrollo. Por ahora puedes eliminar y crear una nueva.');
+  try {
+    // Pedir contraseña maestra para editar
+    if (!contrasenaMaestra) {
+      contrasenaMaestra = await solicitarContrasenaMaestra('editar una contraseña');
+    }
+
+    // Buscar la contraseña a editar
+    const contrasena = appState.agenda.contrasenas.find(c => c.id === id);
+    if (!contrasena) {
+      mostrarModalError('Error', 'Contraseña no encontrada');
+      return;
+    }
+
+    // Desencriptar los datos actuales
+    const usuarioActual = await desencriptarTexto(contrasena.usuarioEncriptado, contrasenaMaestra);
+    const contrasenaActual = await desencriptarTexto(contrasena.contrasenaEncriptada, contrasenaMaestra);
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 500px;">
+        <h4 style="color: #3498db; text-align: center;">✏️ Editar Contraseña</h4>
+        <form id="form-editar-contrasena" style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">🏢 Servicio/Lugar:</label>
+            <input type="text" id="editar-servicio" required value="${contrasena.servicio}"
+                   placeholder="Gmail, Facebook, Banco, etc."
+                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; font-weight: bold; margin-bottom: 5px;">👤 Usuario:</label>
+              <div style="position: relative;">
+                <input type="password" id="editar-usuario" required value="${usuarioActual}"
+                       placeholder="usuario@email.com"
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; padding-right: 40px;">
+                <button type="button" onclick="toggleMostrarContrasena('editar-usuario')"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;">
+                  👁️
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style="display: block; font-weight: bold; margin-bottom: 5px;">🔑 Contraseña:</label>
+              <div style="position: relative;">
+                <input type="password" id="editar-contrasena" required value="${contrasenaActual}"
+                       placeholder="Contraseña secreta"
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; padding-right: 40px;">
+                <button type="button" onclick="toggleMostrarContrasena('editar-contrasena')"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;">
+                  👁️
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">📝 Notas (opcional):</label>
+            <textarea id="editar-notas" rows="3" value="${contrasena.notas || ''}"
+                      placeholder="Información adicional, preguntas de seguridad, etc."
+                      style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; resize: vertical;">${contrasena.notas || ''}</textarea>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button type="button" onclick="cerrarModalEditarContrasena()"
+                    style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit"
+                    style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              💾 Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Configurar el formulario
+    document.getElementById('form-editar-contrasena').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await guardarContrasenaEditada(id);
+    });
+
+    window.cerrarModalEditarContrasena = () => {
+      document.body.removeChild(modal);
+    };
+
+    // Focus automático
+    setTimeout(() => {
+      document.getElementById('editar-servicio')?.focus();
+    }, 100);
+
+  } catch (error) {
+    mostrarModalError('Error al editar', 'No se pudo cargar la contraseña para edición: ' + error.message);
+    if (!mantenerSesion) {
+      contrasenaMaestra = null;
+    }
+  }
+}
+
+// Función para guardar contraseña editada
+async function guardarContrasenaEditada(id) {
+  try {
+    const servicio = document.getElementById('editar-servicio').value.trim();
+    const usuario = document.getElementById('editar-usuario').value.trim();
+    const contrasena = document.getElementById('editar-contrasena').value.trim();
+    const notas = document.getElementById('editar-notas').value.trim();
+
+    if (!servicio || !usuario || !contrasena) {
+      mostrarModalError('Campos incompletos', 'Por favor, completa todos los campos obligatorios');
+      return;
+    }
+
+    // Encriptar usuario y contraseña
+    const usuarioEncriptado = await encriptarTexto(usuario, contrasenaMaestra);
+    const contrasenaEncriptada = await encriptarTexto(contrasena, contrasenaMaestra);
+
+    // Actualizar la contraseña en el array
+    const index = appState.agenda.contrasenas.findIndex(c => c.id === id);
+    if (index !== -1) {
+      appState.agenda.contrasenas[index] = {
+        ...appState.agenda.contrasenas[index],
+        servicio: servicio,
+        usuario: '••••••••', // Mostrar asteriscos
+        usuarioEncriptado: usuarioEncriptado,
+        contrasenaEncriptada: contrasenaEncriptada,
+        notas: notas,
+        ultimaActualizacion: new Date().toISOString().slice(0, 10)
+      };
+
+      // Guardar y actualizar interfaz
+      scheduleAutoSave();
+      await renderizarContrasenas();
+      cerrarModalEditarContrasena();
+
+      // Mostrar confirmación
+      mostrarModalExito('¡Contraseña actualizada!', 'Los cambios se han guardado y encriptado exitosamente');
+    } else {
+      mostrarModalError('Error', 'No se encontró la contraseña a editar');
+    }
+
+  } catch (error) {
+    mostrarModalError('Error al guardar cambios', 'No se pudieron guardar los cambios: ' + error.message);
+  }
+}
+
+// Función para copiar texto al portapapeles
+async function copiarAlPortapapeles(texto) {
+  try {
+    await navigator.clipboard.writeText(texto);
+
+    // Mostrar feedback temporal
+    const event = window.event || {};
+    const button = event.target || event.srcElement;
+    if (button) {
+      const originalText = button.textContent;
+      button.textContent = '✅';
+      button.style.background = '#28a745';
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '#28a745';
+      }, 1000);
+    }
+
+  } catch (error) {
+    mostrarModalError('Error', 'No se pudo copiar al portapapeles');
+  }
+}
+
+// Función para cambiar contraseña maestra
+async function cambiarContrasenaMaestra() {
+  try {
+    // Si hay contraseñas guardadas, pedir la contraseña actual primero
+    const contrasenasGuardadas = appState.agenda.contrasenas || [];
+    if (contrasenasGuardadas.length > 0) {
+      if (!contrasenaMaestra) {
+        contrasenaMaestra = await solicitarContrasenaMaestra('confirmar tu identidad antes de cambiar la contraseña maestra');
+      }
+    }
+
+    // Modal para cambiar contraseña maestra
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 450px;">
+        <h4 style="color: #e74c3c; text-align: center;">🔄 Cambiar Contraseña Maestra</h4>
+        <p style="text-align: center; margin: 15px 0; color: #666; line-height: 1.5;">
+          ${contrasenasGuardadas.length > 0 ?
+            '⚠️ Cambiar la contraseña maestra reencriptará todas tus contraseñas guardadas con la nueva clave.' :
+            'Establece una nueva contraseña maestra para proteger tus contraseñas.'}
+        </p>
+        <form id="form-cambiar-contrasena-maestra" style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">🔑 Nueva Contraseña Maestra:</label>
+            <input type="password" id="nueva-contrasena-maestra" required
+                   placeholder="Mínimo 8 caracteres, incluye mayúsculas y símbolos"
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: bold; margin-bottom: 5px;">🔒 Confirmar Nueva Contraseña:</label>
+            <input type="password" id="confirmar-contrasena-maestra" required
+                   placeholder="Repite la nueva contraseña"
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+          </div>
+          <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 6px;">
+            <div style="font-size: 14px; font-weight: 500; color: #856404; margin-bottom: 5px;">⚠️ Importante:</div>
+            <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 13px;">
+              <li>Asegúrate de recordar la nueva contraseña</li>
+              <li>Sin ella no podrás acceder a tus contraseñas guardadas</li>
+              <li>No hay forma de recuperar contraseñas si la olvidas</li>
+            </ul>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button type="button" onclick="cerrarModalCambiarContrasena()"
+                    style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Cancelar
+            </button>
+            <button type="submit"
+                    style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              🔄 Cambiar Contraseña
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Configurar formulario
+    document.getElementById('form-cambiar-contrasena-maestra').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await procesarCambioContrasenaMaestra();
+    });
+
+    window.cerrarModalCambiarContrasena = () => {
+      document.body.removeChild(modal);
+    };
+
+    // Focus automático
+    setTimeout(() => {
+      document.getElementById('nueva-contrasena-maestra')?.focus();
+    }, 100);
+
+  } catch (error) {
+    mostrarModalError('Error', 'No se pudo abrir el modal para cambiar contraseña: ' + error.message);
+  }
+}
+
+// Función para procesar el cambio de contraseña maestra
+async function procesarCambioContrasenaMaestra() {
+  try {
+    const nuevaContrasena = document.getElementById('nueva-contrasena-maestra').value;
+    const confirmarContrasena = document.getElementById('confirmar-contrasena-maestra').value;
+
+    // Validaciones
+    if (nuevaContrasena.length < 8) {
+      mostrarModalError('Contraseña débil', 'La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    if (nuevaContrasena !== confirmarContrasena) {
+      mostrarModalError('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    // Si hay contraseñas guardadas, reencriptar todas
+    const contrasenasGuardadas = appState.agenda.contrasenas || [];
+    if (contrasenasGuardadas.length > 0 && contrasenaMaestra) {
+
+      // Mostrar progreso
+      const progressModal = document.createElement('div');
+      progressModal.className = 'modal';
+      progressModal.style.display = 'block';
+      progressModal.innerHTML = `
+        <div class="modal-content" style="max-width: 300px; text-align: center;">
+          <h4 style="color: #e74c3c;">🔄 Reencriptando contraseñas...</h4>
+          <p>Por favor, espera mientras se actualizan tus contraseñas con la nueva clave.</p>
+          <div style="margin: 20px 0;">
+            <div style="background: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden;">
+              <div id="progress-bar" style="background: #e74c3c; height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <div id="progress-text" style="margin-top: 10px; font-size: 14px;">0 de ${contrasenasGuardadas.length}</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(progressModal);
+
+      // Reencriptar cada contraseña
+      for (let i = 0; i < contrasenasGuardadas.length; i++) {
+        const contrasena = contrasenasGuardadas[i];
+
+        // Desencriptar con contraseña antigua
+        const usuarioDesencriptado = await desencriptarTexto(contrasena.usuarioEncriptado, contrasenaMaestra);
+        const contrasenaDesencriptada = await desencriptarTexto(contrasena.contrasenaEncriptada, contrasenaMaestra);
+
+        // Reencriptar con nueva contraseña
+        contrasena.usuarioEncriptado = await encriptarTexto(usuarioDesencriptado, nuevaContrasena);
+        contrasena.contrasenaEncriptada = await encriptarTexto(contrasenaDesencriptada, nuevaContrasena);
+        contrasena.ultimaActualizacion = new Date().toISOString().slice(0, 10);
+
+        // Actualizar progreso
+        const progress = ((i + 1) / contrasenasGuardadas.length) * 100;
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        if (progressBar) progressBar.style.width = progress + '%';
+        if (progressText) progressText.textContent = `${i + 1} de ${contrasenasGuardadas.length}`;
+
+        // Pequeña pausa para mostrar progreso
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Remover modal de progreso
+      document.body.removeChild(progressModal);
+    }
+
+    // Establecer nueva contraseña maestra
+    contrasenaMaestra = nuevaContrasena;
+    mantenerSesion = true; // Mantener sesión automáticamente después del cambio
+
+    // Guardar cambios
+    scheduleAutoSave();
+    await renderizarContrasenas();
+    cerrarModalCambiarContrasena();
+
+    // Actualizar estado en configuración
+    actualizarEstadoSeguridadContrasenas();
+
+    // Mostrar confirmación
+    mostrarModalExito('¡Contraseña cambiada!', `Contraseña maestra actualizada exitosamente. ${contrasenasGuardadas.length > 0 ? `Se reencriptaron ${contrasenasGuardadas.length} contraseñas.` : ''}`);
+
+  } catch (error) {
+    mostrarModalError('Error al cambiar contraseña', 'No se pudo cambiar la contraseña maestra: ' + error.message);
+  }
+}
+
+// Función para cerrar sesión de contraseñas
+function cerrarSesionContrasenas() {
+  if (confirm('¿Estás seguro de que quieres cerrar la sesión de contraseñas?\n\nTendrás que ingresar la contraseña maestra nuevamente para ver o gestionar contraseñas.')) {
+    contrasenaMaestra = null;
+    mantenerSesion = false;
+
+    // Re-renderizar contraseñas (mostrará asteriscos)
+    renderizarContrasenas();
+
+    // Actualizar estado
+    actualizarEstadoSeguridadContrasenas();
+
+    mostrarModalExito('Sesión cerrada', 'Has cerrado la sesión de contraseñas de forma segura');
+  }
+}
+
+// Función para actualizar el estado de seguridad en configuración
+function actualizarEstadoSeguridadContrasenas() {
+  const estadoDiv = document.getElementById('estado-seguridad-contrasenas');
+  if (estadoDiv) {
+    const contrasenasCount = (appState.agenda.contrasenas || []).length;
+    const sesionEstado = contrasenaMaestra ? (mantenerSesion ? 'Activa (mantenida)' : 'Activa') : 'No iniciada';
+
+    estadoDiv.innerHTML = `
+      🔒 Sesión: ${sesionEstado}<br>
+      🗃️ Contraseñas guardadas: ${contrasenasCount}<br>
+      🛡️ Encriptación: AES-256-GCM
+    `;
+  }
 }
 
 window.guardarConfigVisualPanel = guardarConfigVisualPanel;
@@ -1598,6 +1975,11 @@ window.editarContrasena = editarContrasena;
 window.toggleMostrarContrasena = toggleMostrarContrasena;
 window.mostrarModalError = mostrarModalError;
 window.mostrarModalExito = mostrarModalExito;
+window.guardarContrasenaEditada = guardarContrasenaEditada;
+window.copiarAlPortapapeles = copiarAlPortapapeles;
+window.cambiarContrasenaMaestra = cambiarContrasenaMaestra;
+window.cerrarSesionContrasenas = cerrarSesionContrasenas;
+window.actualizarEstadoSeguridadContrasenas = actualizarEstadoSeguridadContrasenas;
 
 // ========== EDITOR DE BASE DE DATOS ==========
 function abrirEditorBaseDatos() {
