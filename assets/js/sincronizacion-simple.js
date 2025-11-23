@@ -628,6 +628,11 @@ function aplicarConfiguracionSincronizada() {
       }, 200);
     }
 
+    // Aplicar configuración visual (visibilidad de elementos)
+    if (typeof cargarConfigVisual === 'function') {
+      cargarConfigVisual();
+    }
+
     console.log('✅ aplicarConfiguracionSincronizada() completado exitosamente');
   } catch (error) {
     console.error('❌ Error en aplicarConfiguracionSincronizada():', error);

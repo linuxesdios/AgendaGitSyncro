@@ -99,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => renderizarContrasenas(), 1000);
   }
 
+  // Verificar modo oscuro automático cada minuto
+  setInterval(verificarModoOscuroAutomatico, 60000);
+
   // Firebase se inicializa automáticamente en sincronizacion-simple.js
 
   // Logs de depuración
@@ -382,15 +385,24 @@ function cargarConfigVisual() {
     if (titulo) titulo.textContent = tituloCompleto;
 
     // Mostrar/ocultar secciones
-    const mostrarNotas = config.mostrarNotas !== false;
-    const mostrarSentimientos = config.mostrarSentimientos !== false;
-    const mostrarContrasenas = config.mostrarContrasenas !== false;
+    const mostrarNotas = config.mostrarNotas === true;
+    const mostrarSentimientos = config.mostrarSentimientos === true;
+    const mostrarContrasenas = config.mostrarContrasenas === true;
+    const mostrarPomodoro = config.mostrarPomodoro === true;
+    const mostrarProgreso = config.mostrarProgreso === true;
+    const mostrarResumen = config.mostrarResumen === true;
     const seccionNotas = document.getElementById('seccion-notas');
     const seccionSentimientos = document.getElementById('seccion-sentimientos');
     const seccionContrasenas = document.getElementById('seccion-contrasenas');
+    const btnPomodoro = document.getElementById('btn-pomodoro');
+    const btnProgreso = document.getElementById('btn-progreso');
+    const btnResumen = document.getElementById('btn-resumen');
     if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
     if (seccionSentimientos) seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
     if (seccionContrasenas) seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
+    if (btnPomodoro) btnPomodoro.style.display = mostrarPomodoro ? 'block' : 'none';
+    if (btnProgreso) btnProgreso.style.display = mostrarProgreso ? 'block' : 'none';
+    if (btnResumen) btnResumen.style.display = mostrarResumen ? 'block' : 'none';
 
     // Configurar visualización del calendario de citas
     const calendarioCitas = config.calendarioCitas || 'boton';
@@ -500,6 +512,9 @@ function cargarConfigVisual() {
 
     // Aplicar configuración de columnas
     aplicarConfiguracionColumnas();
+
+    // Verificar modo oscuro automático
+    verificarModoOscuroAutomatico();
 
     console.log('✅ cargarConfigVisual() ejecutado correctamente');
   } catch (error) {
@@ -760,6 +775,13 @@ window.cargarConfigVisual = cargarConfigVisual;
 window.cambiarModoCalendario = cambiarModoCalendario;
 window.aplicarConfiguracionColumnas = aplicarConfiguracionColumnas;
 window.insertarIcono = insertarIcono;
+window.verificarModoOscuroAutomatico = verificarModoOscuroAutomatico;
+window.iniciarPomodoro = iniciarPomodoro;
+window.empezarPomodoro = empezarPomodoro;
+window.terminarPomodoro = terminarPomodoro;
+window.pausarPomodoro = pausarPomodoro;
+window.cancelarPomodoro = cancelarPomodoro;
+window.nuevoPomodoro = nuevoPomodoro;
 
 // ========== FUNCIÓN PARA INSERTAR ICONOS ==========
 function insertarIcono(icono) {
@@ -781,6 +803,189 @@ function insertarIcono(icono) {
   }
 }
 
+// ========== MODO OSCURO AUTOMÁTICO ==========
+function verificarModoOscuroAutomatico() {
+  const config = window.configVisual || {};
+
+  if (!config.modoOscuroAuto) return;
+
+  const ahora = new Date();
+  const horaActual = ahora.getHours() * 60 + ahora.getMinutes(); // Minutos desde medianoche
+
+  const horaInicio = config.horaInicioOscuro || '20:00';
+  const horaFin = config.horaFinOscuro || '07:00';
+
+  const [inicioHora, inicioMin] = horaInicio.split(':').map(Number);
+  const [finHora, finMin] = horaFin.split(':').map(Number);
+
+  const inicioMinutos = inicioHora * 60 + inicioMin;
+  const finMinutos = finHora * 60 + finMin;
+
+  let debeSerOscuro = false;
+
+  // Si hora fin es menor que inicio, el período cruza medianoche
+  if (finMinutos < inicioMinutos) {
+    debeSerOscuro = horaActual >= inicioMinutos || horaActual <= finMinutos;
+  } else {
+    debeSerOscuro = horaActual >= inicioMinutos && horaActual <= finMinutos;
+  }
+
+  const temaActual = config.tema || 'verde';
+
+  if (debeSerOscuro && temaActual !== 'oscuro') {
+    // Cambiar a modo oscuro automáticamente
+    document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+    document.body.classList.add('tema-oscuro');
+    console.log('🌙 Modo oscuro automático activado');
+  } else if (!debeSerOscuro && temaActual === 'oscuro') {
+    // Volver al tema original (solo si fue cambiado automáticamente)
+    const temaOriginal = config.temaOriginal || 'verde';
+    document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+    document.body.classList.add('tema-' + temaOriginal);
+    console.log('☀️ Modo oscuro automático desactivado');
+  }
+}
+
+// ========== POMODORO PARA TDAH ==========
+let pomodoroTimer = null;
+let pomodoroState = {
+  activo: false,
+  pausado: false,
+  tiempoRestante: 0,
+  actividad: '',
+  duracionTotal: 0
+};
+
+function iniciarPomodoro() {
+  const btnPomodoro = document.getElementById('btn-pomodoro');
+  if (!btnPomodoro || btnPomodoro.style.display === 'none') {
+    return;
+  }
+
+  // Resetear estado
+  pomodoroState = {
+    activo: false,
+    pausado: false,
+    tiempoRestante: 0,
+    actividad: '',
+    duracionTotal: 0
+  };
+
+  // Mostrar modal inicial
+  mostrarEstadoPomodoro('inicial');
+  document.getElementById('modal-pomodoro').style.display = 'block';
+}
+
+function empezarPomodoro() {
+  const actividad = document.getElementById('pomodoro-actividad').value.trim() || 'Actividad sin especificar';
+  const duracion = parseInt(document.getElementById('pomodoro-duracion').value);
+
+  if (!duracion || duracion < 1 || duracion > 180) {
+    alert('La duración debe ser entre 1 y 180 minutos');
+    return;
+  }
+
+  pomodoroState = {
+    activo: true,
+    pausado: false,
+    tiempoRestante: duracion * 60, // Convertir a segundos
+    actividad: actividad,
+    duracionTotal: duracion * 60
+  };
+
+  document.getElementById('actividad-actual').textContent = actividad;
+  mostrarEstadoPomodoro('enCurso');
+  iniciarCronometro();
+}
+
+function mostrarEstadoPomodoro(estado) {
+  const inicial = document.getElementById('pomodoro-estado-inicial');
+  const enCurso = document.getElementById('pomodoro-en-curso');
+  const completado = document.getElementById('pomodoro-completado');
+
+  inicial.style.display = estado === 'inicial' ? 'block' : 'none';
+  enCurso.style.display = estado === 'enCurso' ? 'block' : 'none';
+  completado.style.display = estado === 'completado' ? 'block' : 'none';
+}
+
+function iniciarCronometro() {
+  pomodoroTimer = setInterval(() => {
+    if (!pomodoroState.pausado && pomodoroState.activo) {
+      pomodoroState.tiempoRestante--;
+
+      const minutos = Math.floor(pomodoroState.tiempoRestante / 60);
+      const segundos = pomodoroState.tiempoRestante % 60;
+
+      document.getElementById('cronometro').textContent =
+        `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+      if (pomodoroState.tiempoRestante <= 0) {
+        completarPomodoro();
+      }
+    }
+  }, 1000);
+}
+
+function terminarPomodoro() {
+  if (pomodoroTimer) {
+    clearInterval(pomodoroTimer);
+    pomodoroTimer = null;
+  }
+
+  // Mostrar estado completado manualmente
+  document.getElementById('actividad-completada').textContent = pomodoroState.actividad;
+  mostrarEstadoPomodoro('completado');
+  pomodoroState.activo = false;
+}
+
+function completarPomodoro() {
+  if (pomodoroTimer) {
+    clearInterval(pomodoroTimer);
+    pomodoroTimer = null;
+  }
+
+  document.getElementById('actividad-completada').textContent = pomodoroState.actividad;
+  mostrarEstadoPomodoro('completado');
+  pomodoroState.activo = false;
+
+  // Notificación visual/sonora opcional aquí
+}
+
+function pausarPomodoro() {
+  const btnPausar = document.getElementById('btn-pausar');
+
+  if (!pomodoroState.pausado) {
+    pomodoroState.pausado = true;
+    btnPausar.textContent = '▶️ Reanudar';
+  } else {
+    pomodoroState.pausado = false;
+    btnPausar.textContent = '⏸️ Pausar';
+  }
+}
+
+function cancelarPomodoro() {
+  if (pomodoroTimer) {
+    clearInterval(pomodoroTimer);
+    pomodoroTimer = null;
+  }
+
+  pomodoroState = {
+    activo: false,
+    pausado: false,
+    tiempoRestante: 0,
+    actividad: '',
+    duracionTotal: 0
+  };
+
+  document.getElementById('modal-pomodoro').style.display = 'none';
+}
+
+function nuevoPomodoro() {
+  mostrarEstadoPomodoro('inicial');
+  document.getElementById('pomodoro-actividad').value = '';
+  document.getElementById('pomodoro-duracion').value = '25';
+}
+
 // ========== CONFIGURACIÓN VISUAL ==========
 async function guardarConfigVisualPanel() {
   const config = {
@@ -788,9 +993,15 @@ async function guardarConfigVisualPanel() {
     titulo: document.getElementById('config-titulo-input')?.value || '🧠 Agenda de Pablo 😊',
     modoVisualizacion: document.getElementById('config-modo-visualizacion')?.value || 'estado',
     popupCelebracion: document.getElementById('config-popup-celebracion')?.checked !== false,
-    mostrarNotas: document.getElementById('config-mostrar-notas')?.checked !== false,
-    mostrarSentimientos: document.getElementById('config-mostrar-sentimientos')?.checked !== false,
-    mostrarContrasenas: document.getElementById('config-mostrar-contrasenas')?.checked !== false,
+    mostrarNotas: document.getElementById('config-mostrar-notas')?.checked === true,
+    mostrarSentimientos: document.getElementById('config-mostrar-sentimientos')?.checked === true,
+    mostrarContrasenas: document.getElementById('config-mostrar-contrasenas')?.checked === true,
+    mostrarPomodoro: document.getElementById('config-mostrar-pomodoro')?.checked === true,
+    mostrarProgreso: document.getElementById('config-mostrar-progreso')?.checked === true,
+    mostrarResumen: document.getElementById('config-mostrar-resumen')?.checked === true,
+    modoOscuroAuto: document.getElementById('config-modo-oscuro-auto')?.checked !== false,
+    horaInicioOscuro: document.getElementById('config-hora-inicio-oscuro')?.value || '20:00',
+    horaFinOscuro: document.getElementById('config-hora-fin-oscuro')?.value || '07:00',
     calendarioCitas: document.getElementById('config-calendario-citas')?.value || 'boton',
     columnas: parseInt(document.getElementById('config-columnas')?.value) || 2,
     frases: document.getElementById('config-frases-motivacionales')?.value.split('\n').filter(f => f.trim()) || [],
@@ -925,13 +1136,31 @@ function cargarConfigVisualEnFormulario() {
   if (popupCelebracion) popupCelebracion.checked = config.popupCelebracion !== false;
 
   const mostrarNotas = document.getElementById('config-mostrar-notas');
-  if (mostrarNotas) mostrarNotas.checked = config.mostrarNotas !== false;
+  if (mostrarNotas) mostrarNotas.checked = config.mostrarNotas === true;
 
   const mostrarSentimientos = document.getElementById('config-mostrar-sentimientos');
-  if (mostrarSentimientos) mostrarSentimientos.checked = config.mostrarSentimientos !== false;
+  if (mostrarSentimientos) mostrarSentimientos.checked = config.mostrarSentimientos === true;
 
   const mostrarContrasenas = document.getElementById('config-mostrar-contrasenas');
-  if (mostrarContrasenas) mostrarContrasenas.checked = config.mostrarContrasenas !== false;
+  if (mostrarContrasenas) mostrarContrasenas.checked = config.mostrarContrasenas === true;
+
+  const mostrarPomodoro = document.getElementById('config-mostrar-pomodoro');
+  if (mostrarPomodoro) mostrarPomodoro.checked = config.mostrarPomodoro === true;
+
+  const mostrarProgreso = document.getElementById('config-mostrar-progreso');
+  if (mostrarProgreso) mostrarProgreso.checked = config.mostrarProgreso === true;
+
+  const mostrarResumen = document.getElementById('config-mostrar-resumen');
+  if (mostrarResumen) mostrarResumen.checked = config.mostrarResumen === true;
+
+  const modoOscuroAuto = document.getElementById('config-modo-oscuro-auto');
+  if (modoOscuroAuto) modoOscuroAuto.checked = config.modoOscuroAuto !== false;
+
+  const horaInicioOscuro = document.getElementById('config-hora-inicio-oscuro');
+  if (horaInicioOscuro) horaInicioOscuro.value = config.horaInicioOscuro || '20:00';
+
+  const horaFinOscuro = document.getElementById('config-hora-fin-oscuro');
+  if (horaFinOscuro) horaFinOscuro.value = config.horaFinOscuro || '07:00';
 
   const calendarioCitas = document.getElementById('config-calendario-citas');
   if (calendarioCitas) {

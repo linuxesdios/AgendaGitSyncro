@@ -59,6 +59,8 @@
           style="font-size: 28px; font-weight: bold; color: #2d5a27; text-align: center; margin-top: 8px;"></div>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; width:120px; gap:5px;">
+        <button id="btn-pomodoro" class="boton-cargar tooltip" onclick="iniciarPomodoro()"
+          style="padding:6px 12px;font-size:12px;" data-tooltip="Pomodoro TDAH">🍅</button>
         <button id="btn-progreso" class="boton-cargar tooltip" onclick="mostrarDashboardMotivacional()"
           style="padding:6px 12px;font-size:12px;" data-tooltip="Mi Progreso">📊</button>
         <button id="btn-resumen" class="boton-cargar tooltip" onclick="mostrarResumenDiarioManual()"
@@ -190,16 +192,10 @@
         <section id="seccion-contrasenas" style="display: block;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0;">🔐 Contraseñas Encriptadas</h3>
-            <div style="display: flex; gap: 8px;">
-              <button onclick="abrirEditorBaseDatos()" class="boton-agregar"
-                      style="padding: 6px 12px; font-size: 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                🔧 Editor de Base de Datos Firebase
-              </button>
-              <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
-                      style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                ➕ Nueva Contraseña
-              </button>
-            </div>
+            <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
+                    style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              ➕ Nueva Contraseña
+            </button>
           </div>
           <div id="lista-contrasenas">
             <p style="text-align: center; color: #666; font-style: italic;">
@@ -577,6 +573,35 @@
               </div>
             </div>
 
+            <!-- Modo oscuro automático -->
+            <div style="background:rgba(0,0,0,0.2);padding:15px;border-radius:8px;margin-bottom:15px;">
+              <h5 style="margin:0 0 15px 0;color:white;font-size:14px;">🌙 Modo Oscuro Automático</h5>
+
+              <div style="margin-bottom:12px;">
+                <label style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.9);cursor:pointer;">
+                  <input type="checkbox" id="config-modo-oscuro-auto" onchange="guardarConfigVisualPanel()"
+                    style="margin:0;">
+                  <span style="font-weight:500;">Activar modo oscuro automático</span>
+                </label>
+              </div>
+
+              <div id="config-horario-oscuro" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                  <label style="color:rgba(255,255,255,0.8);font-size:12px;margin-bottom:4px;display:block;">Hora inicio:</label>
+                  <input type="time" id="config-hora-inicio-oscuro" value="20:00" onchange="guardarConfigVisualPanel()"
+                    style="width:100%;padding:6px 8px;border:none;border-radius:4px;background:rgba(255,255,255,0.9);color:#333;font-size:12px;">
+                </div>
+                <div>
+                  <label style="color:rgba(255,255,255,0.8);font-size:12px;margin-bottom:4px;display:block;">Hora fin:</label>
+                  <input type="time" id="config-hora-fin-oscuro" value="07:00" onchange="guardarConfigVisualPanel()"
+                    style="width:100%;padding:6px 8px;border:none;border-radius:4px;background:rgba(255,255,255,0.9);color:#333;font-size:12px;">
+                </div>
+              </div>
+              <small style="color:rgba(255,255,255,0.7);font-size:11px;display:block;margin-top:8px;">
+                El modo oscuro se activará automáticamente durante las horas especificadas
+              </small>
+            </div>
+
             <div>
               <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">📝 Título
                 personalizado:</label>
@@ -626,23 +651,44 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()" checked
+                <input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()"
                   style="margin:0;">
                 <span style="font-weight:500;">📝 Mostrar Sección de Notas</span>
               </label>
 
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()" checked
+                <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()"
                   style="margin:0;">
                 <span style="font-weight:500;">😊 Mostrar Sección de Sentimientos</span>
               </label>
 
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()" checked
+                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()"
                   style="margin:0;">
                 <span style="font-weight:500;">🔐 Mostrar Sección de Contraseñas</span>
+              </label>
+
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-mostrar-pomodoro" onchange="guardarConfigVisualPanel()"
+                  style="margin:0;">
+                <span style="font-weight:500;">🍅 Mostrar Botón Pomodoro</span>
+              </label>
+
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-mostrar-progreso" onchange="guardarConfigVisualPanel()"
+                  style="margin:0;">
+                <span style="font-weight:500;">📊 Mostrar Botón Progreso</span>
+              </label>
+
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-mostrar-resumen" onchange="guardarConfigVisualPanel()"
+                  style="margin:0;">
+                <span style="font-weight:500;">🌅 Mostrar Botón Resumen</span>
               </label>
             </div>
 
@@ -1468,6 +1514,55 @@
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
         <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pomodoro -->
+  <div id="modal-pomodoro" class="modal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+      <h4 id="pomodoro-titulo">🍅 Pomodoro TDAH</h4>
+      <div id="pomodoro-estado-inicial">
+        <div style="margin-bottom:20px;">
+          <label style="font-weight:500;margin-bottom:10px;display:block;">¿Qué estás haciendo ahora?</label>
+          <input type="text" id="pomodoro-actividad" placeholder="Estudiar, trabajar, organizar..."
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="font-weight:500;margin-bottom:10px;display:block;">Duración (minutos):</label>
+          <input type="number" id="pomodoro-duracion" value="25" min="1" max="180"
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+        </div>
+        <div class="modal-botones">
+          <button class="btn-primario" onclick="empezarPomodoro()">🚀 Empezar</button>
+          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="pomodoro-en-curso" style="display:none;">
+        <div style="font-size:18px;margin-bottom:15px;color:#2c5aa0;">
+          <strong>Haciendo:</strong> <span id="actividad-actual"></span>
+        </div>
+        <div id="cronometro" style="font-size:48px;font-weight:bold;color:#e74c3c;margin:20px 0;">
+          25:00
+        </div>
+        <div class="modal-botones">
+          <button class="btn-primario" onclick="terminarPomodoro()">✅ Terminar</button>
+          <button class="btn-secundario" onclick="pausarPomodoro()" id="btn-pausar">⏸️ Pausar</button>
+          <button class="btn-secundario" onclick="cancelarPomodoro()">❌ Cancelar</button>
+        </div>
+      </div>
+
+      <div id="pomodoro-completado" style="display:none;">
+        <div style="font-size:64px;margin:20px 0;">🎉</div>
+        <h3 style="color:#27ae60;">¡Pomodoro Completado!</h3>
+        <div style="margin:15px 0;color:#666;">
+          Has trabajado en: <strong id="actividad-completada"></strong>
+        </div>
+        <div class="modal-botones">
+          <button class="btn-primario" onclick="nuevoPomodoro()">🔄 Nuevo Pomodoro</button>
+          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cerrar</button>
+        </div>
       </div>
     </div>
   </div>
