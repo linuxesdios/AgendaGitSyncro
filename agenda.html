@@ -13,6 +13,34 @@
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%234ecdc4' rx='20'/><text x='90' y='120' font-size='100' text-anchor='middle' fill='white'>🧠</text></svg>">
   <meta name="theme-color" content="#4ecdc4">
   <link rel="stylesheet" href="assets/css/main.css">
+
+  <style>
+    .btn-icono {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: white;
+      transition: all 0.2s ease;
+      min-width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icono:hover {
+      background: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.5);
+      transform: scale(1.1);
+    }
+
+    .btn-icono:active {
+      transform: scale(0.95);
+    }
+  </style>
 </head>
 
 <body>
@@ -162,10 +190,16 @@
         <section id="seccion-contrasenas" style="display: block;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0;">🔐 Contraseñas Encriptadas</h3>
-            <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
-                    style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-              ➕ Nueva Contraseña
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="abrirEditorBaseDatos()" class="boton-agregar"
+                      style="padding: 6px 12px; font-size: 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                🔧 Editor de Base de Datos Firebase
+              </button>
+              <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
+                      style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                ➕ Nueva Contraseña
+              </button>
+            </div>
           </div>
           <div id="lista-contrasenas">
             <p style="text-align: center; color: #666; font-style: italic;">
@@ -544,9 +578,30 @@
             </div>
 
             <div>
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">👤 Nombre
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">📝 Título
                 personalizado:</label>
-              <input type="text" id="config-nombre-input" placeholder="Pablo"
+
+              <!-- Botones de iconos -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+                <button type="button" onclick="insertarIcono('🧠')" class="btn-icono" title="Cerebro">🧠</button>
+                <button type="button" onclick="insertarIcono('📝')" class="btn-icono" title="Escribir">📝</button>
+                <button type="button" onclick="insertarIcono('📚')" class="btn-icono" title="Libros">📚</button>
+                <button type="button" onclick="insertarIcono('📋')" class="btn-icono" title="Portapapeles">📋</button>
+                <button type="button" onclick="insertarIcono('📅')" class="btn-icono" title="Calendario">📅</button>
+                <button type="button" onclick="insertarIcono('🎯')" class="btn-icono" title="Target">🎯</button>
+                <button type="button" onclick="insertarIcono('⚡')" class="btn-icono" title="Rayo">⚡</button>
+                <button type="button" onclick="insertarIcono('🚀')" class="btn-icono" title="Cohete">🚀</button>
+                <button type="button" onclick="insertarIcono('🌟')" class="btn-icono" title="Estrella">🌟</button>
+                <button type="button" onclick="insertarIcono('💡')" class="btn-icono" title="Bombilla">💡</button>
+                <button type="button" onclick="insertarIcono('🔥')" class="btn-icono" title="Fuego">🔥</button>
+                <button type="button" onclick="insertarIcono('💪')" class="btn-icono" title="Fuerza">💪</button>
+                <button type="button" onclick="insertarIcono('😊')" class="btn-icono" title="Sonrisa">😊</button>
+                <button type="button" onclick="insertarIcono('🎉')" class="btn-icono" title="Celebrar">🎉</button>
+                <button type="button" onclick="insertarIcono('📊')" class="btn-icono" title="Gráfico">📊</button>
+                <button type="button" onclick="insertarIcono('🏆')" class="btn-icono" title="Trofeo">🏆</button>
+              </div>
+
+              <input type="text" id="config-titulo-input" placeholder="🧠 Agenda de Pablo 😊"
                 style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
             </div>
 
@@ -571,23 +626,23 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()"
+                <input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()" checked
                   style="margin:0;">
-                <span style="font-weight:500;">📝 Sección de Notas</span>
+                <span style="font-weight:500;">📝 Mostrar Sección de Notas</span>
               </label>
 
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()"
+                <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()" checked
                   style="margin:0;">
-                <span style="font-weight:500;">😊 Sección de Sentimientos</span>
+                <span style="font-weight:500;">😊 Mostrar Sección de Sentimientos</span>
               </label>
 
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()"
+                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()" checked
                   style="margin:0;">
-                <span style="font-weight:500;">🔐 Sección de Contraseñas</span>
+                <span style="font-weight:500;">🔐 Mostrar Sección de Contraseñas</span>
               </label>
             </div>
 

@@ -376,12 +376,10 @@ function cargarConfigVisual() {
     document.body.classList.add('tema-' + tema);
     console.log('✅ Tema aplicado. Clases del body:', document.body.className);
 
-    // Actualizar título si hay nombre configurado
-    const nombre = config.nombre || 'Pablo';
+    // Actualizar título completo si hay configuración
+    const tituloCompleto = config.titulo || '🧠 Agenda de Pablo 😊';
     const titulo = document.getElementById('titulo-agenda');
-    if (titulo) {
-      titulo.textContent = '🧠 Agenda de ' + nombre + ' 😊';
-    }
+    if (titulo) titulo.textContent = tituloCompleto;
 
     // Mostrar/ocultar secciones
     const mostrarNotas = config.mostrarNotas !== false;
@@ -761,13 +759,33 @@ window.cargarConfigOpciones = cargarConfigOpciones;
 window.cargarConfigVisual = cargarConfigVisual;
 window.cambiarModoCalendario = cambiarModoCalendario;
 window.aplicarConfiguracionColumnas = aplicarConfiguracionColumnas;
+window.insertarIcono = insertarIcono;
 
+// ========== FUNCIÓN PARA INSERTAR ICONOS ==========
+function insertarIcono(icono) {
+  const input = document.getElementById('config-titulo-input');
+  if (input) {
+    const cursorPos = input.selectionStart;
+    const textBefore = input.value.substring(0, cursorPos);
+    const textAfter = input.value.substring(cursorPos);
+
+    // Insertar el icono en la posición del cursor
+    input.value = textBefore + icono + textAfter;
+
+    // Colocar el cursor después del icono insertado
+    const newCursorPos = cursorPos + icono.length;
+    input.setSelectionRange(newCursorPos, newCursorPos);
+
+    // Enfocar el input
+    input.focus();
+  }
+}
 
 // ========== CONFIGURACIÓN VISUAL ==========
 async function guardarConfigVisualPanel() {
   const config = {
     tema: document.getElementById('config-tema-select')?.value || 'verde',
-    nombre: document.getElementById('config-nombre-input')?.value || 'Pablo',
+    titulo: document.getElementById('config-titulo-input')?.value || '🧠 Agenda de Pablo 😊',
     modoVisualizacion: document.getElementById('config-modo-visualizacion')?.value || 'estado',
     popupCelebracion: document.getElementById('config-popup-celebracion')?.checked !== false,
     mostrarNotas: document.getElementById('config-mostrar-notas')?.checked !== false,
@@ -893,8 +911,12 @@ function cargarConfigVisualEnFormulario() {
   const temaSelect = document.getElementById('config-tema-select');
   if (temaSelect) temaSelect.value = config.tema || 'verde';
 
-  const nombreInput = document.getElementById('config-nombre-input');
-  if (nombreInput) nombreInput.value = config.nombre || 'Pablo';
+  const tituloInput = document.getElementById('config-titulo-input');
+  if (tituloInput) tituloInput.value = config.titulo || '🧠 Agenda de Pablo 😊';
+
+  // Actualizar título completo
+  const titulo = document.getElementById('titulo-agenda');
+  if (titulo) titulo.textContent = config.titulo || '🧠 Agenda de Pablo 😊';
 
   const modoVisualizacion = document.getElementById('config-modo-visualizacion');
   if (modoVisualizacion) modoVisualizacion.value = config.modoVisualizacion || 'estado';
