@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git commit -m \"$(cat <<''EOF''\n⭐ Completar sistema de contraseñas con funcionalidades avanzadas\n\nNuevas funcionalidades implementadas:\n- ✅ **Edición completa de contraseñas**: Modal con campos pre-cargados y validación\n- ✅ **Usuario visible**: Se muestra el usuario real, contraseña sigue oculta\n- ✅ **Botón copiar usuario**: Clic rápido para copiar al portapapeles\n- ✅ **Gestión de contraseña maestra en configuración**: Nueva sección dedicada\n- ✅ **Cambio de contraseña maestra**: Reencripta todas las contraseñas automáticamente\n- ✅ **Cerrar sesión de contraseñas**: Botón para limpiar sesión actual\n- ✅ **Estado de seguridad en tiempo real**: Muestra sesión activa y cantidad de contraseñas\n\nCaracterísticas técnicas:\n- Reencriptación automática con barra de progreso visual\n- Validación de contraseña maestra (mínimo 8 caracteres)\n- Confirmación de contraseña para prevenir errores\n- Advertencias de seguridad claras sobre pérdida de datos\n- Gestión inteligente de sesión (mantiene después de cambio)\n\nMejoras de interfaz:\n- Nueva sección \"🔐 Gestión de Contraseñas\" en configuración\n- Estado de seguridad dinámico: sesión, cantidad, algoritmo de encriptación\n- Feedback visual para operaciones de copiado\n- Modal de progreso durante reencriptación masiva\n- Usuarios visibles para fácil identificación\n\nSeguridad reforzada:\n- Pide contraseña actual antes de cambiar contraseña maestra\n- Reencriptación de todas las contraseñas con nueva clave\n- Opción de cerrar sesión por seguridad\n- Validaciones robustas en formularios\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

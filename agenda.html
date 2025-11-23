@@ -40,6 +40,31 @@
     .btn-icono:active {
       transform: scale(0.95);
     }
+
+    /* Estilo para el botón de tarea universal */
+    #btn-tarea-universal {
+      background: #4ecdc4 !important;
+      border: 2px solid #45b7b8 !important;
+      color: white !important;
+      transition: all 0.3s ease;
+    }
+
+    #btn-tarea-universal:hover {
+      background: #45b7b8 !important;
+      border-color: #3d9a9b !important;
+      transform: scale(1.05);
+    }
+
+    /* Modo oscuro */
+    .tema-oscuro #btn-tarea-universal {
+      background: #5ab3b3 !important;
+      border-color: #4a9999 !important;
+    }
+
+    .tema-oscuro #btn-tarea-universal:hover {
+      background: #4a9999 !important;
+      border-color: #3d7f7f !important;
+    }
   </style>
 </head>
 
@@ -59,6 +84,9 @@
           style="font-size: 28px; font-weight: bold; color: #2d5a27; text-align: center; margin-top: 8px;"></div>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; width:120px; gap:5px;">
+        <button id="btn-tarea-universal" class="boton-cargar tooltip" onclick="abrirModalTareaUniversal()"
+          style="padding:8px 14px;font-size:14px;background:#4ecdc4;border:2px solid #45b7b8;font-weight:bold;"
+          data-tooltip="Crear tarea en cualquier lista">✨ Nueva Tarea</button>
         <button id="btn-pomodoro" class="boton-cargar tooltip" onclick="iniciarPomodoro()"
           style="padding:6px 12px;font-size:12px;" data-tooltip="Pomodoro TDAH">🍅</button>
         <button id="btn-progreso" class="boton-cargar tooltip" onclick="mostrarDashboardMotivacional()"
@@ -357,6 +385,42 @@
       <div class="modal-botones">
         <button class="btn-primario" onclick="agregarTareaCritica()">Añadir</button>
         <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal unificado para cualquier tipo de tarea -->
+  <div id="modal-tarea-universal" class="modal">
+    <div class="modal-content">
+      <h4>✨ Nueva Tarea Universal</h4>
+      <div class="form-group">
+        <label>Descripción/Título:</label>
+        <input type="text" id="tarea-universal-texto" placeholder="Ej: Llamar al doctor, Revisar informe...">
+      </div>
+      <div class="form-group">
+        <label>📋 Destino de la tarea:</label>
+        <select id="tarea-universal-destino" style="padding: 12px; font-size: 14px; min-height: 44px;">
+          <option value="criticas">🚨 Tareas Críticas</option>
+          <option value="normales">📝 Por Hacer (Tareas Normales)</option>
+          <optgroup label="📁 Listas Personalizadas" id="listas-personalizadas-options">
+            <!-- Se llenarán dinámicamente -->
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📅 Fecha límite (opcional):</label>
+        <input type="date" id="tarea-universal-fecha" onkeydown="return false;" onclick="this.showPicker();">
+      </div>
+      <div class="form-group">
+        <label>🏷️ Etiqueta (opcional):</label>
+        <select id="tarea-universal-etiqueta" style="padding: 12px; font-size: 14px; min-height: 44px;">
+          <option value="">Sin etiqueta</option>
+          <!-- Se llenarán dinámicamente desde la configuración -->
+        </select>
+      </div>
+      <div class="modal-botones">
+        <button class="btn-primario" onclick="agregarTareaUniversal()">✅ Crear Tarea</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-tarea-universal')">Cancelar</button>
       </div>
     </div>
   </div>

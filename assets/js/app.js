@@ -3409,7 +3409,7 @@ function cargarConfigVisual() {
   }
 }
 
-function agregarTareaAListaPersonalizada(listaId, texto, fecha = null) {
+function agregarTareaAListaPersonalizada(listaId, texto, fecha = null, etiqueta = null) {
   const listasPersonalizadas = obtenerListasPersonalizadas();
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
@@ -3419,6 +3419,7 @@ function agregarTareaAListaPersonalizada(listaId, texto, fecha = null) {
     id: Date.now(), // ID como number
     texto: texto,
     fecha: fecha ? (typeof fecha === 'string' ? fechaStringToArray(fecha) : fecha) : null, // Fecha como array
+    etiqueta: etiqueta || null,
     estado: 'pendiente',
     fechaCreacion: new Date().toISOString()
   };
@@ -3768,6 +3769,118 @@ function inicializarListasPersonalizadas() {
     regenerarSeccionesListasPersonalizadas();
     renderizarTodasLasListasPersonalizadas();
   }, 1000);
+}
+
+// ========== MODAL UNIVERSAL DE TAREAS ==========
+function abrirModalTareaUniversal() {
+  llenarListasPersonalizadasEnModal();
+  llenarEtiquetasEnModal();
+  abrirModal('modal-tarea-universal');
+  setTimeout(() => document.getElementById('tarea-universal-texto').focus(), 100);
+}
+
+function llenarListasPersonalizadasEnModal() {
+  const select = document.getElementById('listas-personalizadas-options');
+  if (!select) return;
+
+  const listas = obtenerListasPersonalizadas();
+  select.innerHTML = ''; // Limpiar opciones anteriores
+
+  listas.forEach(lista => {
+    const option = document.createElement('option');
+    option.value = `personalizada_${lista.id}`;
+    option.textContent = `${lista.emoji} ${lista.nombre}`;
+    select.appendChild(option);
+  });
+}
+
+function llenarEtiquetasEnModal() {
+  const select = document.getElementById('tarea-universal-etiqueta');
+  if (!select) return;
+
+  // Limpiar opciones excepto la primera
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+
+  // Agregar etiquetas desde la configuración
+  const configuracion = window.configOpciones || {};
+  if (configuracion.etiquetasTareas && configuracion.etiquetasTareas.length > 0) {
+    configuracion.etiquetasTareas.forEach(etiqueta => {
+      const option = document.createElement('option');
+      option.value = etiqueta.nombre;
+      option.textContent = `${etiqueta.color} ${etiqueta.nombre}`;
+      select.appendChild(option);
+    });
+  }
+}
+
+async function agregarTareaUniversal() {
+  const texto = document.getElementById('tarea-universal-texto').value.trim();
+  const destino = document.getElementById('tarea-universal-destino').value;
+  const fecha = document.getElementById('tarea-universal-fecha').value;
+  const etiqueta = document.getElementById('tarea-universal-etiqueta').value;
+
+  if (!texto) {
+    alert('Por favor, ingresa una descripción para la tarea');
+    return;
+  }
+
+  try {
+    if (destino === 'criticas') {
+      // Agregar a tareas críticas
+      const nuevaTarea = {
+        id: Date.now().toString(),
+        titulo: texto,
+        razon: '',
+        fecha_fin: fecha,
+        etiqueta: etiqueta || null,
+        completada: false,
+        estado: 'pendiente',
+        fecha_creacion: new Date().toISOString()
+      };
+      appState.agenda.tareas_criticas.push(nuevaTarea);
+      registrarAccion('Crear tarea crítica', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
+
+    } else if (destino === 'normales') {
+      // Agregar a tareas normales
+      const nuevaTarea = {
+        id: Date.now().toString(),
+        texto: texto,
+        fecha_fin: fecha,
+        etiqueta: etiqueta || null,
+        completada: false,
+        estado: 'pendiente',
+        fecha_creacion: new Date().toISOString()
+      };
+      appState.agenda.tareas.push(nuevaTarea);
+      registrarAccion('Crear tarea normal', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
+
+    } else if (destino.startsWith('personalizada_')) {
+      // Agregar a lista personalizada
+      const listaId = destino.replace('personalizada_', '');
+      await agregarTareaAListaPersonalizada(listaId, texto, fecha, etiqueta);
+      const lista = obtenerListasPersonalizadas().find(l => l.id === listaId);
+      registrarAccion('Crear tarea en lista personalizada', `"${texto}" en ${lista ? lista.nombre : 'lista'} ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
+    }
+
+    // Limpiar formulario y cerrar modal
+    document.getElementById('tarea-universal-texto').value = '';
+    document.getElementById('tarea-universal-fecha').value = '';
+    document.getElementById('tarea-universal-etiqueta').value = '';
+    cerrarModal('modal-tarea-universal');
+
+    // Renderizar y guardar
+    renderizar();
+    renderizarTodasLasListasPersonalizadas();
+    await guardarJSON(true);
+
+    mostrarAlerta(`✅ Tarea "${texto}" creada exitosamente`, 'success');
+
+  } catch (error) {
+    mostrarAlerta('❌ Error al crear la tarea', 'error');
+    console.error('Error creando tarea universal:', error);
+  }
 }
 
 // ========== INTEGRACIÓN CON EL MODAL DE TAREAS ==========
