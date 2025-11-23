@@ -384,25 +384,10 @@ function cargarConfigVisual() {
     const titulo = document.getElementById('titulo-agenda');
     if (titulo) titulo.textContent = tituloCompleto;
 
-    // Mostrar/ocultar secciones
-    const mostrarNotas = config.mostrarNotas === true;
-    const mostrarSentimientos = config.mostrarSentimientos === true;
-    const mostrarContrasenas = config.mostrarContrasenas === true;
-    const mostrarPomodoro = config.mostrarPomodoro === true;
-    const mostrarProgreso = config.mostrarProgreso === true;
-    const mostrarResumen = config.mostrarResumen === true;
-    const seccionNotas = document.getElementById('seccion-notas');
-    const seccionSentimientos = document.getElementById('seccion-sentimientos');
-    const seccionContrasenas = document.getElementById('seccion-contrasenas');
-    const btnPomodoro = document.getElementById('btn-pomodoro');
-    const btnProgreso = document.getElementById('btn-progreso');
-    const btnResumen = document.getElementById('btn-resumen');
-    if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
-    if (seccionSentimientos) seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
-    if (seccionContrasenas) seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
-    if (btnPomodoro) btnPomodoro.style.display = mostrarPomodoro ? 'block' : 'none';
-    if (btnProgreso) btnProgreso.style.display = mostrarProgreso ? 'block' : 'none';
-    if (btnResumen) btnResumen.style.display = mostrarResumen ? 'block' : 'none';
+    // Aplicar visibilidad de secciones usando la función centralizada
+    if (typeof aplicarVisibilidadSecciones === 'function') {
+      aplicarVisibilidadSecciones();
+    }
 
     // Configurar visualización del calendario de citas
     const calendarioCitas = config.calendarioCitas || 'boton';
@@ -1009,6 +994,14 @@ async function guardarConfigVisualPanel() {
   };
 
   console.log('💾 Guardando configuración visual en Firebase:', config);
+  console.log('🔍 GUARDADO - Valores de checkboxes que se van a guardar:', {
+    mostrarNotas: config.mostrarNotas,
+    mostrarSentimientos: config.mostrarSentimientos,
+    mostrarContrasenas: config.mostrarContrasenas,
+    mostrarPomodoro: config.mostrarPomodoro,
+    mostrarProgreso: config.mostrarProgreso,
+    mostrarResumen: config.mostrarResumen
+  });
 
   // Verificar conectividad
   const conectado = await verificarConectividad();
@@ -1020,6 +1013,14 @@ async function guardarConfigVisualPanel() {
   // Guardar DIRECTAMENTE en variables globales (NO localStorage)
   window.configVisual = config;
   console.log('💾 Configuración guardada en variables globales:', window.configVisual);
+  console.log('🔍 GUARDADO - Confirmación en window.configVisual:', {
+    mostrarNotas: window.configVisual.mostrarNotas,
+    mostrarSentimientos: window.configVisual.mostrarSentimientos,
+    mostrarContrasenas: window.configVisual.mostrarContrasenas,
+    mostrarPomodoro: window.configVisual.mostrarPomodoro,
+    mostrarProgreso: window.configVisual.mostrarProgreso,
+    mostrarResumen: window.configVisual.mostrarResumen
+  });
 
   // Guardar en Firebase PRIMERO
   if (typeof guardarConfigEnFirebase === 'function') {
@@ -1038,6 +1039,10 @@ async function guardarConfigVisualPanel() {
       cargarConfigVisual();
       // Aplicar configuración de columnas inmediatamente
       aplicarConfiguracionColumnas();
+      // Aplicar visibilidad de secciones inmediatamente
+      if (typeof aplicarVisibilidadSecciones === 'function') {
+        aplicarVisibilidadSecciones();
+      }
       mostrarAlerta('✅ Configuración visual guardada en Firebase', 'success');
     } else {
       console.warn('❌ Error guardando en Firebase');
@@ -1046,6 +1051,10 @@ async function guardarConfigVisualPanel() {
     console.warn('⚠️ guardarConfigEnFirebase no disponible');
     // Si no hay Firebase, aplicar directamente
     cargarConfigVisual();
+    // Aplicar visibilidad de secciones inmediatamente
+    if (typeof aplicarVisibilidadSecciones === 'function') {
+      aplicarVisibilidadSecciones();
+    }
     mostrarAlerta('⚠️ No se pudo sincronizar con Firebase', 'warning');
   }
 }

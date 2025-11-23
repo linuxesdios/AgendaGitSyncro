@@ -371,9 +371,18 @@ async function extendsClassPull() {
     // Cargar configuraciones DIRECTAMENTE en memoria (NO localStorage)
     if (configDoc.exists) {
       const configFirebase = configDoc.data();
+      console.log('🔍 REFRESH - Configuración completa cargada desde Firebase:', configFirebase);
 
       // Guardar configuraciones en variables globales para acceso directo
       const visualRemote = configFirebase.visual || {};
+      console.log('🔍 REFRESH - Configuración visual cargada desde Firebase:', {
+        mostrarNotas: visualRemote.mostrarNotas,
+        mostrarSentimientos: visualRemote.mostrarSentimientos,
+        mostrarContrasenas: visualRemote.mostrarContrasenas,
+        mostrarPomodoro: visualRemote.mostrarPomodoro,
+        mostrarProgreso: visualRemote.mostrarProgreso,
+        mostrarResumen: visualRemote.mostrarResumen
+      });
 
       // Cargar listas personalizadas desde tareas (temporalmente en configVisual)
       if (window.tareasData?.listasPersonalizadas) {
@@ -386,6 +395,14 @@ async function extendsClassPull() {
       window.configVisual = visualRemote;
       window.configFuncionales = configFirebase.funcionales || {};
       window.configOpciones = configFirebase.opciones || {};
+      console.log('🔍 REFRESH - window.configVisual asignado correctamente:', {
+        mostrarNotas: window.configVisual.mostrarNotas,
+        mostrarSentimientos: window.configVisual.mostrarSentimientos,
+        mostrarContrasenas: window.configVisual.mostrarContrasenas,
+        mostrarPomodoro: window.configVisual.mostrarPomodoro,
+        mostrarProgreso: window.configVisual.mostrarProgreso,
+        mostrarResumen: window.configVisual.mostrarResumen
+      });
 
       // Aplicar tema INMEDIATAMENTE después de cargar desde Firebase
       const tema = visualRemote.tema || 'verde';
@@ -1589,17 +1606,67 @@ function iniciarRecordatorios() {
 
 
 function aplicarVisibilidadSecciones() {
+  console.log('👁️ APLICANDO VISIBILIDAD DE SECCIONES');
   const config = window.configVisual || {};
-  const mostrarNotas = config.mostrarNotas !== false;
-  const mostrarSentimientos = config.mostrarSentimientos !== false;
-  const mostrarContrasenas = config.mostrarContrasenas !== false;
+  console.log('🔍 CARGA - Valores cargados desde Firebase para visibilidad:', {
+    mostrarNotas: config.mostrarNotas,
+    mostrarSentimientos: config.mostrarSentimientos,
+    mostrarContrasenas: config.mostrarContrasenas,
+    mostrarPomodoro: config.mostrarPomodoro,
+    mostrarProgreso: config.mostrarProgreso,
+    mostrarResumen: config.mostrarResumen
+  });
+
+  // IMPORTANTE: Por defecto las secciones están OCULTAS (=== true para mostrar)
+  const mostrarNotas = config.mostrarNotas === true;
+  const mostrarSentimientos = config.mostrarSentimientos === true;
+  const mostrarContrasenas = config.mostrarContrasenas === true;
+  const mostrarPomodoro = config.mostrarPomodoro === true;
+  const mostrarProgreso = config.mostrarProgreso === true;
+  const mostrarResumen = config.mostrarResumen === true;
+
+  console.log('📊 Configuración de visibilidad:', {
+    mostrarNotas,
+    mostrarSentimientos,
+    mostrarContrasenas,
+    mostrarPomodoro,
+    mostrarProgreso,
+    mostrarResumen
+  });
 
   const seccionNotas = document.getElementById('seccion-notas');
   const seccionSentimientos = document.getElementById('seccion-sentimientos');
   const seccionContrasenas = document.getElementById('seccion-contrasenas');
-  if (seccionNotas) seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
-  if (seccionSentimientos) seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
-  if (seccionContrasenas) seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
+  const btnPomodoro = document.getElementById('btn-pomodoro');
+  const btnProgreso = document.getElementById('btn-progreso');
+  const btnResumen = document.getElementById('btn-resumen');
+  
+  if (seccionNotas) {
+    seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
+    console.log('  - Notas:', mostrarNotas ? 'visible' : 'oculta');
+  }
+  if (seccionSentimientos) {
+    seccionSentimientos.style.display = mostrarSentimientos ? 'block' : 'none';
+    console.log('  - Sentimientos:', mostrarSentimientos ? 'visible' : 'oculta');
+  }
+  if (seccionContrasenas) {
+    seccionContrasenas.style.display = mostrarContrasenas ? 'block' : 'none';
+    console.log('  - Contraseñas:', mostrarContrasenas ? 'visible' : 'oculta');
+  }
+  if (btnPomodoro) {
+    btnPomodoro.style.display = mostrarPomodoro ? 'block' : 'none';
+    console.log('  - Pomodoro:', mostrarPomodoro ? 'visible' : 'oculto');
+  }
+  if (btnProgreso) {
+    btnProgreso.style.display = mostrarProgreso ? 'block' : 'none';
+    console.log('  - Progreso:', mostrarProgreso ? 'visible' : 'oculto');
+  }
+  if (btnResumen) {
+    btnResumen.style.display = mostrarResumen ? 'block' : 'none';
+    console.log('  - Resumen:', mostrarResumen ? 'visible' : 'oculto');
+  }
+  
+  console.log('✅ Visibilidad de secciones aplicada');
 }
 
 // Inicializar Firebase y sincronización
