@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -16,8 +16,8 @@
 
   <style>
     .btn-icono {
-      background: rgba(255,255,255,0.2);
-      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 4px;
       padding: 4px 8px;
       cursor: pointer;
@@ -32,8 +32,8 @@
     }
 
     .btn-icono:hover {
-      background: rgba(255,255,255,0.3);
-      border-color: rgba(255,255,255,0.5);
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
       transform: scale(1.1);
     }
 
@@ -49,7 +49,7 @@
       transition: all 0.3s ease;
       font-size: 16px !important;
       font-weight: bold !important;
-      box-shadow: 0 4px 8px rgba(78,205,196,0.3) !important;
+      box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3) !important;
       margin-bottom: 15px !important;
     }
 
@@ -57,7 +57,7 @@
       background: #45b7b8 !important;
       border-color: #3d9a9b !important;
       transform: scale(1.1);
-      box-shadow: 0 6px 12px rgba(78,205,196,0.4) !important;
+      box-shadow: 0 6px 12px rgba(78, 205, 196, 0.4) !important;
     }
 
     /* Modo oscuro */
@@ -235,7 +235,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0;">🔐 Contraseñas Encriptadas</h3>
             <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
-                    style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
               ➕ Nueva Contraseña
             </button>
           </div>
@@ -303,1522 +303,259 @@
             </div>
           </div>
 
-          <div id="lista-metodo"></div>
-          <button class="boton-agregar tooltip" onclick="nuevaTarea()" data-tooltip="Crear nueva tarea">➕ Añadir
-            tarea</button>
+          <div id="lista-tareas"></div>
+          <button class="boton-agregar tooltip" onclick="nuevaTarea()" data-tooltip="Crear nueva tarea">➕
+            Añadir tarea</button>
         </section>
       </div>
     </div>
 
-  </div>
-
-  <!-- Zona de borrado -->
-  <div id="delete-zone" class="delete-zone"></div>
-
-  <!-- Zona de migración -->
-  <div id="migrate-zone" class="migrate-zone"></div>
-
-  <!-- Modal del Calendario -->
-  <div id="modal-calendar" class="modal">
-    <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
-      <h4 style="margin-bottom:15px;">📅 Calendario</h4>
-
-      <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;">
-        <div style="border-right:1px solid #eee;padding-right:15px;">
-          <!-- Filtros en el lateral -->
-          <div class="filtros-calendario" style="background:#f8f9fa;padding:12px;border-radius:6px;margin-bottom:15px;border:1px solid #dee2e6;">
-            <h5 style="margin:0 0 8px 0;color:#2c3e50;font-size:13px;">🔍 Mostrar:</h5>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <label style="display:flex;align-items:center;cursor:pointer;font-size:13px;">
-                <input type="checkbox" id="filtro-citas" checked onchange="aplicarFiltrosCalendario()" style="margin-right:6px;transform:scale(1.1);">
-                <span style="color:#ff9800;">📅 Citas</span>
-              </label>
-              <label style="display:flex;align-items:center;cursor:pointer;font-size:13px;">
-                <input type="checkbox" id="filtro-tareas" onchange="aplicarFiltrosCalendario()" style="margin-right:6px;transform:scale(1.1);">
-                <span style="color:#4ecdc4;">✅ Tareas</span>
-              </label>
-              <div style="display:flex;gap:5px;margin-top:5px;">
-                <button onclick="marcarTodos(true)" class="boton-cargar" style="flex:1;padding:3px 6px;font-size:11px;background:#28a745;color:white;">Todos</button>
-                <button onclick="marcarTodos(false)" class="boton-cargar" style="flex:1;padding:3px 6px;font-size:11px;background:#dc3545;color:white;">Ninguno</button>
-              </div>
-            </div>
-          </div>
-
-          <h5 style="margin:0 0 10px 0;color:#2c3e50;font-size:14px;" id="titulo-lista-calendario">📋 Elementos seleccionados</h5>
-          <div id="allAppointmentsList" style="max-height:350px;overflow-y:auto;"></div>
-        </div>
-        <div>
-          <div class="calendar-header">
-            <button id="prevMonth" class="calendar-nav-btn">◀</button>
-            <h3 id="monthYear"></h3>
-            <button id="nextMonth" class="calendar-nav-btn">▶</button>
-          </div>
-          <div class="calendar-weekdays">
-            <div class="calendar-weekday">Lun</div>
-            <div class="calendar-weekday">Mar</div>
-            <div class="calendar-weekday">Mié</div>
-            <div class="calendar-weekday">Jue</div>
-            <div class="calendar-weekday">Vie</div>
-            <div class="calendar-weekday">Sáb</div>
-            <div class="calendar-weekday">Dom</div>
-          </div>
-          <div class="calendar-grid" id="calendarGrid" style="min-height:300px;"></div>
-          <div class="calendar-appointments">
-            <div id="appointmentsList"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal del Calendario de Tareas -->
-  <div id="modal-calendar-tareas" class="modal">
-    <div class="modal-content" style="max-width:1200px;width:95%;max-height:90vh;overflow-y:auto;">
-      <h4>📅 Calendario de Tareas</h4>
-      <div class="calendar-header">
-        <button id="prevMonthTareas" class="calendar-nav-btn">◀</button>
-        <h3 id="monthYearTareas"></h3>
-        <button id="nextMonthTareas" class="calendar-nav-btn">▶</button>
-      </div>
-      <div class="calendar-weekdays">
-        <div class="calendar-weekday">Lun</div>
-        <div class="calendar-weekday">Mar</div>
-        <div class="calendar-weekday">Mié</div>
-        <div class="calendar-weekday">Jue</div>
-        <div class="calendar-weekday">Vie</div>
-        <div class="calendar-weekday">Sáb</div>
-        <div class="calendar-weekday">Dom</div>
-      </div>
-      <div class="calendar-grid" id="calendarGridTareas" style="min-height:400px;"></div>
-      <div class="calendar-appointments">
-        <div id="tasksListDay"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para nueva tarea crítica -->
-  <div id="modal-critica" class="modal">
-    <div class="modal-content">
-      <h4>⭐ Nueva Tarea Crítica</h4>
-      <div class="form-group">
-        <label>Título:</label>
-        <input type="text" id="critica-titulo" placeholder="Ej: Revisar informe">
-      </div>
-      <div class="form-group">
-        <label>Fecha límite (opcional):</label>
-        <input type="date" id="critica-fecha" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-      <div class="form-group">
-        <label>Etiqueta (opcional):</label>
-        <select id="critica-etiqueta" style="padding: 12px; font-size: 14px; min-height: 44px;">
-          <option value="">Sin etiqueta</option>
-        </select>
-      </div>
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="agregarTareaCritica()">Añadir</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal unificado para cualquier tipo de tarea -->
-  <div id="modal-tarea-universal" class="modal">
-    <div class="modal-content">
-      <h4>➕ CREAR NUEVA TAREA</h4>
-      <div class="form-group">
-        <label><strong>¿Qué tarea quieres crear?</strong></label>
-        <input type="text" id="tarea-universal-texto" placeholder="Ej: Llamar al doctor, Revisar informe, Comprar comida..." style="font-size: 16px; padding: 12px;">
-      </div>
-      <div class="form-group">
-        <label><strong>📋 ¿Dónde quieres guardarla?</strong></label>
-        <select id="tarea-universal-destino" style="padding: 12px; font-size: 14px; min-height: 44px;">
-          <option value="normales">📝 Tareas Normales</option>
-          <option value="criticas">🚨 Tareas Críticas</option>
-          <optgroup label="📁 Listas Personalizadas" id="listas-personalizadas-options">
-            <!-- Se llenarán dinámicamente -->
-          </optgroup>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>📅 ¿Tiene fecha límite?</label>
-        <input type="date" id="tarea-universal-fecha" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-      <div class="form-group">
-        <label>🏷️ ¿Quieres añadir etiqueta?</label>
-        <select id="tarea-universal-etiqueta" style="padding: 12px; font-size: 14px; min-height: 44px;">
-          <option value="">Sin etiqueta</option>
-          <!-- Se llenarán dinámicamente desde la configuración -->
-        </select>
-      </div>
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="agregarTareaUniversal()">✅ Crear Tarea</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-tarea-universal')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para nueva tarea normal -->
-  <div id="modal-tarea" class="modal">
-    <div class="modal-content">
-      <h4>✅ Nueva Tarea</h4>
-      <div class="form-group">
-        <label>Descripción:</label>
-        <input type="text" id="tarea-texto" placeholder="Ej: Llamar al proveedor">
-      </div>
-      <div class="form-group">
-        <label>Fecha límite (opcional):</label>
-        <input type="date" id="tarea-fecha" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-      <div class="form-group">
-        <label>Etiqueta (opcional):</label>
-        <select id="tarea-etiqueta" style="padding: 12px; font-size: 14px; min-height: 44px;">
-          <option value="">Sin etiqueta</option>
-        </select>
-      </div>
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="agregarTarea()">Añadir</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-tarea')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para migrar/delegar -->
-  <div id="modal-migrar" class="modal">
-    <div class="modal-content">
-      <h4>Reprogramar / Delegar</h4>
-      <div class="form-group">
-        <label>📅 Nueva fecha:</label>
-        <input type="date" id="migrar-fecha" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-      <div class="form-group">
-        <label>👤 Delegar a:</label>
-        <select id="migrar-persona-select" onchange="manejarSeleccionPersona()"
-          style="width:100%;padding:8px;margin-bottom:10px;">
-          <option value="">No asignar</option>
-          <option value="__otra__">➕ Otra persona...</option>
-        </select>
-        <div id="migrar-persona-input" style="display:none;">
-          <input type="text" id="migrar-persona" placeholder="Nombre de la nueva persona"
-            style="width:100%;padding:8px;">
-        </div>
-      </div>
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarMigracion()">Aceptar</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-migrar')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para nueva cita única -->
-  <div id="modal-nueva-cita" class="modal">
-    <div class="modal-content" style="max-width:350px;">
-      <h4>📅 Nueva Cita</h4>
-
-      <div class="form-group">
-        <label>Fecha:</label>
-        <input type="date" id="nueva-cita-fecha" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-
-      <div class="form-group">
-        <label>Descripción:</label>
-        <input type="text" id="nueva-cita-desc" placeholder="¿Qué hacer?">
-      </div>
-
-      <div class="form-group">
-        <label>📍 Lugar (opcional):</label>
-        <input type="text" id="nueva-cita-lugar" placeholder="Ej: Hospital, Oficina, Casa...">
-      </div>
-
-      <div class="form-group">
-        <label>Etiqueta (opcional):</label>
-        <select id="nueva-cita-etiqueta">
-          <option value="">Sin etiqueta</option>
-        </select>
-      </div>
-
-
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-        <div>
-          <label style="font-size:12px;">Hora:</label>
-          <select id="nueva-cita-hora" style="width:100%;padding:6px;">
-            <option value="08">08</option>
-            <option value="09">09</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14" selected>14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;">Minutos:</label>
-          <select id="nueva-cita-minutos" style="width:100%;padding:6px;">
-            <option value="00" selected>00</option>
-            <option value="05">05</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="30">30</option>
-            <option value="35">35</option>
-            <option value="40">40</option>
-            <option value="45">45</option>
-            <option value="50">50</option>
-            <option value="55">55</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarNuevaCita()">Añadir</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-nueva-cita')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de Configuración -->
-  <div id="modal-config" class="modal">
-    <div class="modal-content" style="max-width:900px;width:98%;max-height:90vh;overflow-y:auto;overflow-x:hidden;">
-
-      <!-- Pestañas arriba del todo -->
-      <div class="config-tabs" style="position:sticky;top:0;background:white;z-index:10;display:flex;flex-wrap:wrap;gap:5px;padding:10px 0;border-bottom:1px solid #eee;margin-bottom:20px;justify-content:center;">
-        <button class="config-tab active" onclick="switchTab('supabase')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">⚡ Supabase</button>
-        <button class="config-tab" onclick="switchTab('visual')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🎨 Visual</button>
-        <button class="config-tab" onclick="switchTab('funcionales')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">⚙️ Funcional</button>
-        <button class="config-tab" onclick="switchTab('etiquetas')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🏷️ Etiquetas</button>
-        <button class="config-tab" onclick="switchTab('personas')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">👥 Personas</button>
-        <button class="config-tab" onclick="switchTab('backups')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">💾 Backups</button>
-        <button class="config-tab" onclick="switchTab('log')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">📋 Log</button>
-        <button class="config-tab" onclick="switchTab('actions')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">📊 Acciones</button>
-      </div>
-
-      <!-- Contenido Supabase -->
-      <div id="tab-supabase" class="tab-content active">
-        <div style="padding:20px;text-align:center;">
-          <h3>⚡ Supabase Database</h3>
-          <p>Configura Supabase para sincronización ultra-rápida sin límites de peticiones.</p>
-          <div class="form-group">
-            <label>Supabase URL:</label>
-            <input type="text" id="supabase-url" placeholder="https://xxx.supabase.co">
-          </div>
-          <div class="form-group">
-            <label>Anon Key:</label>
-            <input type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
-          </div>
-          <div class="form-group">
-            <label>Service Role Key (opcional - para admin):</label>
-            <input type="password" id="supabase-service-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
-          </div>
-          <button class="btn-primario" onclick="guardarConfigSupabase()">Guardar Config</button>
-          <button class="btn-secundario" onclick="probarConexionSupabase()">Probar</button>
-          <button class="btn-info" onclick="crearTablasSupabase()" style="margin-top:10px;">🛠️ Crear Tablas</button>
-        </div>
-        <div id="supabase-status" style="margin-top:10px;font-size:13px;display:none;"></div>
-      </div>
-
-
-
-      <!-- Contenido Visual -->
-      <div id="tab-visual" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">🎨 Configuración Visual</h3>
-
-          <!-- Sección: Apariencia General -->
-          <div
-            style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🎨 Apariencia General</h4>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
-              <div>
-                <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">Tema de
-                  color:</label>
-                <select id="config-tema-select"
-                  style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                  <option value="verde">🌿 Verde suave</option>
-                  <option value="azul">💙 Azul suave</option>
-                  <option value="amarillo">💛 Amarillo suave</option>
-                  <option value="oscuro">🌙 Oscuro</option>
-                </select>
-              </div>
-              <div>
-                <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">Modo de
-                  visualización:</label>
-                <select id="config-modo-visualizacion" onchange="guardarConfigVisualPanel()"
-                  style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                  <option value="estado">🎯 Por estado</option>
-                  <option value="etiqueta">🏷️ Por etiqueta</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Modo oscuro automático -->
-            <div style="background:rgba(0,0,0,0.2);padding:15px;border-radius:8px;margin-bottom:15px;">
-              <h5 style="margin:0 0 15px 0;color:white;font-size:14px;">🌙 Modo Oscuro Automático</h5>
-
-              <div style="margin-bottom:12px;">
-                <label style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.9);cursor:pointer;">
-                  <input type="checkbox" id="config-modo-oscuro-auto" onchange="guardarConfigVisualPanel()"
-                    style="margin:0;">
-                  <span style="font-weight:500;">Activar modo oscuro automático</span>
-                </label>
-              </div>
-
-              <div id="config-horario-oscuro" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div>
-                  <label style="color:rgba(255,255,255,0.8);font-size:12px;margin-bottom:4px;display:block;">Hora inicio:</label>
-                  <input type="time" id="config-hora-inicio-oscuro" value="20:00" onchange="guardarConfigVisualPanel()"
-                    style="width:100%;padding:6px 8px;border:none;border-radius:4px;background:rgba(255,255,255,0.9);color:#333;font-size:12px;">
-                </div>
-                <div>
-                  <label style="color:rgba(255,255,255,0.8);font-size:12px;margin-bottom:4px;display:block;">Hora fin:</label>
-                  <input type="time" id="config-hora-fin-oscuro" value="07:00" onchange="guardarConfigVisualPanel()"
-                    style="width:100%;padding:6px 8px;border:none;border-radius:4px;background:rgba(255,255,255,0.9);color:#333;font-size:12px;">
-                </div>
-              </div>
-              <small style="color:rgba(255,255,255,0.7);font-size:11px;display:block;margin-top:8px;">
-                El modo oscuro se activará automáticamente durante las horas especificadas
-              </small>
-            </div>
-
-            <div>
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;">📝 Título
-                personalizado:</label>
-
-              <!-- Botones de iconos -->
-              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-                <button type="button" onclick="insertarIcono('🧠')" class="btn-icono" title="Cerebro">🧠</button>
-                <button type="button" onclick="insertarIcono('📝')" class="btn-icono" title="Escribir">📝</button>
-                <button type="button" onclick="insertarIcono('📚')" class="btn-icono" title="Libros">📚</button>
-                <button type="button" onclick="insertarIcono('📋')" class="btn-icono" title="Portapapeles">📋</button>
-                <button type="button" onclick="insertarIcono('📅')" class="btn-icono" title="Calendario">📅</button>
-                <button type="button" onclick="insertarIcono('🎯')" class="btn-icono" title="Target">🎯</button>
-                <button type="button" onclick="insertarIcono('⚡')" class="btn-icono" title="Rayo">⚡</button>
-                <button type="button" onclick="insertarIcono('🚀')" class="btn-icono" title="Cohete">🚀</button>
-                <button type="button" onclick="insertarIcono('🌟')" class="btn-icono" title="Estrella">🌟</button>
-                <button type="button" onclick="insertarIcono('💡')" class="btn-icono" title="Bombilla">💡</button>
-                <button type="button" onclick="insertarIcono('🔥')" class="btn-icono" title="Fuego">🔥</button>
-                <button type="button" onclick="insertarIcono('💪')" class="btn-icono" title="Fuerza">💪</button>
-                <button type="button" onclick="insertarIcono('😊')" class="btn-icono" title="Sonrisa">😊</button>
-                <button type="button" onclick="insertarIcono('🎉')" class="btn-icono" title="Celebrar">🎉</button>
-                <button type="button" onclick="insertarIcono('📊')" class="btn-icono" title="Gráfico">📊</button>
-                <button type="button" onclick="insertarIcono('🏆')" class="btn-icono" title="Trofeo">🏆</button>
-              </div>
-
-              <input type="text" id="config-titulo-input" placeholder="🧠 Agenda de Pablo 😊"
-                style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-            </div>
-
-            <div style="margin-top:15px;">
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📐 Diseño de
-                columnas:</label>
-              <select id="config-columnas" onchange="guardarConfigVisualPanel()"
-                style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                <option value="2">📱 Dos columnas (recomendado)</option>
-                <option value="1">📄 Una columna (vista simple)</option>
-              </select>
-              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cambia la
-                distribución de las secciones en la página principal</small>
-            </div>
-          </div>
-
-          <!-- Sección: Elementos de Interfaz -->
-          <div
-            style="background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(17,153,142,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🖥️ Elementos de Interfaz</h4>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">📝 Mostrar Sección de Notas</span>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-sentimientos" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">😊 Mostrar Sección de Sentimientos</span>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-contrasenas" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">🔐 Mostrar Sección de Contraseñas</span>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-pomodoro" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">🍅 Mostrar Botón Pomodoro</span>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-progreso" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">📊 Mostrar Botón Progreso</span>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-resumen" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">🌅 Mostrar Botón Resumen</span>
-              </label>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr;gap:8px;">
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-mostrar-tarea-universal" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;" checked>
-                <span style="font-weight:500;">➕ Mostrar Botón Crear Tarea</span>
-              </label>
-            </div>
-
-            <div style="margin-top:12px;">
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📅
-                Visualización del calendario:</label>
-              <select id="config-calendario-citas" onchange="cambiarModoCalendario(this.value)"
-                style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                <option value="boton">🔘 Con botón (modal)</option>
-                <option value="integrado">📋 Siempre visible</option>
-              </select>
-              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cómo mostrar el
-                calendario en la página principal</small>
-            </div>
-
-            <div style="margin-top:15px;">
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📊
-                Contenido del calendario:</label>
-
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <label
-                  style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                  <input type="checkbox" id="config-calendario-mostrar-citas" onchange="guardarConfigVisualPanel()"
-                    style="margin:0;" checked>
-                  <span style="font-weight:500;font-size:13px;">📅 Mostrar Citas</span>
-                </label>
-
-                <label
-                  style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                  <input type="checkbox" id="config-calendario-mostrar-tareas" onchange="guardarConfigVisualPanel()"
-                    style="margin:0;" checked>
-                  <span style="font-weight:500;font-size:13px;">✅ Mostrar Tareas</span>
-                </label>
-              </div>
-
-              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:6px;">
-                Qué elementos mostrar en el calendario (tanto popup como integrado)
-              </small>
-            </div>
-          </div>
-
-          <!-- Sección: Gestión de Contraseñas -->
-          <div
-            style="background:linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(231,76,60,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔐 Gestión de Contraseñas</h4>
-
-            <div style="margin-bottom:15px;">
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">🔑 Contraseña Maestra:</label>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <button onclick="cambiarContrasenaMaestra()"
-                        style="flex: 1; padding: 10px 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 500;">
-                  🔄 Cambiar Contraseña Maestra
-                </button>
-                <button onclick="cerrarSesionContrasenas()" title="Cerrar sesión de contraseñas"
-                        style="padding: 10px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer;">
-                  🚪
-                </button>
-              </div>
-              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cambia la contraseña que protege todas tus contraseñas guardadas</small>
-            </div>
-
-            <div style="margin-bottom:15px;">
-              <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);">
-                <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">📊 Estado de Seguridad:</div>
-                <div id="estado-seguridad-contrasenas" style="font-size: 13px; line-height: 1.4;">
-                  🔒 Sesión: No iniciada<br>
-                  🗃️ Contraseñas guardadas: 0<br>
-                  🛡️ Encriptación: AES-256-GCM
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección: Motivación y Celebraciones -->
-          <div
-            style="background:linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,154,158,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">🎉 Motivación y Celebraciones</h4>
-
-            <div style="margin-bottom:15px;">
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.6);padding:12px;border-radius:8px;cursor:pointer;margin-bottom:10px;">
-                <input type="checkbox" id="config-popup-celebracion" onchange="guardarConfigVisualPanel()"
-                  style="margin:0;">
-                <span style="font-weight:500;">🎉 Mostrar popup al completar tareas</span>
-              </label>
-              <small style="color:rgba(45,55,72,0.8);font-size:11px;margin-left:12px;">Mostrar frases motivacionales con
-                cuenta atrás al completar</small>
-            </div>
-
-            <div>
-              <label style="color:#2d3748;font-weight:500;margin-bottom:8px;display:block;">💬 Frases motivacionales
-                personalizadas:</label>
-              <textarea id="config-frases-motivacionales"
-                placeholder="Escribe una frase por línea...&#10;¡Excelente trabajo!&#10;¡Sigue así!&#10;¡Una tarea menos!"
-                style="width:100%;min-height:80px;padding:12px;border:none;border-radius:8px;background:rgba(255,255,255,0.9);color:#333;resize:vertical;font-family:inherit;"></textarea>
-              <small style="color:rgba(45,55,72,0.8);font-size:11px;display:block;margin-top:4px;">Una frase por línea.
-                Se mostrarán aleatoriamente al completar tareas</small>
-            </div>
-          </div>
-
-          <!-- Sección: Listas Personalizadas -->
-          <div
-            style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">📋 Listas Personalizadas</h4>
-            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Crea listas adicionales que
-              aparecerán después de "Listas para hacer"</p>
-
-            <!-- Botones de depuración -->
-            <div style="display:flex;gap:8px;margin-bottom:15px;">
-              <button onclick="console.log('📊 Listas en memoria:', window.configVisual?.listasPersonalizadas?.length || 0, window.configVisual?.listasPersonalizadas); alert('Listas: ' + (window.configVisual?.listasPersonalizadas?.length || 0));"
-                style="padding:6px 12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:white;cursor:pointer;font-size:11px;">
-                📊 Info
-              </button>
-              <button onclick="renderizarListasPersonalizadas();"
-                style="padding:6px 12px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:4px;color:white;cursor:pointer;font-size:11px;">
-                🔄 Actualizar
-              </button>
-            </div>
-
-            <!-- Lista actual de listas personalizadas -->
-            <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">
-              <div id="listas-personalizadas-contenido"
-                style="max-height:120px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:10px;color:#333;min-height:60px;">
-                <div style="text-align:center;color:#666;padding:20px;font-style:italic;">
-                  <span style="font-size:20px;">📝</span> Añade tus listas personalizadas...
-                </div>
-              </div>
-            </div>
-
-            <!-- Formulario para nueva lista -->
-            <div style="background:rgba(255,255,255,0.2);padding:15px;border-radius:8px;">
-              <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end;">
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Nombre
-                    de la lista:</label>
-                  <input type="text" id="nueva-lista-personalizada" placeholder="Ej: Médico, Ocio, Trabajo..."
-                    style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                </div>
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Emoji:</label>
-                  <select id="emoji-lista-personalizada"
-                    style="padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;min-width:100px;">
-                    <option value="🏥">🏥 Médico</option>
-                    <option value="🎮">🎮 Ocio</option>
-                    <option value="💼">💼 Trabajo</option>
-                    <option value="🛍️">🛍️ Compras</option>
-                    <option value="🏠">🏠 Casa</option>
-                    <option value="📚">📚 Estudio</option>
-                    <option value="💰">💰 Finanzas</option>
-                    <option value="🏋️">🏋️ Ejercicio</option>
-                    <option value="🍽️">🍽️ Comida</option>
-                    <option value="🚗">🚗 Transporte</option>
-                    <option value="📞">📞 Llamadas</option>
-                    <option value="✈️">✈️ Viajes</option>
-                    <option value="🎨">🎨 Creatividad</option>
-                    <option value="👥">👥 Social</option>
-                    <option value="🔧">🔧 Tareas</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Color:</label>
-                  <input type="color" id="color-lista-personalizada" value="#667eea"
-                    style="width:40px;height:40px;padding:2px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);">
-                </div>
-                <button onclick="agregarListaPersonalizada()"
-                  style="padding:8px 16px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;">
-                  ✓ Añadir Lista
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style="text-align:center;margin-top:25px;">
-            <button class="btn-primario" onclick="guardarConfigVisualPanel()"
-              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.4);transition:all 0.3s ease;">
-              ✨ Aplicar Configuración Visual
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Funcionales -->
-      <div id="tab-funcionales" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">⚙️ Configuración Funcional</h3>
-
-          <!-- Sección: Comportamiento de Tareas -->
-          <div
-            style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(79,172,254,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">📝 Comportamiento de Tareas</h4>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-fecha-obligatoria" onchange="guardarConfigFuncionales()"
-                  style="margin:0;">
-                <div>
-                  <span style="font-weight:500;display:block;">📅 Fecha obligatoria</span>
-                  <small style="color:rgba(255,255,255,0.8);font-size:10px;">Obligatorio al crear tareas</small>
-                </div>
-              </label>
-
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-confirmacion-borrar" onchange="guardarConfigFuncionales()"
-                  style="margin:0;">
-                <div>
-                  <span style="font-weight:500;display:block;">🗑️ Confirmación borrar</span>
-                  <small style="color:rgba(255,255,255,0.8);font-size:10px;">Antes de eliminar tareas</small>
-                </div>
-              </label>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <label
-                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
-                <input type="checkbox" id="config-auto-mayuscula" onchange="guardarConfigFuncionales()"
-                  style="margin:0;">
-                <div>
-                  <span style="font-weight:500;display:block;">🔠 Auto-mayúscula</span>
-                  <small style="color:rgba(255,255,255,0.8);font-size:10px;">Primera letra automática</small>
-                </div>
-              </label>
-
-              <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;">
-                <label style="font-weight:500;display:block;margin-bottom:5px;">🌅 Resumen diario:</label>
-                <select id="config-popup-diario" onchange="guardarConfigFuncionales()" style="width:100%;padding:8px;border:none;border-radius:4px;background:rgba(255,255,255,0.95);color:#333;">
-                  <option value="nunca">Nunca mostrar</option>
-                  <option value="una_vez">Una vez al día</option>
-                  <option value="siempre">Siempre al cargar</option>
-                </select>
-                <small style="color:rgba(255,255,255,0.8);font-size:10px;display:block;margin-top:4px;">Cuándo mostrar el resumen de tareas</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección: Notificaciones de Citas -->
-          <div
-            style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(250,112,154,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">🔔 Notificaciones de Citas</h4>
-
-            <!-- Switch principal -->
-            <div style="background:rgba(255,255,255,0.6);padding:15px;border-radius:10px;margin-bottom:15px;">
-              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
-                <div>
-                  <span style="font-weight:600;font-size:14px;color:#2d3748;">🔔 Activar notificaciones</span>
-                  <small style="color:rgba(45,55,72,0.8);font-size:11px;display:block;margin-top:2px;">Recibir
-                    notificaciones antes de las citas</small>
-                </div>
-                <input type="checkbox" id="config-notificaciones-activas" onchange="guardarConfigFuncionales()"
-                  style="margin:0;transform:scale(1.2);">
-              </label>
-            </div>
-
-            <!-- Opciones de temporización -->
-            <div
-              style="background:rgba(255,255,255,0.4);padding:15px;border-radius:10px;border-left:4px solid #fa709a;">
-              <h5 style="margin:0 0 12px 0;color:#2d3748;font-size:13px;font-weight:600;">⏰ Momentos de notificación:
-              </h5>
-
-              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
-                <label
-                  style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.7);padding:10px;border-radius:6px;cursor:pointer;transition:all 0.3s ease;">
-                  <input type="checkbox" id="config-notif-1-dia" onchange="guardarConfigFuncionales()"
-                    style="margin:0;">
-                  <span style="font-weight:500;font-size:12px;">📅 1 día antes</span>
-                </label>
-
-                <label
-                  style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.7);padding:10px;border-radius:6px;cursor:pointer;transition:all 0.3s ease;">
-                  <input type="checkbox" id="config-notif-2-horas" onchange="guardarConfigFuncionales()"
-                    style="margin:0;">
-                  <span style="font-weight:500;font-size:12px;">⏰ 2 horas antes</span>
-                </label>
-
-                <label
-                  style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.7);padding:10px;border-radius:6px;cursor:pointer;transition:all 0.3s ease;">
-                  <input type="checkbox" id="config-notif-30-min" onchange="guardarConfigFuncionales()"
-                    style="margin:0;">
-                  <span style="font-weight:500;font-size:12px;">⚡ 30 minutos antes</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div style="text-align:center;margin-top:25px;">
-            <button class="btn-primario" onclick="guardarConfigFuncionales()"
-              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(79,172,254,0.4);transition:all 0.3s ease;">
-              ⚙️ Aplicar Configuración Funcional
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Etiquetas -->
-      <div id="tab-etiquetas" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">🏷️ Gestión de Etiquetas</h3>
-
-          <!-- Sección: Etiquetas de Tareas -->
-          <div
-            style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(240,147,251,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">📝 Etiquetas de Tareas</h4>
-
-            <!-- Lista actual de etiquetas -->
-            <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">
-              <div id="etiquetas-tareas-lista"
-                style="max-height:180px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:10px;color:#333;">
-              </div>
-            </div>
-
-            <!-- Formulario para nueva etiqueta -->
-            <div style="background:rgba(255,255,255,0.2);padding:15px;border-radius:8px;">
-              <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end;">
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Nombre:</label>
-                  <input type="text" id="nueva-etiqueta-tarea" placeholder="Ej: Trabajo urgente"
-                    style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                </div>
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Emoji:</label>
-                  <select id="simbolo-etiqueta-tarea"
-                    style="padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;min-width:110px;">
-                    <option value="💼">💼 Trabajo</option>
-                    <option value="🏥">🏥 Salud</option>
-                    <option value="🎮">🎮 Ocio</option>
-                    <option value="📚">📚 Estudio</option>
-                    <option value="🏠">🏠 Casa</option>
-                    <option value="💰">💰 Finanzas</option>
-                    <option value="🚗">🚗 Transporte</option>
-                    <option value="🍽️">🍽️ Comida</option>
-                    <option value="📞">📞 Llamadas</option>
-                    <option value="🛍️">🛍️ Compras</option>
-                    <option value="✈️">✈️ Viajes</option>
-                    <option value="📱">📱 Tecnología</option>
-                    <option value="🏋️">🏋️ Ejercicio</option>
-                    <option value="📝">📝 Documentos</option>
-                    <option value="🎉">🎉 Eventos</option>
-                    <option value="👥">👥 Social</option>
-                    <option value="🎨">🎨 Creatividad</option>
-                    <option value="🔧">🔧 Reparaciones</option>
-                    <option value="🌱">🌱 Jardinería</option>
-                    <option value="📧">📧 Email</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Color:</label>
-                  <input type="color" id="color-etiqueta-tarea" value="#4ecdc4"
-                    style="width:40px;height:40px;padding:2px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);">
-                </div>
-                <button onclick="agregarEtiquetaTarea()"
-                  style="padding:8px 16px;background:rgba(255,255,255,0.9);color:#f5576c;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;">
-                  ✓ Añadir
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección: Etiquetas de Citas -->
-          <div
-            style="background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(168,237,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📅 Etiquetas de Citas</h4>
-
-            <!-- Lista actual de etiquetas -->
-            <div style="background:rgba(255,255,255,0.6);padding:12px;border-radius:8px;margin-bottom:15px;">
-              <div id="etiquetas-citas-lista"
-                style="max-height:180px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:10px;color:#333;">
-              </div>
-            </div>
-
-            <!-- Formulario para nueva etiqueta -->
-            <div style="background:rgba(255,255,255,0.4);padding:15px;border-radius:8px;">
-              <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end;">
-                <div>
-                  <label
-                    style="color:#2d3748;font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Nombre:</label>
-                  <input type="text" id="nueva-etiqueta-cita" placeholder="Ej: Cita médica"
-                    style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
-                </div>
-                <div>
-                  <label
-                    style="color:#2d3748;font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Emoji:</label>
-                  <select id="simbolo-etiqueta-cita"
-                    style="padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;min-width:110px;">
-                    <option value="💼">💼 Trabajo</option>
-                    <option value="🏥">🏥 Salud</option>
-                    <option value="🎮">🎮 Ocio</option>
-                    <option value="📚">📚 Estudio</option>
-                    <option value="🏠">🏠 Casa</option>
-                    <option value="💰">💰 Finanzas</option>
-                    <option value="🚗">🚗 Transporte</option>
-                    <option value="🍽️">🍽️ Comida</option>
-                    <option value="📞">📞 Llamadas</option>
-                    <option value="🛍️">🛍️ Compras</option>
-                    <option value="✈️">✈️ Viajes</option>
-                    <option value="📱">📱 Tecnología</option>
-                    <option value="🏋️">🏋️ Ejercicio</option>
-                    <option value="📝">📝 Documentos</option>
-                    <option value="🎉">🎉 Eventos</option>
-                    <option value="👥">👥 Social</option>
-                    <option value="🎨">🎨 Creatividad</option>
-                    <option value="🔧">🔧 Reparaciones</option>
-                    <option value="🌱">🌱 Jardinería</option>
-                    <option value="📧">📧 Email</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    style="color:#2d3748;font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Color:</label>
-                  <input type="color" id="color-etiqueta-cita" value="#4ecdc4"
-                    style="width:40px;height:40px;padding:2px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);">
-                </div>
-                <button onclick="agregarEtiquetaCita()"
-                  style="padding:8px 16px;background:rgba(255,255,255,0.9);color:#2d3748;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;">
-                  ✓ Añadir
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style="text-align:center;margin-top:25px;">
-            <button class="btn-primario" onclick="guardarEtiquetas()"
-              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(240,147,251,0.4);transition:all 0.3s ease;">
-              🏷️ Guardar Todas las Etiquetas
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Personas -->
-      <div id="tab-personas" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">👥 Gestión de Personas</h3>
-
-          <!-- Sección: Añadir Nueva Persona -->
-          <div
-            style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">👤 Añadir Nueva Persona</h4>
-            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Personas a las que puedes asignar
-              tareas y subtareas</p>
-
-            <div style="background:rgba(255,255,255,0.15);padding:15px;border-radius:8px;">
-              <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
-                <div>
-                  <label
-                    style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Nombre
-                    completo:</label>
-                  <input type="text" id="nueva-persona" placeholder="Ej: María García, Juan Pérez..."
-                    style="width:100%;padding:10px 15px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;font-size:14px;">
-                </div>
-                <button onclick="agregarPersona()"
-                  style="padding:10px 20px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                  👤 Añadir Persona
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección: Lista de Personas -->
-          <div
-            style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(250,112,154,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📋 Personas Disponibles</h4>
-
-            <div style="background:rgba(255,255,255,0.6);padding:15px;border-radius:8px;">
-              <div id="personas-lista"
-                style="max-height:300px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:15px;color:#333;min-height:120px;">
-                <div style="text-align:center;color:#666;padding:30px;font-style:italic;">
-                  <div style="font-size:48px;margin-bottom:10px;">👥</div>
-                  <div>Cargando personas...</div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              style="margin-top:15px;padding:12px;background:rgba(255,255,255,0.4);border-radius:6px;text-align:center;">
-              <small style="color:#2d3748;font-size:11px;">
-                💡 <strong>Tip:</strong> Puedes asignar estas personas a tareas y subtareas para organizarte mejor
-              </small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Backups -->
-      <div id="tab-backups" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">💾 Gestión de Backups</h3>
-
-          <!-- Sección: Controles de Backup -->
-          <div
-            style="background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(17,153,142,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔧 Controles de Backup</h4>
-            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Crea y gestiona copias de seguridad
-              de tus datos</p>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <button class="btn-primario" onclick="crearSalvadoManual()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.9);color:#11998e;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
-                💾 Crear Backup Ahora
-              </button>
-              <button class="btn-secundario" onclick="limpiarSalvadosAntiguos()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
-                🗑️ Limpiar Antiguos
-              </button>
-            </div>
-          </div>
-
-          <!-- Sección: Lista de Backups -->
-          <div
-            style="background:linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,236,210,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📦 Backups Disponibles</h4>
-
-            <div style="background:rgba(255,255,255,0.6);padding:15px;border-radius:8px;">
-              <div id="backups-container"
-                style="max-height:300px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:15px;color:#333;min-height:150px;">
-                <div style="text-align:center;color:#666;padding:40px;font-style:italic;">
-                  <div style="font-size:48px;margin-bottom:10px;">💾</div>
-                  <div>Cargando lista de backups...</div>
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top:15px;padding:12px;background:rgba(255,255,255,0.4);border-radius:6px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                <small style="color:#2d3748;font-size:11px;">
-                  💡 <strong>Tip:</strong> Los backups se crean automáticamente cada día
-                </small>
-                <small style="color:rgba(45,55,72,0.7);font-size:10px;">
-                  🕐 Última sincronización automática en tiempo real
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Log -->
-      <div id="tab-log" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">📋 Registro de Actividad</h3>
-
-          <!-- Sección: Controles del Log -->
-          <div
-            style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔧 Gestión del Log</h4>
-            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Administra el historial de acciones
-              realizadas</p>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <button class="btn-secundario" onclick="limpiarLog()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
-                🗑️ Limpiar Log
-              </button>
-              <button class="btn-secundario" onclick="exportarLog()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
-                📥 Exportar Log
-              </button>
-            </div>
-          </div>
-
-          <!-- Sección: Historial de Actividad -->
-          <div
-            style="background:linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(255,236,210,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📊 Historial de Actividad</h4>
-
-            <div style="background:rgba(255,255,255,0.6);padding:15px;border-radius:8px;">
-              <div id="log-container"
-                style="max-height:350px;overflow-y:auto;background:rgba(255,255,255,0.9);border-radius:6px;padding:15px;color:#333;font-family:monospace;font-size:11px;line-height:1.4;min-height:200px;">
-                <div style="text-align:center;color:#666;padding:50px;font-style:italic;font-family:inherit;">
-                  <div style="font-size:48px;margin-bottom:15px;">📋</div>
-                  <div style="font-size:14px;margin-bottom:8px;">Cargando registro de actividad...</div>
-                  <div style="font-size:12px;color:#999;">Las acciones realizadas aparecerán aquí</div>
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top:15px;padding:12px;background:rgba(255,255,255,0.4);border-radius:6px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                <small style="color:#2d3748;font-size:11px;">
-                  💡 <strong>Tip:</strong> El log se actualiza automáticamente con cada acción
-                </small>
-                <small style="color:rgba(45,55,72,0.7);font-size:10px;">
-                  🕐 Registro en tiempo real activado
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Acciones -->
-      <div id="tab-actions" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">🚀 Acciones del Sistema</h3>
-
-          <!-- Sección: Sincronización -->
-          <div
-            style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(79,172,254,0.3);">
-            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔄 Sincronización</h4>
-            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">Sincronización automática cada 30
-              segundos</p>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <button class="btn-primario" onclick="guardarJSON()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.9);color:#4facfe;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                💾 Guardar Ahora
-              </button>
-              <button class="btn-secundario" onclick="extendsClassPull()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                🔄 Sincronizar
-              </button>
-            </div>
-          </div>
-
-          <!-- Sección: Gestión de Datos -->
-          <div
-            style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(250,112,154,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📂 Gestión de Datos</h4>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <button class="btn-secundario" onclick="hacerCopia()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                📋 Copiar JSON
-              </button>
-              <button class="btn-secundario" onclick="crearBackupManual()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                💾 Descargar
-              </button>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <button class="btn-secundario" onclick="restaurarBackup()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                📥 Importar JSON
-              </button>
-              <button class="btn-secundario" onclick="abrirEditorBaseDatos()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                🔧 Editar BD
-              </button>
-            </div>
-          </div>
-
-          <!-- Sección: Análisis y Herramientas -->
-          <div
-            style="background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(168,237,234,0.3);">
-            <h4 style="margin:0 0 15px 0;color:#2d3748;font-size:16px;">📊 Análisis y Herramientas</h4>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <button class="btn-secundario" onclick="mostrarDashboardMotivacional()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                📊 Mi Progreso
-              </button>
-              <button class="btn-secundario" onclick="abrirVisorHistorial()"
-                style="padding:12px 20px;background:rgba(255,255,255,0.8);color:#2d3748;border:1px solid rgba(45,55,72,0.2);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                📋 Ver Historial
-              </button>
-            </div>
-
-            <div style="text-align:center;">
-              <button class="btn-primario" onclick="solicitarPermisoNotificaciones()"
-                style="padding:12px 24px;background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);color:#2d3748;border:2px solid rgba(45,55,72,0.3);border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;">
-                🔔 Solicitar Permisos de Notificación
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-botones">
-        <button class="btn-secundario" onclick="cerrarModal('modal-config')">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para cita periódica -->
-  <div id="modal-cita-periodica" class="modal">
-    <div class="modal-content" style="max-width:400px;">
-      <h4>🔄 Cita Periódica</h4>
-
-      <div class="form-group">
-        <label>Descripción:</label>
-        <input type="text" id="periodica-descripcion" placeholder="Ej: Reunión semanal">
-      </div>
-
-      <div class="form-group">
-        <label>📍 Lugar (opcional):</label>
-        <input type="text" id="periodica-lugar" placeholder="Ej: Sala de reuniones, Hospital...">
-      </div>
-
-      <div class="form-group">
-        <label>Fecha de inicio:</label>
-        <input type="date" id="periodica-fecha-inicio" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-        <div>
-          <label style="font-size:12px;">Hora:</label>
-          <select id="periodica-hora" style="width:100%;padding:6px;">
-            <option value="08">08</option>
-            <option value="09">09</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14" selected>14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-          </select>
-          
-        </div>
-        <div>
-          <label style="font-size:12px;">Minutos:</label>
-          <select id="periodica-minutos" style="width:100%;padding:6px;">
-            <option value="00" selected>00</option>
-            <option value="05">05</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="30">30</option>
-            <option value="35">35</option>
-            <option value="40">40</option>
-            <option value="45">45</option>
-            <option value="50">50</option>
-            <option value="55">55</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Frecuencia:</label>
-        <select id="periodica-frecuencia" style="width:100%;padding:8px;">
-          <option value="semanal">Cada semana</option>
-          <option value="quincenal">Cada 15 días</option>
-          <option value="mensual">Cada mes</option>
-          <option value="semestral">Cada 6 meses</option>
-          <option value="anual">Cada año</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Generar hasta:</label>
-        <input type="date" id="periodica-fecha-fin" onkeydown="return false;" onclick="this.showPicker();">
-      </div>
-
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="crearCitaPeriodica()">Crear</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-cita-periodica')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para citas con fechas relativas -->
-  <div id="modal-citas-relativas" class="modal">
-    <div class="modal-content" style="max-width:450px;">
-      <h4>📅 Conjunto de Citas</h4>
-
-      <div class="form-group">
-        <label>Fecha base:</label>
-        <input type="date" id="fecha-base-citas" onkeydown="return false;" onclick="this.showPicker();"
-          onchange="actualizarPreviewFecha()">
-      </div>
-
-      <div class="form-group">
-        <label>Citas a agregar:</label>
-        <div id="lista-citas-relativas"
-          style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:8px;padding:10px;background:#f9f9f9;">
-        </div>
-      </div>
-
-      <div style="border-top:1px solid #eee;padding-top:15px;margin-top:15px;">
-        <div class="form-group">
-          <label>Nueva cita:</label>
-          <input type="text" id="nueva-cita-descripcion" placeholder="Descripción de la cita">
-        </div>
-
-        <div class="form-group">
-          <label>📍 Lugar (opcional):</label>
-          <input type="text" id="lugar-cita-relativa" placeholder="Ej: Consulta médica, Oficina...">
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div>
-            <label style="font-size:12px;">Días:</label>
-            <input type="number" id="dias-offset" value="0" min="-365" max="365" style="width:100%;padding:6px;"
-              oninput="actualizarPreviewFecha()">
-          </div>
-          <div>
-            <label style="font-size:12px;">Meses:</label>
-            <input type="number" id="meses-offset" value="0" min="-12" max="12" style="width:100%;padding:6px;"
-              oninput="actualizarPreviewFecha()">
-          </div>
-          <div>
-            <label style="font-size:12px;">Años:</label>
-            <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;"
-              oninput="actualizarPreviewFecha()">
-          </div>
-        </div>
-
-        <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-          <div>
-            <label style="font-size:12px;">Hora:</label>
-            <select id="hora-cita-relativa" style="width:100%;padding:6px;">
-              <option value="08">08</option>
-              <option value="09">09</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-              <option value="13">13</option>
-              <option value="14" selected>14</option>
-              <option value="15">15</option>
-              <option value="16">16</option>
-              <option value="17">17</option>
-              <option value="18">18</option>
-              <option value="19">19</option>
-              <option value="20">20</option>
-              <option value="21">21</option>
-              <option value="22">22</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:12px;">Minutos:</label>
-            <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
-              <option value="00" selected>00</option>
-              <option value="05">05</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-              <option value="35">35</option>
-              <option value="40">40</option>
-              <option value="45">45</option>
-              <option value="50">50</option>
-              <option value="55">55</option>
-            </select>
-          </div>
-        </div>
-
-        <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir
-          cita</button>
-      </div>
-
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Pomodoro -->
-  <div id="modal-pomodoro" class="modal">
-    <div class="modal-content" style="max-width:400px;text-align:center;">
-      <h4 id="pomodoro-titulo">🍅 Pomodoro TDAH</h4>
-      <div id="pomodoro-estado-inicial">
-        <div style="margin-bottom:20px;">
-          <label style="font-weight:500;margin-bottom:10px;display:block;">¿Qué estás haciendo ahora?</label>
-          <input type="text" id="pomodoro-actividad" placeholder="Estudiar, trabajar, organizar..."
-            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
-        </div>
-        <div style="margin-bottom:20px;">
-          <label style="font-weight:500;margin-bottom:10px;display:block;">Duración (minutos):</label>
-          <input type="number" id="pomodoro-duracion" value="25" min="1" max="180"
-            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+    <!-- Modal de citas relativas -->
+    <div id="modal-citas-relativas" class="modal">
+      <div class="modal-content" style="max-width: 500px;">
+        <h4>📅 Citas Relativas</h4>
+        <div id="citas-relativas-contenedor">
+          <button onclick="agregarCitaRelativa()" class="boton-agregar"
+            style="width:100%;margin-bottom:10px;">➕ Añadir cita</button>
         </div>
         <div class="modal-botones">
-          <button class="btn-primario" onclick="empezarPomodoro()">🚀 Empezar</button>
-          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cancelar</button>
-        </div>
-      </div>
-
-      <div id="pomodoro-en-curso" style="display:none;">
-        <div style="font-size:18px;margin-bottom:15px;color:#2c5aa0;">
-          <strong>Haciendo:</strong> <span id="actividad-actual"></span>
-        </div>
-        <div id="cronometro" style="font-size:48px;font-weight:bold;color:#e74c3c;margin:20px 0;">
-          25:00
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="terminarPomodoro()">✅ Terminar</button>
-          <button class="btn-secundario" onclick="pausarPomodoro()" id="btn-pausar">⏸️ Pausar</button>
-          <button class="btn-secundario" onclick="cancelarPomodoro()">❌ Cancelar</button>
-        </div>
-      </div>
-
-      <div id="pomodoro-completado" style="display:none;">
-        <div style="font-size:64px;margin:20px 0;">🎉</div>
-        <h3 style="color:#27ae60;">¡Pomodoro Completado!</h3>
-        <div style="margin:15px 0;color:#666;">
-          Has trabajado en: <strong id="actividad-completada"></strong>
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="nuevoPomodoro()">🔄 Nuevo Pomodoro</button>
-          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cerrar</button>
+          <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
+          <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Supabase CDN -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+            <!-- Modal Pomodoro -->
+            <div id="modal-pomodoro" class="modal">
+              <div class="modal-content" style="max-width:400px;text-align:center;">
+                <h4 id="pomodoro-titulo">🍅 Pomodoro TDAH</h4>
+                <div id="pomodoro-estado-inicial">
+                  <div style="margin-bottom:20px;">
+                    <label style="font-weight:500;margin-bottom:10px;display:block;">¿Qué estás haciendo ahora?</label>
+                    <input type="text" id="pomodoro-actividad" placeholder="Estudiar, trabajar, organizar..."
+                      style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+                  </div>
+                  <div style="margin-bottom:20px;">
+                    <label style="font-weight:500;margin-bottom:10px;display:block;">Duración (minutos):</label>
+                    <input type="number" id="pomodoro-duracion" value="25" min="1" max="180"
+                      style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+                  </div>
+                  <div class="modal-botones">
+                    <button class="btn-primario" onclick="empezarPomodoro()">🚀 Empezar</button>
+                    <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cancelar</button>
+                  </div>
+                </div>
 
-  <!-- Scripts modulares -->
-  <script src="assets/js/tareas.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script src="assets/js/calendario.js"></script>
-  <script src="assets/js/sincronizacion-simple.js"></script>
-  <script src="assets/js/supabase-sync.js"></script>
-  <script src="assets/js/historial-viewer.js"></script>
-  <script src="assets/js/rendimiento.js"></script>
-  <script src="assets/js/compatibility.js"></script>
-  <script src="assets/js/restore-backup.js"></script> <!-- TEMPORAL: Para restaurar backup -->
+                <div id="pomodoro-en-curso" style="display:none;">
+                  <div style="font-size:18px;margin-bottom:15px;color:#2c5aa0;">
+                    <strong>Haciendo:</strong> <span id="actividad-actual"></span>
+                  </div>
+                  <div id="cronometro" style="font-size:48px;font-weight:bold;color:#e74c3c;margin:20px 0;">
+                    25:00
+                  </div>
+                  <div class="modal-botones">
+                    <button class="btn-primario" onclick="terminarPomodoro()">✅ Terminar</button>
+                    <button class="btn-secundario" onclick="pausarPomodoro()" id="btn-pausar">⏸️ Pausar</button>
+                    <button class="btn-secundario" onclick="cancelarPomodoro()">❌ Cancelar</button>
+                  </div>
+                </div>
 
-  <!-- Funciones para filtros de calendario -->
-  <script>
-    function aplicarFiltrosCalendario() {
-      const mostrarCitas = document.getElementById('filtro-citas').checked;
-      const mostrarTareas = document.getElementById('filtro-tareas').checked;
+                <div id="pomodoro-completado" style="display:none;">
+                  <div style="font-size:64px;margin:20px 0;">🎉</div>
+                  <h3 style="color:#27ae60;">¡Pomodoro Completado!</h3>
+                  <div style="margin:15px 0;color:#666;">
+                    Has trabajado en: <strong id="actividad-completada"></strong>
+                  </div>
+                  <div class="modal-botones">
+                    <button class="btn-primario" onclick="nuevoPomodoro()">🔄 Nuevo Pomodoro</button>
+                    <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      console.log('Filtros aplicados - Citas:', mostrarCitas, 'Tareas:', mostrarTareas);
+            <!-- Modal para nueva tarea crítica -->
+            <div id="modal-critica" class="modal">
+              <div class="modal-content">
+                <h4>🚨 Nueva Tarea Crítica</h4>
+                <div class="form-group">
+                  <label>Título:</label>
+                  <input type="text" id="critica-titulo" class="form-control" placeholder="¿Qué necesitas hacer urgentemente?">
+                </div>
+                <div class="form-group">
+                  <label>Fecha límite:</label>
+                  <input type="date" id="critica-fecha" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Etiqueta:</label>
+                  <select id="critica-etiqueta" class="form-control">
+                    <option value="">Sin etiqueta</option>
+                  </select>
+                </div>
+                <div class="modal-botones">
+                  <button class="btn-primario" onclick="agregarTareaCritica()">Agregar</button>
+                  <button class="btn-secundario" onclick="cerrarModal('modal-critica')">Cancelar</button>
+                </div>
+              </div>
+            </div>
 
-      // Actualizar título
-      const titulo = document.getElementById('titulo-lista-calendario');
-      if (mostrarCitas && mostrarTareas) {
-        titulo.textContent = '📋 Próximos 30 días: Citas y Tareas';
-      } else if (mostrarCitas) {
-        titulo.textContent = '📅 Próximos 30 días: Solo Citas';
-      } else if (mostrarTareas) {
-        titulo.textContent = '✅ Próximos 30 días: Solo Tareas';
-      } else {
-        titulo.textContent = '📋 Ningún elemento seleccionado';
-      }
+            <!-- Modal para nueva tarea normal -->
+            <div id="modal-tarea" class="modal">
+              <div class="modal-content">
+                <h4>✅ Nueva Tarea</h4>
+                <div class="form-group">
+                  <label>¿Qué necesitas hacer?</label>
+                  <input type="text" id="tarea-texto" class="form-control" placeholder="Describe la tarea...">
+                </div>
+                <div class="form-group">
+                  <label>Fecha límite (opcional):</label>
+                  <input type="date" id="tarea-fecha" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Etiqueta:</label>
+                  <select id="tarea-etiqueta" class="form-control">
+                    <option value="">Sin etiqueta</option>
+                  </select>
+                </div>
+                <div class="modal-botones">
+                  <button class="btn-primario" onclick="agregarTarea()">Agregar</button>
+                  <button class="btn-secundario" onclick="cerrarModal('modal-tarea')">Cancelar</button>
+                </div>
+              </div>
+            </div>
 
-      // Guardar configuración de filtros
-      guardarFiltrosCalendario(mostrarCitas, mostrarTareas);
+            <!-- Modal para migrar tarea -->
+            <div id="modal-migrar" class="modal">
+              <div class="modal-content">
+                <h4>→ Migrar Tarea</h4>
+                <div class="form-group">
+                  <label>Nueva fecha:</label>
+                  <input type="date" id="migrar-fecha" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Persona asignada (opcional):</label>
+                  <input type="text" id="migrar-persona" class="form-control" placeholder="Nombre de la persona">
+                </div>
+                <div class="modal-botones">
+                  <button class="btn-primario" onclick="guardarMigracion()">Migrar</button>
+                  <button class="btn-secundario" onclick="cerrarModal('modal-migrar')">Cancelar</button>
+                </div>
+              </div>
+            </div>
 
-      // Mostrar elementos según filtros
-      mostrarElementosDelMes(mostrarCitas, mostrarTareas);
-    }
+            <!-- Supabase CDN -->
+            <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-    function mostrarElementosDelMes(mostrarCitas, mostrarTareas) {
-      const lista = document.getElementById('allAppointmentsList');
-      lista.innerHTML = '';
+            <!-- Scripts modulares -->
+            <script src="assets/js/tareas.js"></script>
+            <script src="assets/js/app.js"></script>
+            <script src="assets/js/calendario.js"></script>
+            <script src="assets/js/sincronizacion-simple.js"></script>
+            <script src="assets/js/supabase-sync.js"></script>
+            <script src="assets/js/historial-viewer.js"></script>
+            <script src="assets/js/rendimiento.js"></script>
+            <script src="assets/js/compatibility.js"></script>
+            <script src="assets/js/restore-backup.js"></script> <!-- TEMPORAL: Para restaurar backup -->
 
-      if (!mostrarCitas && !mostrarTareas) {
-        lista.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:20px;">Selecciona qué elementos mostrar</p>';
-        return;
-      }
+            <!-- Funciones para filtros de calendario -->
+            <script>
+              function aplicarFiltrosCalendario() {
+                const mostrarCitas = document.getElementById('filtro-citas').checked;
+                const mostrarTareas = document.getElementById('filtro-tareas').checked;
 
-      // Obtener rango de próximos 30 días
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0); // Inicio del día actual
+                console.log('Filtros aplicados - Citas:', mostrarCitas, 'Tareas:', mostrarTareas);
 
-      const en30Dias = new Date(hoy);
-      en30Dias.setDate(hoy.getDate() + 30); // 30 días desde hoy
+                // Actualizar título
+                const titulo = document.getElementById('titulo-lista-calendario');
+                if (mostrarCitas && mostrarTareas) {
+                  titulo.textContent = '📋 Próximos 30 días: Citas y Tareas';
+                } else if (mostrarCitas) {
+                  titulo.textContent = '📅 Próximos 30 días: Solo Citas';
+                } else if (mostrarTareas) {
+                  titulo.textContent = '✅ Próximos 30 días: Solo Tareas';
+                } else {
+                  titulo.textContent = '📋 Ningún elemento seleccionado';
+                }
 
-      let elementos = [];
+                // Guardar configuración de filtros
+                guardarFiltrosCalendario(mostrarCitas, mostrarTareas);
 
-      // Obtener citas si está seleccionado
-      if (mostrarCitas && window.appState?.agenda?.citas) {
-        const citas = window.appState.agenda.citas.filter(cita => {
-          if (!cita || !cita.fecha || !Array.isArray(cita.fecha)) return false;
-          const [año, mes, dia] = cita.fecha;
-          const fechaCita = new Date(año, mes - 1, dia); // mes array es 1-12, Date usa 0-11
-          fechaCita.setHours(0, 0, 0, 0);
-          return fechaCita >= hoy && fechaCita <= en30Dias;
-        }).map(cita => ({
-          ...cita,
-          tipo: 'cita',
-          icono: '📅',
-          color: '#ff9800',
-          titulo: cita.nombre, // Las citas usan 'nombre' no 'titulo'
-          fechaParaOrden: new Date(cita.fecha[0], cita.fecha[1] - 1, cita.fecha[2]) // Para ordenar
-        }));
-        elementos.push(...citas);
-      }
+                // Mostrar elementos según filtros
+                mostrarElementosDelMes(mostrarCitas, mostrarTareas);
+              }
 
-      // Obtener tareas si está seleccionado
-      if (mostrarTareas && window.appState?.agenda?.tareas) {
-        const tareas = window.appState.agenda.tareas.filter(tarea => {
-          if (!tarea || !tarea.fecha_fin) return false;
-          const fechaTarea = new Date(tarea.fecha_fin);
-          fechaTarea.setHours(0, 0, 0, 0);
-          return fechaTarea >= hoy && fechaTarea <= en30Dias;
-        }).map(tarea => ({
-          ...tarea,
-          tipo: 'tarea',
-          icono: '✅',
-          color: '#4ecdc4',
-          titulo: tarea.texto,
-          fechaParaOrden: new Date(tarea.fecha_fin) // Para ordenar
-        }));
-        elementos.push(...tareas);
-      }
+              function mostrarElementosDelMes(mostrarCitas, mostrarTareas) {
+                const lista = document.getElementById('allAppointmentsList');
+                lista.innerHTML = '';
 
-      // Ordenar por fecha
-      elementos.sort((a, b) => {
-        return a.fechaParaOrden - b.fechaParaOrden;
-      });
+                if (!mostrarCitas && !mostrarTareas) {
+                  lista.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:20px;">Selecciona qué elementos mostrar</p>';
+                  return;
+                }
 
-      // Mostrar elementos
-      if (elementos.length === 0) {
-        lista.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:20px;">No hay elementos en los próximos 30 días</p>';
-      } else {
-        elementos.forEach(elemento => {
-          const fechaStr = elemento.fechaParaOrden.toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'short'
-          });
+                // Obtener rango de próximos 30 días
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0); // Inicio del día actual
 
-          const div = document.createElement('div');
-          div.style.cssText = `
+                const en30Dias = new Date(hoy);
+                en30Dias.setDate(hoy.getDate() + 30); // 30 días desde hoy
+
+                let elementos = [];
+
+                // Obtener citas si está seleccionado
+                if (mostrarCitas && window.appState?.agenda?.citas) {
+                  const citas = window.appState.agenda.citas.filter(cita => {
+                    if (!cita || !cita.fecha || !Array.isArray(cita.fecha)) return false;
+                    const [año, mes, dia] = cita.fecha;
+                    const fechaCita = new Date(año, mes - 1, dia); // mes array es 1-12, Date usa 0-11
+                    fechaCita.setHours(0, 0, 0, 0);
+                    return fechaCita >= hoy && fechaCita <= en30Dias;
+                  }).map(cita => ({
+                    ...cita,
+                    tipo: 'cita',
+                    icono: '📅',
+                    color: '#ff9800',
+                    titulo: cita.nombre, // Las citas usan 'nombre' no 'titulo'
+                    fechaParaOrden: new Date(cita.fecha[0], cita.fecha[1] - 1, cita.fecha[2]) // Para ordenar
+                  }));
+                  elementos.push(...citas);
+                }
+
+                // Obtener tareas si está seleccionado
+                if (mostrarTareas && window.appState?.agenda?.tareas) {
+                  const tareas = window.appState.agenda.tareas.filter(tarea => {
+                    if (!tarea || !tarea.fecha_fin) return false;
+                    const fechaTarea = new Date(tarea.fecha_fin);
+                    fechaTarea.setHours(0, 0, 0, 0);
+                    return fechaTarea >= hoy && fechaTarea <= en30Dias;
+                  }).map(tarea => ({
+                    ...tarea,
+                    tipo: 'tarea',
+                    icono: '✅',
+                    color: '#4ecdc4',
+                    titulo: tarea.texto,
+                    fechaParaOrden: new Date(tarea.fecha_fin) // Para ordenar
+                  }));
+                  elementos.push(...tareas);
+                }
+
+                // Ordenar por fecha
+                elementos.sort((a, b) => {
+                  return a.fechaParaOrden - b.fechaParaOrden;
+                });
+
+                // Mostrar elementos
+                if (elementos.length === 0) {
+                  lista.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:20px;">No hay elementos en los próximos 30 días</p>';
+                } else {
+                  elementos.forEach(elemento => {
+                    const fechaStr = elemento.fechaParaOrden.toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short'
+                    });
+
+                    const div = document.createElement('div');
+                    div.style.cssText = `
             padding: 8px;
             margin-bottom: 6px;
             border-radius: 6px;
@@ -1828,7 +565,7 @@
             line-height: 1.3;
           `;
 
-          div.innerHTML = `
+                    div.innerHTML = `
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-size:14px;">${elemento.icono}</span>
               <span style="font-weight:500;color:#2c3e50;">${elemento.titulo || elemento.descripcion}</span>
@@ -1836,114 +573,311 @@
             <div style="font-size:11px;color:#666;margin-top:2px;">${fechaStr}</div>
           `;
 
-          lista.appendChild(div);
-        });
-      }
-    }
+                    lista.appendChild(div);
+                  });
+                }
+              }
 
-    function marcarTodos(seleccionar) {
-      console.log('🔄 Marcando todos:', seleccionar);
+              function marcarTodos(seleccionar) {
+                console.log('🔄 Marcando todos:', seleccionar);
 
-      const citasCheckbox = document.getElementById('filtro-citas');
-      const tareasCheckbox = document.getElementById('filtro-tareas');
+                const citasCheckbox = document.getElementById('filtro-citas');
+                const tareasCheckbox = document.getElementById('filtro-tareas');
 
-      if (citasCheckbox) citasCheckbox.checked = seleccionar;
-      if (tareasCheckbox) tareasCheckbox.checked = seleccionar;
+                if (citasCheckbox) citasCheckbox.checked = seleccionar;
+                if (tareasCheckbox) tareasCheckbox.checked = seleccionar;
 
-      console.log('✅ Estados después del cambio:', {
-        citas: citasCheckbox?.checked,
-        tareas: tareasCheckbox?.checked
-      });
+                console.log('✅ Estados después del cambio:', {
+                  citas: citasCheckbox?.checked,
+                  tareas: tareasCheckbox?.checked
+                });
 
-      aplicarFiltrosCalendario();
-    }
+                aplicarFiltrosCalendario();
+              }
 
-    function guardarFiltrosCalendario(citas, tareas) {
-      // Asegurar que existe window.configVisual
-      if (!window.configVisual) window.configVisual = {};
+              function guardarFiltrosCalendario(citas, tareas) {
+                // Asegurar que existe window.configVisual
+                if (!window.configVisual) window.configVisual = {};
 
-      // Guardar filtros
-      window.configVisual.filtrosCalendario = {
-        citas: citas,
-        tareas: tareas
-      };
+                // Guardar filtros
+                window.configVisual.filtrosCalendario = {
+                  citas: citas,
+                  tareas: tareas
+                };
 
-      // Guardar configuración
-      if (typeof guardarConfigEnFirebase === 'function') {
-        guardarConfigEnFirebase();
-        console.log('✅ Filtros de calendario guardados');
-      }
-    }
+                // Guardar configuración
+                if (typeof guardarConfigEnSupabase === 'function') {
+                  guardarConfigEnSupabase();
+                  console.log('✅ Filtros de calendario guardados');
+                }
+              }
 
-    function cargarFiltrosCalendario() {
-      const config = window.configVisual || {};
-      const filtros = config.filtrosCalendario || { citas: true, tareas: false };
+              function cargarFiltrosCalendario() {
+                const config = window.configVisual || {};
+                const filtros = config.filtrosCalendario || { citas: true, tareas: false };
 
-      // Aplicar filtros guardados
-      document.getElementById('filtro-citas').checked = filtros.citas;
-      document.getElementById('filtro-tareas').checked = filtros.tareas;
+                // Aplicar filtros guardados
+                document.getElementById('filtro-citas').checked = filtros.citas;
+                document.getElementById('filtro-tareas').checked = filtros.tareas;
 
-      // Actualizar título
-      aplicarFiltrosCalendario();
-    }
+                // Actualizar título
+                aplicarFiltrosCalendario();
+              }
+            </script>
 
-    // Cargar filtros cuando se abre el modal
-    function abrirModalCalendarioConFiltros() {
-      cargarFiltrosCalendario();
-      abrirModal('modal-calendar');
-    }
-  </script>
+            <!-- Modal de Configuración -->
+            <div id="modal-config" class="modal">
+              <div class="modal-content"
+                style="max-width: 800px; height: 80vh; display: flex; flex-direction: column; padding: 30px;">
+                <div class="modal-header"
+                  style="padding: 0 0 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; margin: -30px -30px 20px -30px; padding: 15px 30px;">
+                  <h3 style="margin: 0;">⚙️ Configuración</h3>
+                  <span class="close" onclick="cerrarModal('modal-config')"
+                    style="cursor: pointer; font-size: 24px;">&times;</span>
+                </div>
 
-  <!-- Footer con licencia y créditos -->
-  <footer class="app-footer" style="
-    position: fixed;
-    bottom: 0;
-    right: 15px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 8px 8px 0 0;
-    font-size: 11px;
-    line-height: 1.4;
-    backdrop-filter: blur(10px);
-    z-index: 9999;
-    max-width: 280px;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
-      <span style="font-size: 12px;">🧠</span>
-      <span style="font-weight: 600; color: #4ecdc4;">AgendaGitSyncro</span>
-      <span style="background: #4ecdc4; color: white; padding: 1px 6px; border-radius: 10px; font-size: 9px; font-weight: 600;">v2.0</span>
-    </div>
+                <div class="config-tabs"
+                  style="display: flex; background: #f8f9fa; border-bottom: 1px solid #ddd; overflow-x: auto; margin: 0 -30px 20px -30px; padding: 15px 30px 0 30px;">
+                  <button class="config-tab active" onclick="switchTab('visual')">🎨 Visual</button>
+                  <button class="config-tab" onclick="switchTab('funcionales')">🛠️ Funcionales</button>
+                  <button class="config-tab" onclick="switchTab('opciones')">⚙️ Opciones</button>
+                  <button class="config-tab" onclick="switchTab('supabase')">☁️ Supabase</button>
+                  <button class="config-tab" onclick="switchTab('etiquetas')">🏷️ Etiquetas</button>
+                  <button class="config-tab" onclick="switchTab('personas')">👥 Personas</button>
+                  <button class="config-tab" onclick="switchTab('backups')">💾 Backups</button>
+                  <button class="config-tab" onclick="switchTab('log')">📋 Log</button>
+                </div>
 
-    <div style="display: flex; align-items: center; gap: 6px; opacity: 0.9;">
-      <span style="font-size: 10px;">💻</span>
-      <span>Created by <strong>linuxesdios</strong></span>
-    </div>
+                <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 0;">
 
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.2);">
-      <a href="https://github.com/linuxesdios/AgendaGitSyncro" target="_blank"
-         style="color: #4ecdc4; text-decoration: none; display: flex; align-items: center; gap: 4px; font-size: 10px;"
-         onmouseover="this.style.color='#45b7b8'" onmouseout="this.style.color='#4ecdc4'">
-        <span>🐙</span>
-        <span>GitHub</span>
-      </a>
+                  <!-- Tab Visual -->
+                  <div id="tab-visual" class="tab-content active">
+                    <h4>Apariencia</h4>
+                    <div class="form-group">
+                      <label>Tema de color:</label>
+                      <select id="config-tema-select" class="form-control" onchange="guardarConfigVisualPanel()">
+                        <option value="verde">Verde (Original)</option>
+                        <option value="azul">Azul Profesional</option>
+                        <option value="rosa">Rosa Suave</option>
+                        <option value="oscuro">Modo Oscuro</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Título de la Agenda:</label>
+                      <input type="text" id="config-titulo-input" class="form-control"
+                        onchange="guardarConfigVisualPanel()">
+                    </div>
 
-      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank"
-         style="color: #ffd700; text-decoration: none; display: flex; align-items: center; gap: 4px; font-size: 10px;"
-         onmouseover="this.style.color='#ffed4e'" onmouseout="this.style.color='#ffd700'">
-        <span>⚖️</span>
-        <span>CC BY-NC-SA 4.0</span>
-      </a>
-    </div>
+                    <h4>Visualización</h4>
+                    <div class="form-group">
+                      <label>Modo de visualización:</label>
+                      <select id="config-modo-visualizacion" class="form-control" onchange="guardarConfigVisualPanel()">
+                        <option value="estado">Por Estado (Pendiente/Completada)</option>
+                        <option value="prioridad">Por Prioridad (Crítica/Normal)</option>
+                        <option value="fecha">Por Fecha de Vencimiento</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Columnas de tareas:</label>
+                      <select id="config-columnas" class="form-control" onchange="guardarConfigVisualPanel()">
+                        <option value="1">1 Columna (Móvil)</option>
+                        <option value="2">2 Columnas (Estándar)</option>
+                        <option value="3">3 Columnas (Ancho)</option>
+                      </select>
+                    </div>
 
-    <!-- Botón para minimizar -->
-    <button onclick="this.parentElement.style.transform='translateX(calc(100% - 40px))'; this.innerHTML='👁️'"
-            style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: white; cursor: pointer; font-size: 10px; opacity: 0.7; padding: 2px;"
-            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"
-            title="Minimize footer">✖️</button>
-  </footer>
+                    <h4>Elementos Visibles</h4>
+                    <div class="checkbox-group">
+                      <label><input type="checkbox" id="config-popup-celebracion" onchange="guardarConfigVisualPanel()">
+                        Mostrar celebración al completar</label>
+                      <label><input type="checkbox" id="config-mostrar-notas" onchange="guardarConfigVisualPanel()">
+                        Mostrar panel de Notas</label>
+                      <label><input type="checkbox" id="config-mostrar-sentimientos"
+                          onchange="guardarConfigVisualPanel()"> Mostrar panel de Sentimientos</label>
+                      <label><input type="checkbox" id="config-mostrar-contrasenas"
+                          onchange="guardarConfigVisualPanel()"> Mostrar panel de Contraseñas</label>
+                      <label><input type="checkbox" id="config-mostrar-pomodoro" onchange="guardarConfigVisualPanel()">
+                        Mostrar Pomodoro</label>
+                      <label><input type="checkbox" id="config-mostrar-progreso" onchange="guardarConfigVisualPanel()">
+                        Mostrar Barra de Progreso</label>
+                      <label><input type="checkbox" id="config-mostrar-resumen" onchange="guardarConfigVisualPanel()">
+                        Mostrar Resumen Diario</label>
+                      <label><input type="checkbox" id="config-mostrar-tarea-universal"
+                          onchange="guardarConfigVisualPanel()"> Mostrar Tarea Universal</label>
+                    </div>
+
+                    <h4>Listas Personalizadas</h4>
+                    <div id="listas-personalizadas-contenido" style="margin-top: 10px;">
+                      <!-- Las listas personalizadas se renderizarán aquí dinámicamente -->
+                    </div>
+                  </div>
+
+                  <!-- Tab Funcionales -->
+                  <div id="tab-funcionales" class="tab-content">
+                    <h4>Comportamiento</h4>
+                    <div class="checkbox-group">
+                      <label><input type="checkbox" id="config-salvado-automatico"
+                          onchange="guardarConfigFuncionales()"> Guardar backup diario automáticamente</label>
+                      <label><input type="checkbox" id="config-limpiar-completadas"
+                          onchange="guardarConfigFuncionales()"> Limpiar tareas completadas al iniciar día</label>
+                      <label><input type="checkbox" id="config-confirmar-borrado" onchange="guardarConfigFuncionales()">
+                        Confirmar antes de borrar</label>
+                    </div>
+                  </div>
+
+                  <!-- Tab Opciones -->
+                  <div id="tab-opciones" class="tab-content">
+                    <h4>Opciones Generales</h4>
+                    <div class="checkbox-group">
+                      <label><input type="checkbox" id="config-sin-tactil" onchange="guardarConfigOpciones()"> Modo
+                        escritorio (sin optimización táctil)</label>
+                      <label><input type="checkbox" id="config-mostrar-todo" onchange="guardarConfigOpciones()"> Mostrar
+                        todas las opciones avanzadas</label>
+                      <label><input type="checkbox" id="config-botones-borrar" onchange="guardarConfigOpciones()">
+                        Mostrar botones de borrar siempre</label>
+                    </div>
+                  </div>
+
+                  <!-- Tab Supabase -->
+                  <div id="tab-supabase" class="tab-content">
+                    <div class="supabase-config-panel">
+                      <div style="text-align: center; margin-bottom: 20px;">
+                        <span style="font-size: 48px; color: #3ECF8E;">⚡</span>
+                        <h3 style="color: #3ECF8E;">Sincronización Supabase</h3>
+                        <p>Tus datos seguros y sincronizados en tiempo real</p>
+                      </div>
+
+                      <div id="supabase-status-panel"
+                        style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 20px; display: none;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <div
+                            style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 0 4px #dcfce7;">
+                          </div>
+                          <div>
+                            <strong style="color: #15803d;">Conectado y Sincronizando</strong>
+                            <div style="font-size: 12px; color: #166534;">Última sincronización: <span
+                                id="supabase-last-sync">Hace un momento</span></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label>URL del Proyecto Supabase:</label>
+                        <input type="text" id="supabase-url" class="form-control" placeholder="https://xyz.supabase.co">
+                      </div>
+                      <div class="form-group">
+                        <label>API Key (anon/public):</label>
+                        <input type="password" id="supabase-key" class="form-control"
+                          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                        <small style="color: #666;">Esta clave es segura de usar en el cliente.</small>
+                      </div>
+
+                      <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button onclick="guardarConfiguracionSupabase()" class="btn-primario"
+                          style="background: #3ECF8E; flex: 1;">Conectar</button>
+                        <button onclick="probarConexionSupabase()" class="btn-secundario">Probar Conexión</button>
+                      </div>
+
+                      <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                        <h4>🛠️ Herramientas de Datos</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                          <button onclick="supabasePush()" class="btn-secundario" style="font-size: 12px;">⬆️ Forzar
+                            Subida (Push)</button>
+                          <button onclick="supabasePull()" class="btn-secundario" style="font-size: 12px;">⬇️ Forzar
+                            Bajada (Pull)</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tab Etiquetas -->
+                  <div id="tab-etiquetas" class="tab-content">
+                    <h4>Gestión de Etiquetas</h4>
+                    <div id="lista-etiquetas-config" style="margin-bottom: 15px;"></div>
+                    <div style="display: flex; gap: 10px;">
+                      <input type="text" id="nueva-etiqueta-nombre" class="form-control" placeholder="Nueva etiqueta">
+                      <input type="color" id="nueva-etiqueta-color" value="#4ecdc4"
+                        style="height: 38px; width: 50px; padding: 0; border: none;">
+                      <button onclick="crearNuevaEtiqueta()" class="btn-primario">+</button>
+                    </div>
+                  </div>
+
+                  <!-- Tab Personas -->
+                  <div id="tab-personas" class="tab-content">
+                    <h4>Gestión de Personas</h4>
+                    <div id="personas-lista" style="margin-bottom: 15px;"></div>
+                    <div style="display: flex; gap: 10px;">
+                      <input type="text" id="nueva-persona-nombre" class="form-control"
+                        placeholder="Nombre de la persona">
+                      <button onclick="agregarPersona()" class="btn-primario">Añadir</button>
+                    </div>
+                  </div>
+
+                  <!-- Tab Backups -->
+                  <div id="tab-backups" class="tab-content">
+                    <h4>Copias de Seguridad</h4>
+                    <div class="form-group">
+                      <label>Crear nuevo backup:</label>
+                      <button onclick="crearBackupManual()" class="btn-primario" style="width: 100%;">💾 Crear Backup
+                        Ahora</button>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                      <label>Restaurar backup:</label>
+                      <select id="select-salvado" class="form-control"></select>
+                      <button onclick="restaurarSalvado(document.getElementById('select-salvado').value)"
+                        class="btn-secundario"
+                        style="width: 100%; margin-top: 10px; background: #ff9800; color: white;">⚠️ Restaurar
+                        Seleccionado</button>
+                    </div>
+                  </div>
+
+                  <!-- Tab Log -->
+                  <div id="tab-log" class="tab-content">
+                    <div
+                      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                      <h4>Registro de Actividad</h4>
+                      <div>
+                        <button onclick="exportarLog()" class="btn-secundario"
+                          style="padding: 5px 10px; font-size: 12px;">📥 Exportar</button>
+                        <button onclick="limpiarLog()" class="btn-secundario"
+                          style="padding: 5px 10px; font-size: 12px; background: #ffebee; color: #c62828;">🗑️
+                          Limpiar</button>
+                      </div>
+                    </div>
+                    <div id="log-container"
+                      style="background: #f8f9fa; border: 1px solid #eee; border-radius: 6px; height: 300px; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px;">
+                      <div style="text-align: center; color: #999; padding-top: 100px;">Cargando registro...</div>
+
+                      <div style="display: flex; align-items: center; gap: 6px; opacity: 0.9;">
+                        <span style="font-size: 10px;">💻</span>
+                        <span>Created by <strong>linuxesdios</strong></span>
+                      </div>
+
+                      <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <a href="https://github.com/linuxesdios/AgendaGitSyncro" target="_blank"
+                          style="color: #4ecdc4; text-decoration: none; display: flex; align-items: center; gap: 4px; font-size: 10px;"
+                          onmouseover="this.style.color='#45b7b8'" onmouseout="this.style.color='#4ecdc4'">
+                          <span>🐙</span>
+                          <span>GitHub</span>
+                        </a>
+
+                        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank"
+                          style="color: #ffd700; text-decoration: none; display: flex; align-items: center; gap: 4px; font-size: 10px;"
+                          onmouseover="this.style.color='#ffed4e'" onmouseout="this.style.color='#ffd700'">
+                          <span>⚖️</span>
+                          <span>CC BY-NC-SA 4.0</span>
+                        </a>
+                      </div>
+
+                      <!-- Botón para minimizar -->
+                      <button
+                        onclick="this.parentElement.style.transform='translateX(calc(100% - 40px))'; this.innerHTML='👁️'"
+                        style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: white; cursor: pointer; font-size: 10px; opacity: 0.7; padding: 2px;"
+                        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"
+                        title="Minimize footer">✖️</button>
+                      </footer>
 
 </body>
 

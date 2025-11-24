@@ -191,6 +191,9 @@ function cambiarFraseMotivacional() {
   }
 }
 
+// REMOVIDO: toggleConfigFloating ahora está en app.js
+// Esta versión vieja usaba 'configuracion-floating' que ya no existe
+/*
 function toggleConfigFloating() {
   const config = document.getElementById('configuracion-floating');
   if (!config) return;
@@ -201,6 +204,7 @@ function toggleConfigFloating() {
     config.style.display = 'none';
   }
 }
+*/
 
 function switchTab(tabName) {
   const tabs = document.querySelectorAll('.config-tab');
@@ -309,12 +313,21 @@ function crearBackupManual() {
     }
   };
 
-  const backups = JSON.parse(localStorage.getItem('backups') || '[]');
-  backups.push(backup);
-  localStorage.setItem('backups', JSON.stringify(backups));
+  // Inicializar salvadosData si no existe
+  if (!window.salvadosData) window.salvadosData = { salvados: [] };
+  if (!window.salvadosData.salvados) window.salvadosData.salvados = [];
+
+  window.salvadosData.salvados.push(backup);
+
+  // Guardar cambios en Supabase
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
 
   mostrarAlerta('✅ Backup creado: ' + nombre, 'success');
-  cargarListaSalvados();
+  if (typeof cargarListaSalvados === 'function') {
+    cargarListaSalvados();
+  }
 }
 
 function guardarSentimiento(texto) {
@@ -482,26 +495,51 @@ function moverAHistorial(item, tipo) {
 }
 
 function registrarAccion(accion, detalles = '') {
-  const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
-  log.push({
+  // Inicializar si no existe
+  if (!window.logAcciones) window.logAcciones = [];
+
+  // Agregar nueva acción
+  window.logAcciones.push({
     accion: accion,
     detalles: detalles,
     fecha: new Date().toISOString(),
     timestamp: Date.now()
   });
-  localStorage.setItem('log-acciones', JSON.stringify(log));
+
+  // Limitar el log a las últimas 1000 acciones para no saturar
+  if (window.logAcciones.length > 1000) {
+    window.logAcciones = window.logAcciones.slice(-1000);
+  }
+
+  // Actualizar UI si es posible
+  if (typeof cargarLog === 'function') {
+    cargarLog();
+  }
+
+  // Guardar en Supabase (debounced si es posible, o directo)
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
 }
 
 function verificarSalvadoDiario() {
   const config = window.configFuncionales || {};
   if (!config.salvadoAutomatico) return;
 
-  const ultimoSalvado = localStorage.getItem('ultimo-salvado-diario');
+  // Inicializar salvadosData si no existe
+  if (!window.salvadosData) window.salvadosData = { salvados: [] };
+
+  const ultimoSalvado = window.salvadosData.ultimoSalvadoDiario;
   const hoy = new Date().toISOString().slice(0, 10);
 
   if (ultimoSalvado !== hoy) {
     crearSalvadoDiario(`Automático ${hoy}`);
-    localStorage.setItem('ultimo-salvado-diario', hoy);
+    window.salvadosData.ultimoSalvadoDiario = hoy;
+
+    // Guardar cambios
+    if (typeof guardarConfigEnSupabase === 'function') {
+      guardarConfigEnSupabase();
+    }
   }
 }
 
@@ -518,30 +556,41 @@ function crearSalvadoDiario(nombre) {
     }
   };
 
-  const salvados = JSON.parse(localStorage.getItem('salvados-diarios') || '[]');
-  salvados.push(salvado);
-  localStorage.setItem('salvados-diarios', JSON.stringify(salvados));
+  // Inicializar salvadosData si no existe
+  if (!window.salvadosData) window.salvadosData = { salvados: [] };
+  if (!window.salvadosData.salvados) window.salvadosData.salvados = [];
+
+  window.salvadosData.salvados.push(salvado);
+
+  // Guardar cambios
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
 
   limpiarSalvadosAntiguos();
 }
 
 function limpiarSalvadosAntiguos() {
-  const salvados = JSON.parse(localStorage.getItem('salvados-diarios') || '[]');
+  if (!window.salvadosData?.salvados) return;
+
   const hace30Dias = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
-  const salvadosFiltrados = salvados.filter(s => {
+  window.salvadosData.salvados = window.salvadosData.salvados.filter(s => {
     const fechaSalvado = new Date(s.fecha).getTime();
     return fechaSalvado > hace30Dias;
   });
 
-  localStorage.setItem('salvados-diarios', JSON.stringify(salvadosFiltrados));
+  // Guardar cambios
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
 }
 
 function cargarListaSalvados() {
   const select = document.getElementById('select-salvado');
   if (!select) return;
 
-  const salvados = JSON.parse(localStorage.getItem('salvados-diarios') || '[]');
+  const salvados = window.salvadosData?.salvados || [];
   select.innerHTML = '<option value="">Selecciona un backup</option>';
 
   salvados.forEach((salvado, index) => {
@@ -554,7 +603,7 @@ function cargarListaSalvados() {
 }
 
 function restaurarSalvado(index) {
-  const salvados = JSON.parse(localStorage.getItem('salvados-diarios') || '[]');
+  const salvados = window.salvadosData?.salvados || [];
   const salvado = salvados[index];
 
   if (!salvado) {
@@ -569,38 +618,79 @@ function restaurarSalvado(index) {
     if (salvado.datos.configFuncionales) window.configFuncionales = salvado.datos.configFuncionales;
     if (salvado.datos.configOpciones) window.configOpciones = salvado.datos.configOpciones;
 
-    guardarEnSupabase();
+    guardarConfigEnSupabase(); // Usar la función correcta
     if (typeof renderizar === 'function') renderizar();
     mostrarAlerta('✅ Backup restaurado', 'success');
   }
 }
 
 function cargarLog() {
-  const container = document.getElementById('log-acciones-lista');
+  // Corregido ID: log-container en lugar de log-acciones-lista
+  const container = document.getElementById('log-container');
   if (!container) return;
 
-  const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
+  // Usar variable global window.logAcciones
+  const log = window.logAcciones || [];
+
+  if (log.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;color:#666;padding:50px;font-style:italic;">
+        <div style="font-size:48px;margin-bottom:15px;">📋</div>
+        <div style="font-size:14px;">No hay actividad registrada</div>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = '';
 
-  log.slice(-50).reverse().forEach(entrada => {
+  // Mostrar las últimas 50 acciones, ordenadas de más reciente a más antigua
+  // Hacemos una copia con [...log] para no invertir el array original
+  [...log].reverse().slice(0, 50).forEach(entrada => {
     const div = document.createElement('div');
     div.className = 'log-item';
+    div.style.cssText = 'padding:8px;border-bottom:1px solid #eee;font-size:12px;';
+
     const fecha = new Date(entrada.fecha).toLocaleString('es-ES');
-    div.textContent = `[${fecha}] ${entrada.accion}${entrada.detalles ? ' - ' + entrada.detalles : ''}`;
+
+    // Icono según la acción
+    let icono = '🔹';
+    if (entrada.accion.includes('Eliminar')) icono = '🗑️';
+    else if (entrada.accion.includes('Crear')) icono = '✨';
+    else if (entrada.accion.includes('Editar')) icono = '✏️';
+    else if (entrada.accion.includes('Completar')) icono = '✅';
+    else if (entrada.accion.includes('Configuración')) icono = '⚙️';
+    else if (entrada.accion.includes('Sincronización')) icono = '🔄';
+    else if (entrada.accion.includes('Backup')) icono = '💾';
+
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;color:#666;margin-bottom:2px;font-size:10px;">
+        <span>${fecha}</span>
+      </div>
+      <div style="color:#333;">
+        <strong>${icono} ${entrada.accion}</strong>
+        ${entrada.detalles ? `<br><span style="color:#555;font-style:italic;">${entrada.detalles}</span>` : ''}
+      </div>
+    `;
     container.appendChild(div);
   });
 }
 
 function limpiarLog() {
   if (confirm('¿Estás seguro de que quieres limpiar el log?')) {
-    localStorage.setItem('log-acciones', '[]');
+    window.logAcciones = [];
+
+    if (typeof guardarConfigEnSupabase === 'function') {
+      guardarConfigEnSupabase();
+    }
+
     cargarLog();
     mostrarAlerta('✅ Log limpiado', 'success');
   }
 }
 
 function exportarLog() {
-  const log = JSON.parse(localStorage.getItem('log-acciones') || '[]');
+  const log = window.logAcciones || [];
   const texto = log.map(e => {
     const fecha = new Date(e.fecha).toLocaleString('es-ES');
     return `[${fecha}] ${e.accion}${e.detalles ? ' - ' + e.detalles : ''}`;
@@ -683,12 +773,9 @@ async function guardarConfigOpciones() {
   console.log('💾 Guardando configuración de opciones:', config);
   window.configOpciones = config;
 
-  // Guardar en localStorage
-  localStorage.setItem('configOpciones', JSON.stringify(config));
-
   // Intentar guardar en Supabase si está configurado
-  if (typeof guardarEnSupabase === 'function') {
-    await guardarEnSupabase();
+  if (typeof guardarConfigEnSupabase === 'function') {
+    await guardarConfigEnSupabase();
   }
 
   mostrarAlerta('✅ Opciones guardadas', 'success');
@@ -697,17 +784,9 @@ async function guardarConfigOpciones() {
 async function guardarConfigEnNube() {
   console.log('💾 Guardando configuración en la nube');
 
-  // Guardar en localStorage
-  if (window.configVisual) {
-    localStorage.setItem('configVisual', JSON.stringify(window.configVisual));
-  }
-  if (window.configOpciones) {
-    localStorage.setItem('configOpciones', JSON.stringify(window.configOpciones));
-  }
-
   // Intentar guardar en Supabase
-  if (typeof guardarEnSupabase === 'function') {
-    await guardarEnSupabase();
+  if (typeof guardarConfigEnSupabase === 'function') {
+    await guardarConfigEnSupabase();
   }
 
   return true;
@@ -716,15 +795,17 @@ async function guardarConfigEnNube() {
 async function probarConexionNube() {
   console.log('🔍 Probando conexión con la nube');
 
-  // Verificar si Supabase está configurado
-  const config = JSON.parse(localStorage.getItem('supabaseConfig') || '{}');
+  // Verificar si Supabase está configurado (usando variables globales de supabase-sync.js)
+  // Como no podemos acceder fácilmente a las variables privadas de otro módulo,
+  // asumimos que si window.currentSyncMethod es 'supabase', está configurado.
+  // Una mejor verificación sería llamar a una función de prueba en supabase-sync.js
 
-  if (!config.url || !config.apiKey) {
-    mostrarAlerta('⚠️ Supabase no está configurado. Ve a la pestaña Supabase para configurarlo.', 'warning');
+  if (window.currentSyncMethod !== 'supabase') {
+    mostrarAlerta('⚠️ Supabase no está seleccionado como método de sincronización.', 'warning');
     return false;
   }
 
-  mostrarAlerta('✅ Configuración de Supabase encontrada', 'success');
+  mostrarAlerta('✅ Configuración de Supabase activa', 'success');
   return true;
 }
 
@@ -813,7 +894,7 @@ function guardarEnSupabase() {
 
 // ========== EXPORTACIONES GLOBALES ==========
 window.procesarJSON = procesarJSON;
-window.toggleConfigFloating = toggleConfigFloating;
+// window.toggleConfigFloating = toggleConfigFloating; // REMOVIDO: Ya está exportada en app.js
 window.switchTab = switchTab;
 window.cargarConfiguracionesModal = cargarConfiguracionesModal;
 window.cambiarFraseMotivacional = cambiarFraseMotivacional;

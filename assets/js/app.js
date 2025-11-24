@@ -1,4 +1,4 @@
-// ========== FUNCIONES HELPER ==========
+﻿// ========== FUNCIONES HELPER ==========
 function obtenerListasPersonalizadas() {
   // TEMPORALMENTE: usar estructura antigua hasta completar migración
   const listas = window.configVisual?.listasPersonalizadas || [];
@@ -48,6 +48,9 @@ const appState = {
     }
   }
 };
+
+// Variables globales para renderizado
+let renderizarListasTimeout = null;
 
 // ========== CONFIGURACIÓN ==========
 function getExtendsClassConfig() {
@@ -308,8 +311,8 @@ function cargarConfigOpciones() {
     };
 
     // Guardar configuración por defecto en la nube
-    if (typeof guardarConfigEnFirebase === 'function') {
-      guardarConfigEnFirebase();
+    if (typeof guardarConfigEnSupabase === 'function') {
+      guardarConfigEnSupabase();
     }
   }
 
@@ -596,8 +599,8 @@ function asegurarListaPorHacerComoPersonalizada() {
   console.log('💾 Lista por hacer convertida a personalizada:', listaPorHacer);
 
   // Guardar en la nube
-  if (typeof guardarConfigEnFirebase === 'function') {
-    guardarConfigEnFirebase();
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
   }
 
   console.log('✅ Conversión completada exitosamente');
@@ -983,9 +986,9 @@ async function guardarConfigVisualPanel() {
   });
 
   // Guardar en la nube PRIMERO
-  if (typeof guardarConfigEnFirebase === 'function') {
+  if (typeof guardarConfigEnSupabase === 'function') {
     console.log('💾 Guardando en la nube...');
-    const guardado = await guardarConfigEnFirebase();
+    const guardado = await guardarConfigEnSupabase();
     if (guardado) {
       // APLICAR tema INMEDIATAMENTE
       const tema = config.tema || 'verde';
@@ -1021,11 +1024,14 @@ async function guardarConfigVisualPanel() {
         }
       }
       mostrarAlerta('✅ Configuración visual guardada correctamente', 'success');
+      if (typeof registrarAccion === 'function') {
+        registrarAccion('Actualizar configuración visual', 'Cambios guardados en panel visual');
+      }
     } else {
       console.warn('❌ Error guardando en la nube');
     }
   } else {
-    console.warn('⚠️ guardarConfigEnFirebase no disponible');
+    console.warn('⚠️ guardarConfigEnSupabase no disponible');
     // Si no hay sincronización, aplicar directamente
     cargarConfigVisual();
     // Aplicar visibilidad de secciones inmediatamente
@@ -1244,17 +1250,21 @@ async function guardarConfigFuncionales() {
   window.configFuncionales = config;
 
   // Guardar en la nube
-  if (typeof guardarConfigEnFirebase === 'function') {
-    const guardado = await guardarConfigEnFirebase();
+  if (typeof guardarConfigEnSupabase === 'function') {
+    const guardado = await guardarConfigEnSupabase();
     if (guardado) {
       mostrarAlerta('✅ Configuración funcional guardada correctamente', 'success');
+      if (typeof registrarAccion === 'function') {
+        registrarAccion('Actualizar configuración funcional', 'Cambios guardados en panel funcional');
+      }
+    } else {
+      mostrarAlerta('⚠️ No se pudo sincronizar con la nube', 'warning');
     }
   } else {
     mostrarAlerta('⚠️ No se pudo sincronizar con la nube', 'warning');
   }
 }
 
-// Función que espera a que las listas estén cargadas antes de renderizar
 function esperarYRenderizarListas(intentos = 0, maxIntentos = 20) {
   console.log(`🔍 Intento ${intentos + 1}/${maxIntentos} - Verificando disponibilidad de listas...`);
 
@@ -1282,6 +1292,12 @@ function esperarYRenderizarListas(intentos = 0, maxIntentos = 20) {
 }
 
 function toggleConfigFloating() {
+  console.log('⚙️ toggleConfigFloating llamada');
+  console.log('🔍 Buscando modal con ID: modal-config');
+
+  const modal = document.getElementById('modal-config');
+  console.log('📦 Modal encontrado:', modal);
+
   abrirModal('modal-config');
 
   // Función auxiliar para forzar el renderizado
@@ -1312,6 +1328,8 @@ function toggleConfigFloating() {
     setTimeout(() => forzarRenderizado(), 300);
     setTimeout(() => forzarRenderizado(), 600);
   }, 100);
+
+  console.log('✅ toggleConfigFloating completada');
 }
 
 // ========== SISTEMA DE CONTRASEÑAS ENCRIPTADAS ==========
@@ -2043,8 +2061,8 @@ async function cambiarContrasenaMaestra() {
         <h4 style="color: #e74c3c; text-align: center;">🔄 Cambiar Contraseña Maestra</h4>
         <p style="text-align: center; margin: 15px 0; color: #666; line-height: 1.5;">
           ${contrasenasGuardadas.length > 0 ?
-            '⚠️ Cambiar la contraseña maestra reencriptará todas tus contraseñas guardadas con la nueva clave.' :
-            'Establece una nueva contraseña maestra para proteger tus contraseñas.'}
+        '⚠️ Cambiar la contraseña maestra reencriptará todas tus contraseñas guardadas con la nueva clave.' :
+        'Establece una nueva contraseña maestra para proteger tus contraseñas.'}
         </p>
         <form id="form-cambiar-contrasena-maestra" style="display: grid; gap: 15px;">
           <div>
@@ -2315,12 +2333,12 @@ function abrirEditorBaseDatos() {
 let datosOriginalesDB = null;
 let tablaActualDB = null;
 
-async function cargarTablaDB() {
+async function cargarTablaSupabase() {
   const selector = document.getElementById('selector-tabla');
-  const textarea = document.getElementById('editor-firebase-datos');
+  const textarea = document.getElementById('editor-supabase-datos');
   const info = document.getElementById('info-tabla');
-  const estado = document.getElementById('estado-firebase');
-  const btnGuardar = document.getElementById('btn-guardar-firebase');
+  const estado = document.getElementById('estado-supabase');
+  const btnGuardar = document.getElementById('btn-guardar-supabase');
 
   if (!selector || !textarea) return;
 
@@ -2336,10 +2354,10 @@ async function cargarTablaDB() {
 
   estado.style.display = 'block';
   estado.style.background = '#fff3cd';
-  estado.innerHTML = '🔄 Cargando datos de Firebase...';
+  estado.innerHTML = '🔄 Cargando datos de Supabase...';
 
   try {
-    tablaActualFirebase = tabla;
+    tablaActualSupabase = tabla;
     const [collection, documento] = tabla.includes('/') ? tabla.split('/') : [tabla, 'data'];
 
     console.log(`🔍 Cargando: ${collection}/${documento}`);
@@ -2352,10 +2370,10 @@ async function cargarTablaDB() {
       datos = docSnap.data();
     } else {
       console.warn(`⚠️ Documento ${collection}/${documento} no existe`);
-      datos = { mensaje: 'Documento no existe en Firebase' };
+      datos = { mensaje: 'Documento no existe en Supabase' };
     }
 
-    datosOriginalesFirebase = JSON.parse(JSON.stringify(datos));
+    datosOriginalesSupabase = JSON.parse(JSON.stringify(datos));
     textarea.value = JSON.stringify(datos, null, 2);
     textarea.readOnly = false;
     btnGuardar.disabled = false;
@@ -2386,7 +2404,7 @@ async function cargarTablaDB() {
     estado.style.display = 'block';
     estado.style.background = '#e8f5e8';
     estado.style.color = '#2e7d32';
-    estado.innerHTML = '✅ Datos cargados correctamente desde Firebase';
+    estado.innerHTML = '✅ Datos cargados correctamente desde Supabase';
 
   } catch (error) {
     console.error('Error cargando tabla:', error);
@@ -2398,13 +2416,13 @@ async function cargarTablaDB() {
     textarea.value = '';
     textarea.readOnly = true;
     btnGuardar.disabled = true;
-    datosOriginalesFirebase = null;
+    datosOriginalesSupabase = null;
   }
 }
 
-function validarJSONFirebase() {
-  const textarea = document.getElementById('editor-firebase-datos');
-  const estado = document.getElementById('estado-firebase');
+function validarJSONSupabase() {
+  const textarea = document.getElementById('editor-supabase-datos');
+  const estado = document.getElementById('estado-supabase');
 
   if (!textarea || !estado) return;
 
@@ -2422,8 +2440,8 @@ function validarJSONFirebase() {
   }
 }
 
-function formatearJSONFirebase() {
-  const textarea = document.getElementById('editor-firebase-datos');
+function formatearJSONSupabase() {
+  const textarea = document.getElementById('editor-supabase-datos');
   if (!textarea || textarea.readOnly) return;
 
   try {
@@ -2435,37 +2453,37 @@ function formatearJSONFirebase() {
   }
 }
 
-function restaurarTablaFirebase() {
-  const textarea = document.getElementById('editor-firebase-datos');
-  const estado = document.getElementById('estado-firebase');
+function restaurarTablaSupabase() {
+  const textarea = document.getElementById('editor-supabase-datos');
+  const estado = document.getElementById('estado-supabase');
 
-  if (!textarea || !datosOriginalesFirebase) return;
+  if (!textarea || !datosOriginalesSupabase) return;
 
-  textarea.value = JSON.stringify(datosOriginalesFirebase, null, 2);
+  textarea.value = JSON.stringify(datosOriginalesSupabase, null, 2);
 
   if (estado) {
     estado.style.display = 'block';
     estado.style.background = '#fff3cd';
-    estado.innerHTML = '🔄 Datos restaurados al estado original de Firebase';
+    estado.innerHTML = '🔄 Datos restaurados al estado original de Supabase';
   }
 
-  mostrarAlerta('🔄 Datos restaurados desde Firebase', 'info');
+  mostrarAlerta('🔄 Datos restaurados desde Supabase', 'info');
 }
 
-async function guardarTablaFirebase() {
+async function guardarTablaSupabase() {
 
-  mostrarAlerta('❌ Firebase ha sido removido. Usa la configuración de Supabase para gestionar los datos.', 'error');
+  mostrarAlerta('❌ Funcionalidad de edición directa deshabilitada. Usa la configuración de Supabase para gestionar los datos.', 'error');
   return;
 }
 
 // ========== FUNCIÓN DE SINCRONIZACIÓN FORZADA ==========
 function forzarSincronizacion() {
-  const estado = document.getElementById('estado-firebase');
+  const estado = document.getElementById('estado-supabase');
 
   if (estado) {
     estado.style.display = 'block';
     estado.style.background = '#fff3cd';
-    estado.innerHTML = '⚡ Forzando sincronización completa desde Firebase...';
+    estado.innerHTML = '⚡ Forzando sincronización completa desde Supabase...';
   }
 
   console.log('⚡ Iniciando sincronización forzada...');
@@ -2480,11 +2498,11 @@ function forzarSincronizacion() {
         estado.style.color = '#2e7d32';
         estado.innerHTML = '✅ Sincronización forzada completada';
       }
-      mostrarAlerta('⚡ Aplicación sincronizada desde Firebase', 'success');
+      mostrarAlerta('⚡ Aplicación sincronizada desde Supabase', 'success');
 
       // Recargar la tabla actual para mostrar los datos actualizados
       setTimeout(() => {
-        cargarTablaFirebase();
+        cargarTablaSupabase();
       }, 500);
     }, 2000);
   } else {
@@ -2506,14 +2524,14 @@ function limpiarDatosLocales() {
 Esta acción eliminará:
 • Estado actual de la aplicación
 • Datos en memoria (appState)
-• NO afecta Firebase ni localStorage
+• NO afecta Supabase ni localStorage
 
-Después de limpiar, se sincronizará desde Firebase.
+Después de limpiar, se sincronizará desde Supabase.
 ¿Continuar?`);
 
   if (!confirmacion) return;
 
-  const estado = document.getElementById('estado-firebase');
+  const estado = document.getElementById('estado-supabase');
 
   if (estado) {
     estado.style.display = 'block';
@@ -2551,10 +2569,10 @@ Después de limpiar, se sincronizará desde Firebase.
       estado.style.display = 'block';
       estado.style.background = '#e8f5e8';
       estado.style.color = '#2e7d32';
-      estado.innerHTML = '✅ Datos locales limpiados - Sincronizando desde Firebase...';
+      estado.innerHTML = '✅ Datos locales limpiados - Sincronizando desde Supabase...';
     }
 
-    // Forzar sincronización desde Firebase
+    // Forzar sincronización desde Supabase
     if (typeof extendsClassPull === 'function') {
       extendsClassPull();
     }
@@ -2564,11 +2582,11 @@ Después de limpiar, se sincronizará desde Firebase.
 }
 
 window.abrirEditorBaseDatos = abrirEditorBaseDatos;
-window.cargarTablaFirebase = cargarTablaFirebase;
-window.validarJSONFirebase = validarJSONFirebase;
-window.formatearJSONFirebase = formatearJSONFirebase;
-window.restaurarTablaFirebase = restaurarTablaFirebase;
-window.guardarTablaFirebase = guardarTablaFirebase;
+window.cargarTablaSupabase = cargarTablaSupabase;
+window.validarJSONSupabase = validarJSONSupabase;
+window.formatearJSONSupabase = formatearJSONSupabase;
+window.restaurarTablaSupabase = restaurarTablaSupabase;
+window.guardarTablaSupabase = guardarTablaSupabase;
 window.forzarSincronizacion = forzarSincronizacion;
 window.limpiarDatosLocales = limpiarDatosLocales;
 
@@ -2590,7 +2608,7 @@ async function agregarListaPersonalizada() {
   // Verificar conectividad
   const conectado = await verificarConectividad();
   if (!conectado) {
-    mostrarAlertaConectividad('🔴 No se puede crear la lista<br><br>⚠️ Sin conexión a Firebase', 'error');
+    mostrarAlertaConectividad('🔴 No se puede crear la lista<br><br>⚠️ Sin conexión a Supabase', 'error');
     return;
   }
 
@@ -2633,11 +2651,11 @@ async function agregarListaPersonalizada() {
   document.getElementById('emoji-lista-personalizada').value = '🏥';
   document.getElementById('color-lista-personalizada').value = '#667eea';
 
-  // Guardar en Firebase
-  if (typeof guardarConfigEnFirebase === 'function') {
-    const guardado = await guardarConfigEnFirebase();
+  // Guardar en Supabase
+  if (typeof guardarConfigEnSupabase === 'function') {
+    const guardado = await guardarConfigEnSupabase();
     if (guardado) {
-      console.log('✅ Configuración guardada en Firebase');
+      console.log('✅ Configuración guardada en Supabase');
       mostrarAlerta(`✅ Lista "${nombre}" creada correctamente`, 'success');
 
       // Re-renderizar configuración PRIMERO
@@ -2654,7 +2672,7 @@ async function agregarListaPersonalizada() {
         }
       }, 500);
     } else {
-      mostrarAlerta('❌ Error al guardar en Firebase', 'error');
+      mostrarAlerta('❌ Error al guardar en Supabase', 'error');
     }
   } else {
     mostrarAlerta('⚠️ No se pudo sincronizar con la nube', 'warning');
@@ -2684,7 +2702,7 @@ function eliminarListaPersonalizada(id) {
     renderizarListasPersonalizadas();
 
 
-    guardarConfigEnFirebase();
+    guardarConfigEnSupabase();
 
     mostrarAlerta(`✅ Lista "${lista.nombre}" eliminada`, 'success');
   }
@@ -2900,7 +2918,7 @@ function limpiarListaPersonalizada(listaId) {
 
   if (confirm(`¿Estás seguro de que quieres eliminar TODAS las tareas de "${lista.nombre}"?`)) {
     lista.tareas = [];
-    guardarConfigEnFirebase();
+    guardarConfigEnSupabase();
     renderizarListaPersonalizada(listaId);
     mostrarAlerta(`✅ Todas las tareas de "${lista.nombre}" eliminadas`, 'success');
   }
@@ -3118,7 +3136,7 @@ function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   };
 
   renderizarListaPersonalizada(listaId);
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 }
 
 function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
@@ -3140,7 +3158,7 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
     // Actualizar estado global
     window.configVisual = { ...configVisual, listasPersonalizadas: listas };
     renderizarListaPersonalizada(listaId);
-    guardarConfigEnFirebase();
+    guardarConfigEnSupabase();
 
     abrirModal('modal-migrar');
     return;
@@ -3167,18 +3185,219 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
   // Actualizar estado global
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
   renderizarListaPersonalizada(listaId);
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 }
 
 // ========== FUNCIONES DE DASHBOARD Y RESUMEN ==========
 function mostrarDashboardMotivacional() {
-  mostrarAlerta('📊 Dashboard de progreso en desarrollo', 'info');
-  console.log('📊 mostrarDashboardMotivacional llamada');
+  console.log('📊 Generando dashboard motivacional...');
+
+  // Calcular estadísticas globales
+  const historialTareas = window.historialTareas || [];
+  const historialEliminados = window.historialEliminados || [];
+  const tareasActuales = window.appState?.agenda?.tareas || [];
+  const criticasActuales = window.appState?.agenda?.tareas_criticas || [];
+
+  const totalCompletadas = historialTareas.length;
+  const totalEliminadas = historialEliminados.length;
+  const totalPendientes = tareasActuales.length + criticasActuales.length;
+
+  // Calcular Nivel y XP (Gamificación básica)
+  // Cada tarea completada = 100 XP
+  // Nivel = raíz cuadrada de (XP / 100)
+  const xp = totalCompletadas * 100;
+  const nivel = Math.floor(Math.sqrt(xp / 100)) + 1;
+  const xpParaSiguienteNivel = Math.pow(nivel, 2) * 100;
+  const xpNivelActual = Math.pow(nivel - 1, 2) * 100;
+  const progresoNivel = Math.round(((xp - xpNivelActual) / (xpParaSiguienteNivel - xpNivelActual)) * 100) || 0;
+
+  // Calcular Racha (días consecutivos con al menos 1 tarea completada)
+  // Esto es una aproximación basada en el historial
+  let racha = 0;
+  if (historialTareas.length > 0) {
+    const fechasUnicas = [...new Set(historialTareas.map(t => t.fecha_completado?.split('T')[0]).filter(Boolean))].sort().reverse();
+
+    if (fechasUnicas.length > 0) {
+      const hoy = new Date().toISOString().slice(0, 10);
+      const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+      // Si completó algo hoy o ayer, la racha está viva
+      if (fechasUnicas[0] === hoy || fechasUnicas[0] === ayer) {
+        racha = 1;
+        let fechaActual = new Date(fechasUnicas[0]);
+
+        for (let i = 1; i < fechasUnicas.length; i++) {
+          const fechaAnterior = new Date(fechasUnicas[i]);
+          const diferenciaDias = (fechaActual - fechaAnterior) / (1000 * 60 * 60 * 24);
+
+          if (Math.round(diferenciaDias) === 1) {
+            racha++;
+            fechaActual = fechaAnterior;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Crear modal dinámico
+  const modalId = 'modal-dashboard-motivacional';
+  let modal = document.getElementById(modalId);
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = modalId;
+  modal.style.display = 'block';
+  modal.style.zIndex = '10000';
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 500px; text-align: center; background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);">
+      <div style="position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 20px;" onclick="document.getElementById('${modalId}').remove()">✕</div>
+      
+      <h2 style="color: #2c3e50; margin-bottom: 5px;">Tu Progreso</h2>
+      <p style="color: #7f8c8d; margin-bottom: 25px;">¡Cada paso cuenta!</p>
+      
+      <!-- Nivel Circular -->
+      <div style="position: relative; width: 120px; height: 120px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid #ecf0f1;"></div>
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid transparent; border-top-color: #3498db; border-right-color: ${progresoNivel > 50 ? '#3498db' : 'transparent'}; border-bottom-color: ${progresoNivel > 75 ? '#3498db' : 'transparent'}; border-left-color: ${progresoNivel > 25 ? '#3498db' : 'transparent'}; transform: rotate(-45deg);"></div>
+        <div style="z-index: 2;">
+          <div style="font-size: 12px; color: #95a5a6; text-transform: uppercase; letter-spacing: 1px;">Nivel</div>
+          <div style="font-size: 42px; font-weight: bold; color: #2c3e50; line-height: 1;">${nivel}</div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d; margin-bottom: 5px; padding: 0 20px;">
+          <span>XP: ${xp}</span>
+          <span>Siguiente: ${xpParaSiguienteNivel}</span>
+        </div>
+        <div style="height: 8px; background: #dfe6e9; border-radius: 4px; margin: 0 20px; overflow: hidden;">
+          <div style="height: 100%; width: ${progresoNivel}%; background: #3498db; border-radius: 4px;"></div>
+        </div>
+      </div>
+      
+      <!-- Estadísticas Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+        <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <div style="font-size: 28px;">🔥</div>
+          <div style="font-size: 24px; font-weight: bold; color: #e74c3c;">${racha}</div>
+          <div style="font-size: 12px; color: #95a5a6;">Días Racha</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <div style="font-size: 28px;">✅</div>
+          <div style="font-size: 24px; font-weight: bold; color: #2ecc71;">${totalCompletadas}</div>
+          <div style="font-size: 12px; color: #95a5a6;">Total Completadas</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <div style="font-size: 28px;">📝</div>
+          <div style="font-size: 24px; font-weight: bold; color: #f1c40f;">${totalPendientes}</div>
+          <div style="font-size: 12px; color: #95a5a6;">Pendientes</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <div style="font-size: 28px;">🗑️</div>
+          <div style="font-size: 24px; font-weight: bold; color: #95a5a6;">${totalEliminadas}</div>
+          <div style="font-size: 12px; color: #95a5a6;">Eliminadas</div>
+        </div>
+      </div>
+      
+      <button class="btn-primario" onclick="document.getElementById('${modalId}').remove()" style="width: 100%; padding: 12px; font-size: 16px;">¡Genial!</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 }
 
 function mostrarResumenDiarioManual() {
-  mostrarAlerta('🌅 Resumen del día en desarrollo', 'info');
-  console.log('🌅 mostrarResumenDiarioManual llamada');
+  console.log('🌅 Generando resumen diario...');
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  const tareas = window.appState?.agenda?.tareas || [];
+  const criticas = window.appState?.agenda?.tareas_criticas || [];
+  const citas = window.appState?.agenda?.citas || [];
+
+  // Calcular estadísticas de hoy
+  const tareasHoy = tareas.filter(t => t.fecha_fin === hoy || t.fecha_creacion?.startsWith(hoy));
+  const criticasHoy = criticas.filter(t => t.fecha_fin === hoy || t.fecha_creacion?.startsWith(hoy));
+  const citasHoy = citas.filter(c => c.fecha && c.fecha[0] === parseInt(hoy.split('-')[0]) && c.fecha[1] === parseInt(hoy.split('-')[1]) && c.fecha[2] === parseInt(hoy.split('-')[2]));
+
+  // Tareas activas completadas
+  const activasCompletadas = [...tareasHoy, ...criticasHoy].filter(t => t.completada).length;
+
+  // Tareas en historial completadas HOY
+  const historialTareas = window.historialTareas || [];
+  const historialHoy = historialTareas.filter(t => t.fecha_completado?.startsWith(hoy));
+  const historialCompletadasHoy = historialHoy.length;
+
+  const completadas = activasCompletadas + historialCompletadasHoy;
+  const pendientes = [...tareasHoy, ...criticasHoy].filter(t => !t.completada).length;
+  const total = completadas + pendientes;
+  const porcentaje = total > 0 ? Math.round((completadas / total) * 100) : 0;
+  let mensaje = '';
+  let icono = '';
+  if (porcentaje === 100 && total > 0) {
+    mensaje = '¡Increíble! Has completado todo por hoy.';
+    icono = '🏆';
+  } else if (porcentaje >= 75) {
+    mensaje = '¡Vas genial! Ya casi terminas.';
+    icono = '🔥';
+  } else if (porcentaje >= 50) {
+    mensaje = 'Buen progreso, sigue así.';
+    icono = '👍';
+  } else {
+    mensaje = 'Ánimo, tú puedes con todo.';
+    icono = '💪';
+  }
+
+  // Crear modal dinámico
+  const modalId = 'modal-resumen-diario';
+  let modal = document.getElementById(modalId);
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = modalId;
+  modal.style.display = 'block';
+  modal.style.zIndex = '10000';
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div style="font-size: 40px; margin-bottom: 10px;">${icono}</div>
+      <h3 style="margin: 0 0 15px 0;">Resumen del Día</h3>
+      <p style="color: #666; margin-bottom: 20px;">${mensaje}</p>
+      
+      <div style="display: flex; justify-content: space-around; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 10px;">
+        <div>
+          <div style="font-size: 24px; font-weight: bold; color: #4ecdc4;">${completadas}</div>
+          <div style="font-size: 12px; color: #666;">Completadas</div>
+        </div>
+        <div>
+          <div style="font-size: 24px; font-weight: bold; color: #ff6b6b;">${pendientes}</div>
+          <div style="font-size: 12px; color: #666;">Pendientes</div>
+        </div>
+        <div>
+          <div style="font-size: 24px; font-weight: bold; color: #ffe66d;">${citasHoy.length}</div>
+          <div style="font-size: 12px; color: #666;">Citas</div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #666;">
+          <span>Progreso</span>
+          <span>${porcentaje}%</span>
+        </div>
+        <div style="height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+          <div style="height: 100%; width: ${porcentaje}%; background: linear-gradient(90deg, #4ecdc4, #556270); transition: width 0.5s;"></div>
+        </div>
+      </div>
+      
+      <button class="btn-primario" onclick="document.getElementById('${modalId}').remove()" style="width: 100%;">¡A seguir!</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 }
 
 // Exponer funciones globalmente
@@ -3256,7 +3475,7 @@ function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex)
 
   cerrarModal('modal-editor-subtarea-lp');
   renderizarListaPersonalizada(listaId);
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
   mostrarAlerta('✅ Subtarea actualizada', 'success');
 }
 
@@ -3286,7 +3505,7 @@ function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subI
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
 
   renderizarListaPersonalizada(listaId);
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
   mostrarAlerta('🗑️ Subtarea eliminada', 'info');
 }
 
@@ -3334,8 +3553,8 @@ function agregarTareaAListaPersonalizada(listaId, texto, fecha = null, etiqueta 
   // Actualizar configuración global
   window.configVisual = { ...configVisual, listasPersonalizadas };
 
- 
-  guardarConfigEnFirebase();
+
+  guardarConfigEnSupabase();
 
   // Re-renderizar
   renderizarListaPersonalizada(listaId);
@@ -3426,7 +3645,7 @@ function guardarEdicionListaPersonalizada(listaId, index) {
 
   // Renderizar y guardar
   renderizarListaPersonalizada(listaId);
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 }
 
 function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
@@ -3461,7 +3680,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
   };
 
 
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 
   // Renderizar
   renderizarListaPersonalizada(listaId);
@@ -3523,7 +3742,7 @@ function eliminarListaPersonalizada(listaId) {
   };
 
 
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 
   // Re-renderizar las secciones de listas personalizadas
   if (typeof regenerarSeccionesListasPersonalizadas === 'function') {
@@ -3569,7 +3788,7 @@ function completarTareaListaPersonalizada(listaId, tareaIndex) {
     // Actualizar en memoria
     window.configVisual = { ...configVisual, listasPersonalizadas };
     renderizarListaPersonalizada(listaId);
-    guardarConfigEnFirebase();
+    guardarConfigEnSupabase();
 
     // Abrir modal para delegar/reprogramar
     abrirModal('modal-migrar');
@@ -3611,7 +3830,7 @@ function completarTareaListaPersonalizada(listaId, tareaIndex) {
   // Actualizar configuración global
   window.configVisual = { ...configVisual, listasPersonalizadas };
 
-  guardarConfigEnFirebase();
+  guardarConfigEnSupabase();
 
   // Re-renderizar
   renderizarListaPersonalizada(listaId);
@@ -3634,7 +3853,6 @@ window.editarTareaListaPersonalizada = editarTareaListaPersonalizada;
 window.guardarEdicionListaPersonalizada = guardarEdicionListaPersonalizada;
 
 // ========== FUNCIÓN PRINCIPAL PARA RENDERIZAR TODAS LAS LISTAS ==========
-let renderizarListasTimeout = null;
 function renderizarTodasLasListasPersonalizadas() {
   // Debounce para evitar renderizados repetitivos
   if (renderizarListasTimeout) {
@@ -3644,19 +3862,19 @@ function renderizarTodasLasListasPersonalizadas() {
   renderizarListasTimeout = setTimeout(() => {
     console.log('🔄 RENDERIZANDO TODAS LAS LISTAS PERSONALIZADAS');
 
-  // Usar función helper para obtener las listas
-  const listasPersonalizadas = obtenerListasPersonalizadas();
+    // Usar función helper para obtener las listas
+    const listasPersonalizadas = obtenerListasPersonalizadas();
 
-  console.log('📋 Listas encontradas:', listasPersonalizadas.length);
+    console.log('📋 Listas encontradas:', listasPersonalizadas.length);
 
-  // Asegurarse de que las secciones HTML existen
-  regenerarSeccionesListasPersonalizadas();
+    // Asegurarse de que las secciones HTML existen
+    regenerarSeccionesListasPersonalizadas();
 
-  // Renderizar el contenido de cada lista
-  listasPersonalizadas.forEach(lista => {
-    renderizarListaPersonalizada(lista.id);
-    console.log(`✅ Lista renderizada: ${lista.nombre}`);
-  });
+    // Renderizar el contenido de cada lista
+    listasPersonalizadas.forEach(lista => {
+      renderizarListaPersonalizada(lista.id);
+      console.log(`✅ Lista renderizada: ${lista.nombre}`);
+    });
 
     console.log('✅ Renderizado de listas personalizadas completado');
     renderizarListasTimeout = null;
@@ -3813,3 +4031,10 @@ window.eliminarSubtareaListaPersonalizada = eliminarSubtareaListaPersonalizada;
 window.abrirModalSubtareaListaPersonalizada = abrirModalSubtareaListaPersonalizada;
 window.guardarSubtareaListaPersonalizada = guardarSubtareaListaPersonalizada;
 window.toggleSubtareaListaPersonalizada = toggleSubtareaListaPersonalizada;
+
+
+
+
+
+
+

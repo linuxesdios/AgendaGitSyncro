@@ -1,4 +1,4 @@
-// ========== SUPABASE SYNC ==========
+﻿// ========== SUPABASE SYNC ==========
 // Sistema de sincronización en la nube sin límites de peticiones
 
 // ========== CONFIGURACIÓN GLOBAL ==========
@@ -302,11 +302,11 @@ async function supabasePull() {
         case 'tareas':
           window.tareasData = data;
           if (data.tareas_criticas) {
-            window.appState.tareasCriticas = data.tareas_criticas;
+            if (!window.appState.agenda) window.appState.agenda = {}; window.appState.agenda.tareas_criticas = data.tareas_criticas;
             console.log(`    ✅ Tareas críticas cargadas: ${data.tareas_criticas.length}`);
           }
           if (data.tareas) {
-            window.appState.tareas = data.tareas;
+            if (!window.appState.agenda) window.appState.agenda = {}; window.appState.agenda.tareas = data.tareas;
             console.log(`    ✅ Tareas normales cargadas: ${data.tareas.length}`);
           }
           if (data.listasPersonalizadas) {
@@ -315,7 +315,7 @@ async function supabasePull() {
           }
           break;
         case 'citas':
-          if (data.citas) window.appState.citas = data.citas;
+          if (data.citas) { if (!window.appState.agenda) window.appState.agenda = {}; window.appState.agenda.citas = data.citas; }
           break;
         case 'config':
           if (data.visual) window.configVisual = { ...window.configVisual, ...data.visual };
@@ -354,10 +354,41 @@ async function supabasePull() {
 
     console.log('✅ Pull de Supabase completado');
 
-    // Renderizar interfaz
-    if (typeof renderizarInterfaz === 'function') {
-      renderizarInterfaz();
-    }
+    // ✅ FORZAR RENDERIZADO después de que los datos estén cargados
+    setTimeout(() => {
+      console.log('🎨 Forzando renderizado DESPUÉS del pull...');
+
+      // Recargar datos en la interfaz
+      if (typeof window.renderizarPanelCitas === 'function') {
+        window.renderizarPanelCitas();
+      }
+      if (typeof window.renderizarTareas === 'function') {
+        window.renderizarTareas();
+      }
+      if (typeof window.renderizarCriticas === 'function') {
+        window.renderizarCriticas();
+      }
+      if (typeof window.renderizar === 'function') {
+        window.renderizar();
+      }
+
+      // Aplicar configuración visual cargada
+      if (typeof window.cargarConfigVisual === 'function') {
+        console.log('🎨 Aplicando configuración visual desde Supabase...');
+        window.cargarConfigVisual();
+      }
+
+      if (typeof window.aplicarVisibilidadSecciones === 'function') {
+        window.aplicarVisibilidadSecciones();
+      }
+
+      // Actualizar log si está visible
+      if (typeof window.cargarLog === 'function') {
+        window.cargarLog();
+      }
+
+      console.log('✅ Renderizado forzado completado');
+    }, 100);
 
     return true;
   } catch (error) {
@@ -382,22 +413,22 @@ async function supabasePush(isAutomatic = false) {
 
     // Preparar datos para sincronización
     console.log('💾 Preparando datos para Supabase:');
-    console.log('  - Tareas críticas:', window.appState?.tareasCriticas?.length || 0);
-    console.log('  - Tareas normales:', window.appState?.tareas?.length || 0);
+    console.log('  - Tareas críticas:', window.appState?.agenda?.tareas_criticas?.length || 0);
+    console.log('  - Tareas normales:', window.appState?.agenda?.tareas?.length || 0);
     console.log('  - Listas personalizadas:', window.configVisual?.listasPersonalizadas?.length || 0);
 
     const updates = [
       {
         id: 'tareas',
         data: {
-          tareas_criticas: window.appState?.tareasCriticas || [],
-          tareas: window.appState?.tareas || [],
+          tareas_criticas: window.appState?.agenda?.tareas_criticas || window.appState?.tareasCriticas || [],
+          tareas: window.appState?.agenda?.tareas || window.appState?.tareas || [],
           listasPersonalizadas: window.configVisual?.listasPersonalizadas || []
         }
       },
       {
         id: 'citas',
-        data: { citas: window.appState.citas || [] }
+        data: { citas: window.appState?.agenda?.citas || [] }
       },
       {
         id: 'config',
@@ -406,6 +437,10 @@ async function supabasePush(isAutomatic = false) {
           funcionales: window.configFuncionales || {},
           opciones: window.configOpciones || {}
         }
+      },
+      {
+        id: 'log',
+        data: { acciones: window.logAcciones || [] }
       },
       {
         id: 'notas',
@@ -644,11 +679,11 @@ function showSupabaseStatus(message, type) {
 // ========== INTEGRACIÓN CON EL SISTEMA EXISTENTE ==========
 
 // Funciones globales de sincronización
-window.guardarJSON = async function(isAutomatic = false) {
+window.guardarJSON = async function (isAutomatic = false) {
   return await supabasePush(isAutomatic);
 };
 
-window.extendsClassPull = async function() {
+window.extendsClassPull = async function () {
   return await supabasePull();
 };
 
@@ -736,7 +771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!window.appState) {
     window.appState = {
       tareas: [],
-      tareasCriticas: [],
+      tareas_criticas: [],
       citas: [],
       notas: '',
       sentimientos: '',
@@ -767,6 +802,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (configSupabase.url && configSupabase.key && !window.supabaseClient) {
     await initSupabase();
     console.log('⚡ Supabase inicializado en startup');
+
+    // 🔄 PULL AUTOMÁTICO: Cargar datos desde Supabase
+    console.log('📥 Cargando datos desde Supabase...');
+    try {
+      await supabasePull();
+      console.log('✅ Datos cargados automáticamente desde Supabase');
+    } catch (error) {
+      console.warn('⚠️ Error al cargar datos:', error);
+    }
   }
 
   // Esperar un poco para que se cargue la interfaz
@@ -817,3 +861,6 @@ window.verificarMetodoSync = verificarMetodoSync;
 window.intentarFallback = intentarFallback;
 window.actualizarInterfazMetodo = actualizarInterfazMetodo;
 window.mostrarEstadoSincronizacion = mostrarEstadoSincronizacion;
+
+
+

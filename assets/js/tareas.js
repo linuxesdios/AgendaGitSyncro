@@ -617,6 +617,7 @@ async function agregarTareaCritica() {
       fecha_creacion: new Date().toISOString()
     };
     appState.agenda.tareas_criticas.push(nuevaTarea);
+    console.log('✅ Tarea crítica agregada al array local:', appState.agenda.tareas_criticas.length);
     registrarAccion('Crear tarea crítica', `"${titulo}" ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
   }
 
@@ -695,8 +696,8 @@ async function agregarTarea() {
         appState.ui.tareaEditando = null;
 
         // Guardar configuración actualizada
-        if (typeof guardarConfigEnFirebase === 'function') {
-          guardarConfigEnFirebase();
+        if (typeof guardarConfigEnSupabase === 'function') {
+          guardarConfigEnSupabase();
         }
 
         // Re-renderizar
@@ -798,8 +799,8 @@ function guardarMigracion() {
       }
       if (!window.personasAsignadas.includes(persona)) {
         window.personasAsignadas.push(persona);
-        if (typeof guardarPersonasEnFirebase === 'function') {
-          guardarPersonasEnFirebase();
+        if (typeof guardarPersonasEnSupabase === 'function') {
+          guardarPersonasEnSupabase();
         }
         registrarAccion('Añadir persona (desde tarea)', persona);
       }
@@ -812,32 +813,32 @@ function guardarMigracion() {
   // Verificar si es una subtarea
   if (appState.ui.subtareaSeleccionada) {
     const { tipo, tareaIndex, subIndex, listaId } = appState.ui.subtareaSeleccionada;
-    
+
     // Subtarea de lista personalizada
     if (tipo === 'lista_personalizada') {
       const configVisual = window.configVisual || {};
       const listas = configVisual.listasPersonalizadas || [];
       const lista = listas.find(l => l.id === listaId);
-      
+
       if (lista && lista.tareas[tareaIndex] && lista.tareas[tareaIndex].subtareas[subIndex]) {
         const subtarea = lista.tareas[tareaIndex].subtareas[subIndex];
-        
+
         subtarea.fecha_migrar = fecha || null;
         subtarea.persona = persona || null;
         subtarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
-        
+
         window.configVisual = { ...configVisual, listasPersonalizadas: listas };
-        
+
         appState.ui.subtareaSeleccionada = null;
         cerrarModal('modal-migrar');
-        
+
         if (typeof renderizarListaPersonalizada === 'function') {
           renderizarListaPersonalizada(listaId);
         }
-        if (typeof guardarConfigEnFirebase === 'function') {
-          guardarConfigEnFirebase();
+        if (typeof guardarConfigEnSupabase === 'function') {
+          guardarConfigEnSupabase();
         }
-        
+
         if (persona) {
           mostrarAlerta(`→ Subtarea asignada a ${persona}`, 'success');
         } else if (fecha) {
@@ -846,7 +847,7 @@ function guardarMigracion() {
         return;
       }
     }
-    
+
     // Subtarea de tarea crítica o normal
     const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[tareaIndex] : appState.agenda.tareas[tareaIndex];
     const subtarea = tarea.subtareas[subIndex];
@@ -892,8 +893,8 @@ function guardarMigracion() {
       tarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
 
       window.configVisual = { ...configVisual, listasPersonalizadas };
-      if (typeof guardarConfigEnFirebase === 'function') {
-        guardarConfigEnFirebase();
+      if (typeof guardarConfigEnSupabase === 'function') {
+        guardarConfigEnSupabase();
       }
 
       console.log('✅ Tarea de lista personalizada migrada:', tarea);
@@ -1913,3 +1914,4 @@ window.manejarSeleccionPersona = manejarSeleccionPersona;
 window.cargarPersonasEnSelect = cargarPersonasEnSelect;
 window.aplicarColorVisualizacion = aplicarColorVisualizacion;
 window.mostrarPopupCelebracion = mostrarPopupCelebracion;
+

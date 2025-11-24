@@ -141,12 +141,12 @@ function handleDragStart(e) {
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', e.target.outerHTML);
   
-  // Mostrar zonas de borrado y migración
+  // Mostrar zonas de borrado y migración (si existen)
   const deleteZone = document.getElementById('delete-zone');
   const migrateZone = document.getElementById('migrate-zone');
-  deleteZone.classList.add('active');
-  migrateZone.classList.add('active');
-  
+  if (deleteZone) deleteZone.classList.add('active');
+  if (migrateZone) migrateZone.classList.add('active');
+
   // Feedback háptico en móvil
   if (isMobile() && navigator.vibrate) {
     navigator.vibrate(50);
@@ -156,12 +156,12 @@ function handleDragStart(e) {
 function handleDragEnd(e) {
   e.target.classList.remove('dragging');
   draggedElement = null;
-  
-  // Ocultar zonas de borrado y migración
+
+  // Ocultar zonas de borrado y migración (si existen)
   const deleteZone = document.getElementById('delete-zone');
   const migrateZone = document.getElementById('migrate-zone');
-  deleteZone.classList.remove('active');
-  migrateZone.classList.remove('active');
+  if (deleteZone) deleteZone.classList.remove('active');
+  if (migrateZone) migrateZone.classList.remove('active');
 }
 
 // Configurar drop zones
@@ -169,41 +169,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const dropZones = document.querySelectorAll('.drop-zone');
   const deleteZone = document.getElementById('delete-zone');
   const migrateZone = document.getElementById('migrate-zone');
-  
+
   dropZones.forEach(zone => {
     zone.addEventListener('dragover', handleDragOver);
     zone.addEventListener('drop', handleDrop);
     zone.addEventListener('dragenter', handleDragEnter);
     zone.addEventListener('dragleave', handleDragLeave);
   });
-  
-  // Configurar zona de borrado
-  deleteZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  });
-  deleteZone.addEventListener('drop', handleDeleteDrop);
-  deleteZone.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    deleteZone.style.background = 'rgba(244, 67, 54, 0.5)';
-  });
-  deleteZone.addEventListener('dragleave', (e) => {
-    deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
-  });
-  
-  // Configurar zona de migración
-  migrateZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  });
-  migrateZone.addEventListener('drop', handleMigrateDrop);
-  migrateZone.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    migrateZone.style.background = 'rgba(156, 39, 176, 0.5)';
-  });
-  migrateZone.addEventListener('dragleave', (e) => {
-    migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
-  });
+
+  // Configurar zona de borrado (si existe)
+  if (deleteZone) {
+    deleteZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    deleteZone.addEventListener('drop', handleDeleteDrop);
+    deleteZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      deleteZone.style.background = 'rgba(244, 67, 54, 0.5)';
+    });
+    deleteZone.addEventListener('dragleave', (e) => {
+      deleteZone.style.background = 'rgba(244, 67, 54, 0.3)';
+    });
+  }
+
+  // Configurar zona de migración (si existe)
+  if (migrateZone) {
+    migrateZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    migrateZone.addEventListener('drop', handleMigrateDrop);
+    migrateZone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      migrateZone.style.background = 'rgba(156, 39, 176, 0.5)';
+    });
+    migrateZone.addEventListener('dragleave', (e) => {
+      migrateZone.style.background = 'rgba(156, 39, 176, 0.3)';
+    });
+  }
 });
 
 function handleDragOver(e) {

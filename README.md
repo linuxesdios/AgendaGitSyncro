@@ -5,8 +5,7 @@ Una aplicación web completa y avanzada para gestión personal y productividad, 
 ![Version](https://img.shields.io/badge/version-2.1-brightgreen)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
 ![CSS](https://img.shields.io/badge/CSS-3-blue)
-![Firebase](https://img.shields.io/badge/Firebase-Sincronización-orange)
-![Supabase](https://img.shields.io/badge/Supabase-Alternativa-green)
+![Supabase](https://img.shields.io/badge/Supabase-Sincronización-green)
 ![Real-time](https://img.shields.io/badge/Real--time-✅-blue)
 ![PWA](https://img.shields.io/badge/PWA-Compatible-purple)
 ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)
@@ -68,64 +67,33 @@ Una aplicación web completa y avanzada para gestión personal y productividad, 
 - **Auto-guardado**: Sincronización automática cada 2 segundos
 - **Gestión de Memoria**: Limpieza automática para mejor rendimiento
 
-## 🔄 Métodos de Sincronización
+## 🔄 Sincronización con Supabase
 
-La aplicación soporta **DOS métodos de sincronización** que puedes alternar según tus necesidades:
+La aplicación utiliza **Supabase** como método de sincronización moderno y eficiente:
 
-### ⚡ **NUEVO: Supabase** (Recomendado)
+### ⚡ **Supabase** (Recomendado)
 ```
-✅ ILIMITADAS peticiones (vs 50,000/día Firebase)
+✅ ILIMITADAS peticiones
 ✅ Real-time automático
-✅ Más rápido que Firebase
 ✅ Dashboard superior
 ✅ Gratis hasta 500MB
 ✅ Sin límites de operaciones
 ```
 
-### 🔥 **Firebase** (Clásico)
-```
-⚠️ 50,000 reads/día límite
-⚠️ 20,000 writes/día límite
-⚠️ Real-time manual
-✅ Ampliamente soportado
-✅ Gratis hasta 1GB
-```
+### 🎯 **Ventajas**
 
-### 🎯 **Comparación Rápida**
-
-| Característica | 🔥 Firebase | ⚡ Supabase |
-|---|---|---|
-| **Límite de peticiones** | 70K/día | ILIMITADO |
-| **Real-time** | Manual | Automático |
-| **Velocidad** | Estándar | Más rápido |
-| **Storage gratis** | 1GB | 500MB |
-| **Dashboard** | Básico | Superior |
-| **Configuración** | Compleja | Simple |
-
-### 🔄 **Cambio Dinámico**
-- Cambias entre métodos **instantáneamente** desde la configuración
-- **Mismo código**, **misma funcionalidad**
-- **Sin pérdida de datos**
-- **Real-time automático** con Supabase
+| Característica | ⚡ Supabase |
+|---|---|
+| **Límite de peticiones** | ILIMITADO |
+| **Real-time** | Automático |
+| **Velocidad** | Instantánea |
+| **Storage gratis** | 500MB |
+| **Dashboard** | Superior |
+| **Configuración** | Simple |
 
 ## ⚙️ Configuración Completa
 
-La aplicación incluye un sistema de configuración avanzado dividido en 9 pestañas principales:
-
-### 🔥 Firebase
-**Configuración de sincronización en la nube**
-- **API Key**: Clave de API de tu proyecto Firebase
-- **Auth Domain**: Dominio de autenticación
-- **Project ID**: Identificador único del proyecto
-- **Storage Bucket**: Bucket de almacenamiento
-- **Messaging Sender ID**: ID para notificaciones push
-- **App ID**: Identificador de la aplicación
-
-**Funciones:**
-- ✅ Conectar Firebase: Establece conexión con Firestore
-- 🧪 Probar Conexión: Verifica que la configuración sea correcta
-- 🔄 Sincronizar Datos: Fuerza la sincronización manual
-- ⚡ Auto-sincronización: Sincronización automática cada 2 segundos
+La aplicación incluye un sistema de configuración avanzado dividido en pestañas principales:
 
 ### ⚡ Supabase
 **Configuración de sincronización ultra-rápida sin límites**
@@ -138,7 +106,6 @@ La aplicación incluye un sistema de configuración avanzado dividido en 9 pesta
 - 🧪 Probar Conexión: Verifica que la configuración sea correcta
 - 🛠️ Crear Tablas: Configura automáticamente la estructura de base de datos
 - ⚡ Real-time Automático: Sincronización instantánea entre dispositivos
-- 🔄 Cambio de Método: Alterna entre Firebase y Supabase instantáneamente
 
 **Ventajas específicas:**
 - 🚀 **Sin límites de peticiones**: Ideal para uso intensivo
@@ -238,11 +205,11 @@ La aplicación incluye un sistema de configuración avanzado dividido en 9 pesta
 - **📥 Backup completo**: Descarga todos los datos en formato JSON
 - **⏰ Backup automático**: Programación automática de respaldos
 - **🔒 Backup encriptado**: Opción de cifrado para datos sensibles
-- **☁️ Backup en la nube**: Respaldo automático en Firebase
+- **☁️ Backup en la nube**: Respaldo automático en Supabase
 
 #### Restauración
 - **📤 Restaurar desde archivo**: Carga respaldo desde archivo local
-- **🔄 Restaurar desde nube**: Recupera datos de Firebase
+- **🔄 Restaurar desde nube**: Recupera datos de Supabase
 - **⚡ Restauración selectiva**: Elige qué datos restaurar
 - **🛡️ Validación de datos**: Verifica integridad antes de restaurar
 
@@ -265,7 +232,7 @@ La aplicación incluye un sistema de configuración avanzado dividido en 9 pesta
 - **✅ Tareas**: Creación, edición, completado, eliminación
 - **📅 Citas**: Programación, modificación, notificaciones
 - **🔐 Seguridad**: Accesos, cambios de contraseña, encriptación
-- **🔄 Sincronización**: Firebase, respaldos, errores de conexión
+- **🔄 Sincronización**: Supabase, respaldos, errores de conexión
 - **⚙️ Configuración**: Cambios en preferencias y ajustes
 
 #### Herramientas de Análisis
@@ -297,28 +264,15 @@ La aplicación incluye un sistema de configuración avanzado dividido en 9 pesta
 
 ## 🔥 Funciones Avanzadas
 
-### ☁️ Sincronización en la Nube Dual
+### ☁️ Sincronización en la Nube
 
-#### 🔥 **Con Firebase**
-- **Sincronización Automática**: Cada 30 segundos
-- **Backup Automático**: Tus datos siempre están seguros
-- **Multi-dispositivo**: Accede desde cualquier lugar
-- **Offline Support**: Funciona completamente sin conexión
-- **Límites**: 70,000 operaciones/día gratis
-
-#### ⚡ **Con Supabase** (NUEVO)
+#### ⚡ **Con Supabase**
 - **Real-time Instantáneo**: Cambios en tiempo real sin delay
 - **Sin Límites de Peticiones**: Uso ilimitado en plan gratuito
 - **PostgreSQL Potente**: Base de datos SQL robusta
 - **Dashboard Avanzado**: Interfaz superior para administración
-- **Más Rápido**: Latencia menor que Firebase
+- **Más Rápido**: Latencia mínima
 - **Backup Automático**: Redundancia y seguridad
-
-#### 🎯 **Recomendación de Uso**
-- **Para uso intensivo**: Usa **Supabase** (sin límites)
-- **Para uso ocasional**: Cualquiera funciona perfecto
-- **Para real-time**: **Supabase** (automático) > Firebase (manual)
-- **Para máximo control**: Configura **ambos** y alterna según necesites
 
 ### 🏷️ Sistema de Etiquetas Avanzado
 - **Organización Flexible**: Etiqueta tareas y citas para mejor organización
@@ -340,14 +294,13 @@ La aplicación incluye un sistema de configuración avanzado dividido en 9 pesta
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Backend**:
-  - 🔥 **Firebase** (Firestore, Authentication) - Método clásico
   - ⚡ **Supabase** (PostgreSQL, Real-time) - Método moderno
 - **Encriptación**: CryptoJS para gestión de contraseñas
-- **Real-time**: WebSocket nativo con Supabase, Manual con Firebase
+- **Real-time**: WebSocket nativo con Supabase
 - **PWA**: Service Worker, Web App Manifest
 - **Responsive**: CSS Grid, Flexbox
 - **Performance**: Debouncing, Lazy Loading, Memory Management
-- **Database**: Firestore (NoSQL) o PostgreSQL (SQL)
+- **Database**: PostgreSQL (SQL)
 
 ## 📦 Instalación y Uso
 
@@ -363,16 +316,9 @@ cd agenda-pablo
 open agenda.html
 ```
 
-### Configuración de Sincronización (Elige uno)
+### Configuración de Sincronización
 
-#### 🔥 Método 1: Firebase (Clásico)
-1. Ve a [Firebase Console](https://console.firebase.google.com)
-2. Crea un nuevo proyecto
-3. Habilita Firestore Database
-4. Ve a **Configuración del proyecto** → **Configuración general**
-5. Copia la configuración web en la pestaña **🔥 Firebase** de la app
-
-#### ⚡ Método 2: Supabase (Recomendado - Sin límites)
+#### ⚡ Supabase (Recomendado - Sin límites)
 1. Ve a [Supabase](https://supabase.com) y crea cuenta gratis
 2. **Crear nuevo proyecto**:
    - Nombre: `agenda-pablo` (o el que prefieras)
@@ -386,91 +332,6 @@ open agenda.html
    - Pega URL y Anon Key
    - Click **🛠️ Crear Tablas** (solo primera vez)
    - Click **Probar** para verificar conexión
-5. **Cambiar método**:
-   - En la misma pestaña, selecciona **⚡ Supabase** como método de sincronización
-   - ¡Real-time automático activado!
-
-#### 🔄 Cambio entre Métodos
-- Puedes cambiar entre Firebase y Supabase **instantáneamente**
-- Configura ambos y alterna según necesites
-- **Sin pérdida de datos** - mantiene sincronización independiente
-
-### Instalación como PWA
-1. Abre la aplicación en Chrome/Edge
-2. Haz clic en el icono de instalación en la barra de direcciones
-3. Confirma la instalación
-4. ¡Ya tienes la app instalada como aplicación nativa!
-
-## 🎯 Uso Recomendado
-
-### Para Personas con TDAH
-1. **Empieza Simple**: Usa solo tareas críticas al principio
-2. **Usa el Pomodoro**: Los intervalos te ayudarán a mantener el foco
-3. **Brain Dump**: Anota todo lo que se te ocurra sin filtro
-4. **Revisa Diariamente**: Usa el resumen diario para reflexionar
-5. **Configura Notificaciones**: Activa recordatorios para mantenerte en track
-6. **Elige Supabase**: Si usas la app intensivamente (sin límites)
-
-### Para Productividad General
-1. **Organiza por Prioridades**: Usa tareas críticas para lo urgente
-2. **Calendario Integrado**: Programa todo en el mismo lugar
-3. **Listas Personalizadas**: Organiza por proyectos o áreas
-4. **Análisis de Datos**: Revisa tu progreso regularmente
-5. **Configura Sincronización**: Elige Firebase o Supabase según tu uso
-
-## ❓ Preguntas Frecuentes
-
-### 🔄 **Sobre los Métodos de Sincronización**
-
-**¿Cuál debo elegir?**
-- **Uso intensivo/muchas actualizaciones**: ⚡ Supabase (sin límites)
-- **Uso ocasional/pocas actualizaciones**: 🔥 Firebase o Supabase
-- **Quiero real-time automático**: ⚡ Supabase
-- **Quiero la opción más probada**: 🔥 Firebase
-
-**¿Puedo cambiar después?**
-- ✅ **Sí, instantáneamente** desde configuración
-- ✅ **Sin pérdida de datos** - mantiene datos independientes
-- ✅ **Misma funcionalidad** - todo funciona igual
-
-**¿Puedo usar ambos al mismo tiempo?**
-- ✅ **Sí**, puedes configurar ambos
-- 🔄 **Cambiar** entre ellos cuando quieras
-- 💾 **Datos independientes** en cada servicio
-
-**¿Qué pasa si supero los límites de Firebase?**
-- ⚠️ **Firebase**: Se bloquean las operaciones hasta el día siguiente
-- ⚡ **Solución**: Cambia a Supabase (sin límites) instantáneamente
-
-### 🔧 **Problemas Comunes**
-
-**Firebase no se conecta**
-- ✅ Verifica que los datos estén correctos en Firebase Console
-- ✅ Asegúrate que Firestore esté habilitado
-- ✅ Revisa las reglas de seguridad (deben permitir lectura/escritura)
-
-**Supabase no se conecta**
-- ✅ Verifica URL (debe ser https://xxx.supabase.co)
-- ✅ Verifica Anon Key (debe ser eyJhbG...)
-- ✅ Asegúrate de hacer click en "🛠️ Crear Tablas" la primera vez
-
-**El real-time no funciona**
-- 🔥 **Firebase**: Es normal, no tiene real-time automático
-- ⚡ **Supabase**: Revisa que el método esté seleccionado en "⚡ Supabase"
-
-## 🔧 Características Técnicas
-
-### Seguridad
-- **Encriptación Local**: Las contraseñas nunca se envían sin cifrar
-- **Sin Tracking**: Respetamos completamente tu privacidad
-- **Datos Locales**: Todo funciona offline, Firebase es solo sincronización
-- **Auditoría Completa**: Sistema de logs para transparencia total
-
-### Performance
-- **Optimización TDAH**: Diseñado para minimizar distracciones
-- **Carga Rápida**: Menos de 2 segundos en dispositivos móviles
-- **Memoria Eficiente**: Limpieza automática cada 5 minutos
-- **Auto-guardado Inteligente**: Sincronización cada 2 segundos sin impacto
 
 ### Compatibilidad
 - **Navegadores**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
@@ -550,7 +411,7 @@ Para más detalles, ver: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/
 ## 🙏 Agradecimientos
 
 - **Comunidad TDAH**: Por el feedback invaluable sobre usabilidad
-- **Firebase**: Por la excelente plataforma de desarrollo
+- **Supabase**: Por la excelente plataforma de desarrollo
 - **Contributors**: A todos los que han contribuido al proyecto
 - **Creative Commons**: Por proporcionar licencias libres y claras
 - **Open Source Community**: Por inspirar el desarrollo libre
@@ -584,7 +445,7 @@ Para más detalles, ver: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/
 
 - **Sin Tracking**: No rastreamos ninguna actividad personal
 - **Datos Locales**: Toda la información se almacena localmente
-- **Firebase Opcional**: La sincronización en nube es completamente opcional
+- **Sincronización Opcional**: La sincronización en nube es completamente opcional
 - **Encriptación**: Las contraseñas se cifran localmente antes de cualquier almacenamiento
 - **Sin Anuncios**: Interfaz completamente libre de publicidad
 - **Código Abierto**: Todo el código es auditable públicamente
