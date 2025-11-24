@@ -808,14 +808,15 @@ function verificarModoOscuroAutomatico() {
     debeSerOscuro = horaActual >= inicioMinutos && horaActual <= finMinutos;
   }
 
-  const temaActual = config.tema || 'verde';
+  // Verificar tema actual del DOM, no de la configuración
+  const esOscuroActualmente = document.body.classList.contains('tema-oscuro');
 
-  if (debeSerOscuro && temaActual !== 'oscuro') {
+  if (debeSerOscuro && !esOscuroActualmente) {
     // Cambiar a modo oscuro automáticamente
     document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
     document.body.classList.add('tema-oscuro');
     console.log('🌙 Modo oscuro automático activado');
-  } else if (!debeSerOscuro && temaActual === 'oscuro') {
+  } else if (!debeSerOscuro && esOscuroActualmente) {
     // Volver al tema original (solo si fue cambiado automáticamente)
     const temaOriginal = config.temaOriginal || 'verde';
     document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
@@ -977,10 +978,13 @@ async function guardarConfigVisualPanel() {
     mostrarPomodoro: document.getElementById('config-mostrar-pomodoro')?.checked === true,
     mostrarProgreso: document.getElementById('config-mostrar-progreso')?.checked === true,
     mostrarResumen: document.getElementById('config-mostrar-resumen')?.checked === true,
+    mostrarTareaUniversal: document.getElementById('config-mostrar-tarea-universal')?.checked === true,
     modoOscuroAuto: document.getElementById('config-modo-oscuro-auto')?.checked !== false,
     horaInicioOscuro: document.getElementById('config-hora-inicio-oscuro')?.value || '20:00',
     horaFinOscuro: document.getElementById('config-hora-fin-oscuro')?.value || '07:00',
     calendarioCitas: document.getElementById('config-calendario-citas')?.value || 'boton',
+    calendarioMostrarCitas: document.getElementById('config-calendario-mostrar-citas')?.checked !== false,
+    calendarioMostrarTareas: document.getElementById('config-calendario-mostrar-tareas')?.checked !== false,
     columnas: parseInt(document.getElementById('config-columnas')?.value) || 2,
     frases: document.getElementById('config-frases-motivacionales')?.value.split('\n').filter(f => f.trim()) || [],
     listasPersonalizadas: (window.configVisual && window.configVisual.listasPersonalizadas) || []
@@ -1035,6 +1039,23 @@ async function guardarConfigVisualPanel() {
       // Aplicar visibilidad de secciones inmediatamente
       if (typeof aplicarVisibilidadSecciones === 'function') {
         aplicarVisibilidadSecciones();
+
+        // Verificar modo oscuro automático inmediatamente
+        if (typeof verificarModoOscuroAutomatico === 'function') {
+          verificarModoOscuroAutomatico();
+          console.log('🌙 Verificación de modo oscuro automático aplicada');
+        }
+
+        // Actualizar calendarios con la nueva configuración
+        if (typeof renderCalendar === 'function') {
+          renderCalendar();
+        }
+        if (typeof renderCalendarioIntegrado === 'function') {
+          renderCalendarioIntegrado();
+        }
+        if (typeof renderCalendarTareas === 'function') {
+          renderCalendarTareas();
+        }
       }
       mostrarAlerta('✅ Configuración visual guardada en Firebase', 'success');
     } else {
@@ -1047,6 +1068,17 @@ async function guardarConfigVisualPanel() {
     // Aplicar visibilidad de secciones inmediatamente
     if (typeof aplicarVisibilidadSecciones === 'function') {
       aplicarVisibilidadSecciones();
+    }
+
+    // Actualizar calendarios con la nueva configuración
+    if (typeof renderCalendar === 'function') {
+      renderCalendar();
+    }
+    if (typeof renderCalendarioIntegrado === 'function') {
+      renderCalendarioIntegrado();
+    }
+    if (typeof renderCalendarTareas === 'function') {
+      renderCalendarTareas();
     }
     mostrarAlerta('⚠️ No se pudo sincronizar con Firebase', 'warning');
   }
@@ -1155,6 +1187,9 @@ function cargarConfigVisualEnFormulario() {
   const mostrarResumen = document.getElementById('config-mostrar-resumen');
   if (mostrarResumen) mostrarResumen.checked = config.mostrarResumen === true;
 
+  const mostrarTareaUniversal = document.getElementById('config-mostrar-tarea-universal');
+  if (mostrarTareaUniversal) mostrarTareaUniversal.checked = config.mostrarTareaUniversal !== false;
+
   const modoOscuroAuto = document.getElementById('config-modo-oscuro-auto');
   if (modoOscuroAuto) modoOscuroAuto.checked = config.modoOscuroAuto !== false;
 
@@ -1169,6 +1204,12 @@ function cargarConfigVisualEnFormulario() {
     calendarioCitas.value = config.calendarioCitas || 'boton';
     console.log('📅 Calendario citas configurado como:', calendarioCitas.value);
   }
+
+  const calendarioMostrarCitas = document.getElementById('config-calendario-mostrar-citas');
+  if (calendarioMostrarCitas) calendarioMostrarCitas.checked = config.calendarioMostrarCitas !== false;
+
+  const calendarioMostrarTareas = document.getElementById('config-calendario-mostrar-tareas');
+  if (calendarioMostrarTareas) calendarioMostrarTareas.checked = config.calendarioMostrarTareas !== false;
 
   const columnas = document.getElementById('config-columnas');
   if (columnas) {

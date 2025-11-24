@@ -746,7 +746,7 @@ async function agregarTarea() {
       fecha_creacion: new Date().toISOString()
     };
     appState.agenda.tareas.push(nuevaTarea);
-    registrarAccion('Crear tarea', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fechaFin ? `(vence: ${fechaFin})` : ''}`.trim());
+    registrarAccion('Crear tarea', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
   }
 
   cerrarModal('modal-tarea');

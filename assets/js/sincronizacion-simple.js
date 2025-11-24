@@ -1624,6 +1624,7 @@ function aplicarVisibilidadSecciones() {
   const mostrarPomodoro = config.mostrarPomodoro === true;
   const mostrarProgreso = config.mostrarProgreso === true;
   const mostrarResumen = config.mostrarResumen === true;
+  const mostrarTareaUniversal = config.mostrarTareaUniversal !== false; // Por defecto visible
 
   console.log('📊 Configuración de visibilidad:', {
     mostrarNotas,
@@ -1631,7 +1632,8 @@ function aplicarVisibilidadSecciones() {
     mostrarContrasenas,
     mostrarPomodoro,
     mostrarProgreso,
-    mostrarResumen
+    mostrarResumen,
+    mostrarTareaUniversal
   });
 
   const seccionNotas = document.getElementById('seccion-notas');
@@ -1640,6 +1642,7 @@ function aplicarVisibilidadSecciones() {
   const btnPomodoro = document.getElementById('btn-pomodoro');
   const btnProgreso = document.getElementById('btn-progreso');
   const btnResumen = document.getElementById('btn-resumen');
+  const btnTareaUniversal = document.getElementById('btn-tarea-universal');
   
   if (seccionNotas) {
     seccionNotas.style.display = mostrarNotas ? 'block' : 'none';
@@ -1664,6 +1667,10 @@ function aplicarVisibilidadSecciones() {
   if (btnResumen) {
     btnResumen.style.display = mostrarResumen ? 'block' : 'none';
     console.log('  - Resumen:', mostrarResumen ? 'visible' : 'oculto');
+  }
+  if (btnTareaUniversal) {
+    btnTareaUniversal.style.display = mostrarTareaUniversal ? 'block' : 'none';
+    console.log('  - Crear Tarea:', mostrarTareaUniversal ? 'visible' : 'oculto');
   }
   
   console.log('✅ Visibilidad de secciones aplicada');

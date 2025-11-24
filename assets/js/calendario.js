@@ -39,7 +39,12 @@ function initializeCalendar() {
 function renderCalendar() {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
-  
+
+  // Obtener configuración de qué mostrar en el calendario
+  const config = window.configVisual || {};
+  const mostrarCitas = config.calendarioMostrarCitas !== false;
+  const mostrarTareas = config.calendarioMostrarTareas !== false;
+
   grid.innerHTML = '';
   const monthYearEl = document.getElementById('monthYear');
   if (monthYearEl) {
@@ -75,39 +80,82 @@ function renderCalendar() {
       const hoy = new Date().toISOString().slice(0, 10);
       const esHoy = dateStr === hoy;
       
-      // Add events preview for appointments on this day
-      const appointments = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
-      const tieneCitas = appointments.length > 0;
+      // Recopilar eventos de este día según configuración
+      let eventos = [];
+
+      // Añadir citas si están habilitadas
+      if (mostrarCitas) {
+        const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
+        citas.forEach(cita => {
+          eventos.push({
+            ...cita,
+            tipo: 'cita',
+            color: '#4a90e2' // Azul para citas
+          });
+        });
+      }
+
+      // Añadir tareas si están habilitadas
+      if (mostrarTareas) {
+        const tareas = (appState.agenda.tareas || []).filter(tarea => {
+          if (!tarea.fecha_fin) return false;
+          return compararFechaConString(fechaStringToArray(tarea.fecha_fin), dateStr);
+        });
+        tareas.forEach(tarea => {
+          eventos.push({
+            ...tarea,
+            tipo: 'tarea',
+            nombre: tarea.texto, // Las tareas usan 'texto' en lugar de 'nombre'
+            color: '#2ecc71' // Verde para tareas
+          });
+        });
+      }
+
+      const tieneEventos = eventos.length > 0;
       
       // Aplicar clases CSS especiales
-      if (esHoy && tieneCitas) {
+      if (esHoy && tieneEventos) {
         cell.classList.add('today', 'has-events');
       } else if (esHoy) {
         cell.classList.add('today');
-      } else if (tieneCitas) {
+      } else if (tieneEventos) {
         cell.classList.add('has-events');
       }
-      
-      if (tieneCitas) {
+
+      if (tieneEventos) {
         const eventsDiv = document.createElement('div');
         eventsDiv.className = 'day-events';
-        
-        appointments.slice(0, 3).forEach(cita => {
-          if (!cita || !cita.nombre) return; // Validación para evitar errores
+
+        eventos.slice(0, 3).forEach(evento => {
+          if (!evento || !evento.nombre) return; // Validación para evitar errores
 
           const eventDiv = document.createElement('div');
           eventDiv.className = 'day-event';
-          // Extraer solo la descripción después de la hora
-          const nombre = cita.nombre || '';
-          const descripcion = nombre.includes(' - ') ? nombre.split(' - ')[1] : nombre;
-          eventDiv.textContent = descripcion.length > 12 ? descripcion.substring(0, 12) + '...' : descripcion;
+          eventDiv.style.backgroundColor = evento.color;
+          eventDiv.style.color = 'white';
+          eventDiv.style.fontSize = '10px';
+          eventDiv.style.marginBottom = '2px';
+          eventDiv.style.padding = '1px 3px';
+          eventDiv.style.borderRadius = '2px';
+
+          // Extraer solo la descripción después de la hora para citas
+          const nombre = evento.nombre || '';
+          let descripcion = nombre;
+          if (evento.tipo === 'cita' && nombre.includes(' - ')) {
+            descripcion = nombre.split(' - ')[1];
+          }
+
+          // Añadir icono según el tipo
+          const icono = evento.tipo === 'cita' ? '📅' : '✅';
+          const textoCorto = descripcion.length > 8 ? descripcion.substring(0, 8) + '...' : descripcion;
+          eventDiv.textContent = `${icono} ${textoCorto}`;
           eventsDiv.appendChild(eventDiv);
         });
         
-        if (appointments.length > 3) {
+        if (eventos.length > 3) {
           const moreDiv = document.createElement('div');
           moreDiv.className = 'day-event';
-          moreDiv.textContent = `+${appointments.length - 3} más`;
+          moreDiv.textContent = `+${eventos.length - 3} más`;
           moreDiv.style.fontStyle = 'italic';
           eventsDiv.appendChild(moreDiv);
         }
@@ -195,8 +243,13 @@ function renderAllAppointmentsList() {
     const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const diaSemana = diasSemana[fecha.getDay()];
     
+    let descripcionCita = c.nombre;
+    if (c.lugar) {
+      descripcionCita += ` <br><small style="color:#666;">📍 ${c.lugar}</small>`;
+    }
+
     div.innerHTML = `
-      <span>${diaSemana}, ${fechaArrayToString(c.fecha)}<br><small>${c.nombre}</small></span>
+      <span>${diaSemana}, ${fechaArrayToString(c.fecha)}<br><small>${descripcionCita}</small></span>
       <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
     `;
     div.addEventListener('click', (e) => {
@@ -488,7 +541,11 @@ function renderCitasPanel() {
     const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     const fechaFormateada = `${fechaObj.getDate()} de ${meses[fechaObj.getMonth()]} de ${fechaObj.getFullYear()}`;
     
-    let contenidoCita = `<span style="font-size:20px;font-weight:bold;color:#2d5a27;">${descripcion} ${fechaFormateada} ${hora}</span>`;
+    let contenidoCita = `<span style="font-size:16px;font-weight:bold;color:#2d5a27;display:block;line-height:1.3;">${descripcion}</span>`;
+    if (c.lugar) {
+      contenidoCita += ` <span style="font-size:13px;color:#666;font-style:italic;display:block;">📍 ${c.lugar}</span>`;
+    }
+    contenidoCita += ` <span style="font-size:14px;color:#2d5a27;display:block;margin-top:2px;">${fechaFormateada} ${hora}</span>`;
     if (c.etiqueta) {
       const etiquetaInfo = obtenerEtiquetaInfo ? obtenerEtiquetaInfo(c.etiqueta, 'citas') : null;
       if (etiquetaInfo) {
@@ -529,6 +586,7 @@ function abrirModalNuevaCita() {
 function guardarNuevaCita() {
   const fecha = document.getElementById('nueva-cita-fecha').value;
   const descripcion = document.getElementById('nueva-cita-desc').value.trim();
+  const lugar = document.getElementById('nueva-cita-lugar').value.trim();
   const hora = document.getElementById('nueva-cita-hora').value;
   const minutos = document.getElementById('nueva-cita-minutos').value;
   const etiqueta = document.getElementById('nueva-cita-etiqueta').value;
@@ -550,6 +608,7 @@ function guardarNuevaCita() {
     id: Date.now(),
     fecha: fecha.split('-').map(n => parseInt(n)),
     nombre: citaCompleta,
+    lugar: lugar || null,
     etiqueta: etiqueta || null
   };
   
@@ -619,7 +678,12 @@ function abrirCalendarioTareas() {
 function renderCalendarTareas() {
   const grid = document.getElementById('calendarGridTareas');
   if (!grid) return;
-  
+
+  // Obtener configuración de qué mostrar en el calendario
+  const config = window.configVisual || {};
+  const mostrarCitas = config.calendarioMostrarCitas !== false;
+  const mostrarTareas = config.calendarioMostrarTareas !== false;
+
   grid.innerHTML = '';
   const monthYearEl = document.getElementById('monthYearTareas');
   if (monthYearEl) {
@@ -647,52 +711,98 @@ function renderCalendarTareas() {
       
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
       
-      // Recopilar TODAS las tareas: críticas, normales y de listas personalizadas
-      const tareasDelDia = [];
-      
-      // Tareas críticas
-      if (appState.agenda.tareas_criticas) {
-        appState.agenda.tareas_criticas.forEach(t => {
-          if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
-            tareasDelDia.push({ texto: t.titulo, tipo: 'critica' });
+      // Recopilar eventos de este día según configuración
+      const eventosDelDia = [];
+
+      // Añadir citas si están habilitadas
+      if (mostrarCitas) {
+        const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
+        citas.forEach(cita => {
+          const nombre = cita.nombre || '';
+          let descripcion = nombre;
+          if (nombre.includes(' - ')) {
+            descripcion = nombre.split(' - ')[1];
           }
+          eventosDelDia.push({
+            texto: descripcion,
+            tipo: 'cita',
+            color: '#4a90e2',
+            icono: '📅'
+          });
         });
       }
-      
-      // Tareas normales
-      if (appState.agenda.tareas) {
-        appState.agenda.tareas.forEach(t => {
-          if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
-            tareasDelDia.push({ texto: t.texto, tipo: 'normal' });
-          }
-        });
-      }
-      
-      // Tareas de listas personalizadas
-      const configVisual = window.configVisual || {};
-      const listasPersonalizadas = configVisual.listasPersonalizadas || [];
-      listasPersonalizadas.forEach(lista => {
-        if (lista && lista.tareas && Array.isArray(lista.tareas)) {
-          lista.tareas.forEach(t => {
-            if (t && t.fecha === dateStr) {
-              tareasDelDia.push({ texto: t.texto, tipo: 'personalizada', lista: lista.nombre });
+
+      // Añadir tareas si están habilitadas
+      if (mostrarTareas) {
+        // Tareas críticas
+        if (appState.agenda.tareas_criticas) {
+          appState.agenda.tareas_criticas.forEach(t => {
+            if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
+              eventosDelDia.push({
+                texto: t.titulo,
+                tipo: 'critica',
+                color: '#e74c3c',
+                icono: '🚨'
+              });
             }
           });
         }
-      });
+
+        // Tareas normales
+        if (appState.agenda.tareas) {
+          appState.agenda.tareas.forEach(t => {
+            if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
+              eventosDelDia.push({
+                texto: t.texto,
+                tipo: 'normal',
+                color: '#2ecc71',
+                icono: '✅'
+              });
+            }
+          });
+        }
+      }
       
-      if (tareasDelDia.length > 0) {
+      // Tareas de listas personalizadas (solo si las tareas están habilitadas)
+      if (mostrarTareas) {
+        const listasPersonalizadas = config.listasPersonalizadas || [];
+        listasPersonalizadas.forEach(lista => {
+          if (lista && lista.tareas && Array.isArray(lista.tareas)) {
+            lista.tareas.forEach(t => {
+              if (t && t.fecha === dateStr) {
+                eventosDelDia.push({
+                  texto: t.texto,
+                  tipo: 'personalizada',
+                  color: '#9b59b6',
+                  icono: '📋',
+                  lista: lista.nombre
+                });
+              }
+            });
+          }
+        });
+      }
+
+      if (eventosDelDia.length > 0) {
         cell.classList.add('has-events');
         const eventsDiv = document.createElement('div');
         eventsDiv.className = 'day-events';
-        
-        tareasDelDia.forEach(tarea => {
+
+        eventosDelDia.forEach(evento => {
           const eventDiv = document.createElement('div');
           eventDiv.className = 'day-event';
-          eventDiv.textContent = tarea.texto;
+          eventDiv.style.backgroundColor = evento.color;
+          eventDiv.style.color = 'white';
+          eventDiv.style.fontSize = '10px';
+          eventDiv.style.marginBottom = '2px';
+          eventDiv.style.padding = '1px 3px';
+          eventDiv.style.borderRadius = '2px';
+
+          const textoCorto = evento.texto.length > 10 ? evento.texto.substring(0, 10) + '...' : evento.texto;
+          eventDiv.textContent = `${evento.icono} ${textoCorto}`;
           eventsDiv.appendChild(eventDiv);
         });
-        
+
         cell.appendChild(eventsDiv);
       }
       
@@ -797,6 +907,7 @@ function abrirModalCitaPeriodica() {
 
 function crearCitaPeriodica() {
   const descripcion = document.getElementById('periodica-descripcion').value.trim();
+  const lugar = document.getElementById('periodica-lugar').value.trim();
   const fechaInicio = document.getElementById('periodica-fecha-inicio').value;
   const fechaFin = document.getElementById('periodica-fecha-fin').value;
   const hora = document.getElementById('periodica-hora').value;
@@ -820,7 +931,8 @@ function crearCitaPeriodica() {
     const nuevaCita = {
       id: Date.now(),
       fecha: fechaStr.split('-').map(n => parseInt(n)),
-      nombre: citaCompleta
+      nombre: citaCompleta,
+      lugar: lugar || null
     };
     
     appState.agenda.citas.push(nuevaCita);
@@ -904,6 +1016,7 @@ function actualizarPreviewFecha() {
 
 function agregarCitaRelativa() {
   const descripcion = document.getElementById('nueva-cita-descripcion').value.trim();
+  const lugar = document.getElementById('lugar-cita-relativa').value.trim();
   const fechaBase = document.getElementById('fecha-base-citas').value;
   const dias = parseInt(document.getElementById('dias-offset').value) || 0;
   const meses = parseInt(document.getElementById('meses-offset').value) || 0;
@@ -924,7 +1037,7 @@ function agregarCitaRelativa() {
   const fechaResultante = fecha.toISOString().slice(0, 10);
   const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
   
-  citasRelativasTemp.push({ fecha: fechaResultante, nombre: citaCompleta });
+  citasRelativasTemp.push({ fecha: fechaResultante, nombre: citaCompleta, lugar: lugar || null });
   
   // Actualizar lista visual
   const lista = document.getElementById('lista-citas-relativas');
@@ -970,9 +1083,15 @@ function guardarCitasRelativas() {
   }
   
   citasRelativasTemp.forEach(cita => {
-    appState.agenda.citas.push(cita);
+    const citaConId = {
+      id: Date.now() + Math.random(),
+      fecha: cita.fecha.split('-').map(n => parseInt(n)),
+      nombre: cita.nombre,
+      lugar: cita.lugar
+    };
+    appState.agenda.citas.push(citaConId);
     // Programar notificaciones para cada cita
-    programarNotificacionesCita(cita);
+    programarNotificacionesCita(citaConId);
   });
   
   cerrarModal('modal-citas-relativas');
@@ -1089,6 +1208,12 @@ function abrirEditorCita(fecha, nombre) {
 
   console.log('✏️ Abriendo editor para cita:', { fecha, nombre });
 
+  // Buscar la cita en el array para obtener el lugar actual
+  const citaEncontrada = appState.agenda.citas.find(c =>
+    fechaArrayToString(c.fecha) === fecha && c.nombre === nombre
+  );
+  const lugarActual = citaEncontrada ? citaEncontrada.lugar || '' : '';
+
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'modal-editor-cita';
@@ -1114,6 +1239,10 @@ function abrirEditorCita(fecha, nombre) {
       <div class="form-group">
         <label>Descripción:</label>
         <input type="text" id="editor-cita-desc" value="${escapeHtml(descripcion)}">
+      </div>
+      <div class="form-group">
+        <label>📍 Lugar (opcional):</label>
+        <input type="text" id="editor-cita-lugar" value="${escapeHtml(lugarActual)}" placeholder="Ej: Hospital, Oficina, Casa...">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
         <div>
@@ -1152,6 +1281,7 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
 
   const nuevaFecha = document.getElementById('editor-cita-fecha').value;
   const nuevaDesc = document.getElementById('editor-cita-desc').value.trim();
+  const nuevoLugar = document.getElementById('editor-cita-lugar').value.trim();
   const nuevaHora = document.getElementById('editor-cita-hora').value;
   const nuevosMinutos = document.getElementById('editor-cita-minutos').value;
 
@@ -1173,6 +1303,7 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
       id: appState.agenda.citas[index].id || Date.now(),
       fecha: fechaStringToArray(nuevaFecha),
       nombre: nuevoNombre,
+      lugar: nuevoLugar || null,
       etiqueta: appState.agenda.citas[index].etiqueta || null
     };
 
@@ -1262,8 +1393,13 @@ function renderCalendarioIntegrado() {
     console.warn('⚠️ No se encontró el grid del calendario integrado');
     return;
   }
-  
-  console.log('🔄 Renderizando calendario integrado. Total citas:', appState.agenda.citas.length);
+
+  // Obtener configuración de qué mostrar en el calendario
+  const config = window.configVisual || {};
+  const mostrarCitas = config.calendarioMostrarCitas !== false;
+  const mostrarTareas = config.calendarioMostrarTareas !== false;
+
+  console.log('🔄 Renderizando calendario integrado. Citas:', appState.agenda.citas.length, 'Tareas:', (appState.agenda.tareas || []).length);
   
   grid.innerHTML = '';
   const monthYearEl = document.getElementById('monthYearIntegrado');
@@ -1295,37 +1431,79 @@ function renderCalendarioIntegrado() {
       const hoy = new Date().toISOString().slice(0, 10);
       const esHoy = dateStr === hoy;
       
-      const appointments = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
-      const tieneCitas = appointments.length > 0;
-      
-      if (esHoy && tieneCitas) {
+      // Recopilar eventos de este día según configuración
+      let eventos = [];
+
+      // Añadir citas si están habilitadas
+      if (mostrarCitas) {
+        const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
+        citas.forEach(cita => {
+          eventos.push({
+            ...cita,
+            tipo: 'cita',
+            color: '#4a90e2' // Azul para citas
+          });
+        });
+      }
+
+      // Añadir tareas si están habilitadas
+      if (mostrarTareas) {
+        const tareas = (appState.agenda.tareas || []).filter(tarea => {
+          if (!tarea.fecha_fin) return false;
+          return compararFechaConString(fechaStringToArray(tarea.fecha_fin), dateStr);
+        });
+        tareas.forEach(tarea => {
+          eventos.push({
+            ...tarea,
+            tipo: 'tarea',
+            nombre: tarea.texto, // Las tareas usan 'texto' en lugar de 'nombre'
+            color: '#2ecc71' // Verde para tareas
+          });
+        });
+      }
+
+      const tieneEventos = eventos.length > 0;
+
+      if (esHoy && tieneEventos) {
         cell.style.background = '#fff3cd';
         cell.style.border = '2px solid #ffc107';
       } else if (esHoy) {
         cell.style.background = '#e3f2fd';
         cell.style.border = '2px solid #2196f3';
-      } else if (tieneCitas) {
+      } else if (tieneEventos) {
         cell.style.background = '#e8f5e9';
       }
       
-      if (tieneCitas) {
-        appointments.slice(0, 2).forEach(cita => {
-          if (!cita || !cita.nombre) return;
+      if (tieneEventos) {
+        eventos.slice(0, 2).forEach(evento => {
+          if (!evento || !evento.nombre) return;
           const eventDiv = document.createElement('div');
-          eventDiv.style.cssText = 'background:#4ecdc4;color:white;padding:2px;margin:2px 0;border-radius:3px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;';
-          const descripcion = (cita.nombre && cita.nombre.includes(' - ')) ? cita.nombre.split(' - ')[1] : (cita.nombre || '');
-          eventDiv.textContent = descripcion;
+          eventDiv.style.cssText = `background:${evento.color};color:white;padding:2px;margin:2px 0;border-radius:3px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;`;
+
+          // Extraer descripción según el tipo
+          let descripcion = evento.nombre || '';
+          if (evento.tipo === 'cita' && descripcion.includes(' - ')) {
+            descripcion = descripcion.split(' - ')[1];
+          }
+
+          // Añadir icono según el tipo
+          const icono = evento.tipo === 'cita' ? '📅' : '✅';
+          eventDiv.textContent = `${icono} ${descripcion}`;
+
           eventDiv.onclick = (e) => {
             e.stopPropagation();
-            if (cita.nombre) abrirEditorCita(fechaArrayToString(cita.fecha), cita.nombre);
+            if (evento.tipo === 'cita' && evento.nombre) {
+              abrirEditorCita(fechaArrayToString(evento.fecha), evento.nombre);
+            }
+            // TODO: Añadir edición de tareas si es necesario
           };
           cell.appendChild(eventDiv);
         });
-        
-        if (appointments.length > 2) {
+
+        if (eventos.length > 2) {
           const moreDiv = document.createElement('div');
           moreDiv.style.cssText = 'font-size:9px;color:#666;font-style:italic;margin-top:2px;';
-          moreDiv.textContent = `+${appointments.length - 2} más`;
+          moreDiv.textContent = `+${eventos.length - 2} más`;
           cell.appendChild(moreDiv);
         }
       }
