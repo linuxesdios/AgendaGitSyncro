@@ -32,6 +32,20 @@ function abrirVisorHistorial() {
   `;
 
   document.body.appendChild(modal);
+
+  // Cargar datos iniciales
+  filtrarHistorial();
+}
+
+function filtrarHistorial() {
+  const periodoSelect = document.getElementById('historial-periodo');
+  const tipoSelect = document.getElementById('historial-tipo');
+
+  if (!periodoSelect || !tipoSelect) return;
+
+  const periodo = parseInt(periodoSelect.value);
+  const tipo = tipoSelect.value;
+
   const historial = window.historialCompleto || [];
 
   // Filtrar por período

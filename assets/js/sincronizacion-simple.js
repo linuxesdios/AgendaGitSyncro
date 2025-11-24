@@ -861,6 +861,60 @@ function actualizarFiltrosEtiquetas() {
 
 function aplicarVisibilidadSecciones() {
   console.log('🔧 Aplicando visibilidad de secciones');
+
+  const config = window.configVisual || {};
+  console.log('📋 Configuración actual:', config);
+
+  // Panel de Notas
+  const seccionNotas = document.getElementById('seccion-notas');
+  if (seccionNotas) {
+    seccionNotas.style.display = config.mostrarNotas ? 'block' : 'none';
+    console.log('📝 Panel de Notas:', config.mostrarNotas ? 'visible' : 'oculto');
+  }
+
+  // Panel de Sentimientos
+  const seccionSentimientos = document.getElementById('seccion-sentimientos');
+  if (seccionSentimientos) {
+    seccionSentimientos.style.display = config.mostrarSentimientos ? 'block' : 'none';
+    console.log('😊 Panel de Sentimientos:', config.mostrarSentimientos ? 'visible' : 'oculto');
+  }
+
+  // Panel de Contraseñas
+  const seccionContrasenas = document.getElementById('seccion-contrasenas');
+  if (seccionContrasenas) {
+    seccionContrasenas.style.display = config.mostrarContrasenas ? 'block' : 'none';
+    console.log('🔐 Panel de Contraseñas:', config.mostrarContrasenas ? 'visible' : 'oculto');
+  }
+
+  // Botón Pomodoro
+  const btnPomodoro = document.getElementById('btn-pomodoro');
+  if (btnPomodoro) {
+    btnPomodoro.style.display = config.mostrarPomodoro ? 'inline-block' : 'none';
+    console.log('🍅 Botón Pomodoro:', config.mostrarPomodoro ? 'visible' : 'oculto');
+  }
+
+  // Botón Progreso
+  const btnProgreso = document.getElementById('btn-progreso');
+  if (btnProgreso) {
+    btnProgreso.style.display = config.mostrarProgreso ? 'inline-block' : 'none';
+    console.log('📊 Botón Progreso:', config.mostrarProgreso ? 'visible' : 'oculto');
+  }
+
+  // Botón Resumen
+  const btnResumen = document.getElementById('btn-resumen');
+  if (btnResumen) {
+    btnResumen.style.display = config.mostrarResumen ? 'inline-block' : 'none';
+    console.log('🌅 Botón Resumen:', config.mostrarResumen ? 'visible' : 'oculto');
+  }
+
+  // Botón Tarea Universal
+  const btnTareaUniversal = document.getElementById('btn-tarea-crear');
+  if (btnTareaUniversal) {
+    btnTareaUniversal.style.display = config.mostrarTareaUniversal ? 'inline-block' : 'none';
+    console.log('📝 Botón Tarea Universal:', config.mostrarTareaUniversal ? 'visible' : 'oculto');
+  }
+
+  console.log('✅ Visibilidad de secciones aplicada correctamente');
 }
 
 function aplicarConfiguracionSincronizada() {

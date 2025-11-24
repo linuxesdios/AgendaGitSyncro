@@ -1370,6 +1370,32 @@ input[type="file"] {
   color: #8b6914;
 }
 
+.tema-rosa {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+}
+
+.tema-rosa .container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(233, 30, 99, 0.3);
+}
+
+.tema-rosa .header h1 {
+  color: #c2185b;
+}
+
+.tema-rosa .boton-guardar {
+  background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+}
+
+.tema-rosa .boton-cargar {
+  background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+}
+
+.tema-rosa .celebration-message {
+  background: linear-gradient(135deg, #f8bbd9 0%, #e91e63 100%);
+  color: white;
+}
+
 .tema-oscuro {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
@@ -1625,4 +1651,491 @@ input[type="file"] {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
   filter: brightness(1.1);
+}
+
+/* ========== MODAL DE CONFIGURACIÓN MODERNIZADO ========== */
+
+/* Modal base con nuevo tamaño */
+.config-modal {
+  max-width: 900px !important;
+  width: 95% !important;
+  height: 85vh !important;
+  max-height: 800px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  margin: 2.5% auto !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 255, 248, 0.98) 100%) !important;
+  border: 1px solid rgba(78, 205, 196, 0.3) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+/* Header del modal modernizado */
+.config-modal-header {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  padding: 25px 30px;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 20px rgba(78, 205, 196, 0.3);
+  position: relative;
+}
+
+.config-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  border-radius: 20px 20px 0 0;
+  pointer-events: none;
+}
+
+.config-header-content {
+  z-index: 1;
+}
+
+.config-title {
+  margin: 0 0 8px 0 !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2) !important;
+  color: white !important;
+}
+
+.config-subtitle {
+  margin: 0 !important;
+  font-size: 14px;
+  opacity: 0.9;
+  color: rgba(255,255,255,0.9);
+  font-weight: 400;
+}
+
+.config-close-btn {
+  background: rgba(255,255,255,0.2) !important;
+  border: 2px solid rgba(255,255,255,0.3) !important;
+  border-radius: 50% !important;
+  width: 45px !important;
+  height: 45px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  backdrop-filter: blur(10px) !important;
+  z-index: 1;
+}
+
+.config-close-btn:hover {
+  background: rgba(255,255,255,0.3) !important;
+  border-color: rgba(255,255,255,0.5) !important;
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+}
+
+/* Contenedor de pestañas */
+.config-tabs-container {
+  background: linear-gradient(135deg, #f8fffe 0%, #e8f8f5 100%);
+  border-bottom: 1px solid rgba(78, 205, 196, 0.2);
+  padding: 20px 25px 0 25px;
+}
+
+.config-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 15px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-wrap: nowrap;
+}
+
+.config-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pestañas modernas */
+.config-tab {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 2px solid rgba(78, 205, 196, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #2d5a27 !important;
+  backdrop-filter: blur(10px) !important;
+  min-width: fit-content !important;
+  flex: 1 !important;
+  justify-content: center !important;
+}
+
+.config-tab:hover {
+  background: rgba(78, 205, 196, 0.1) !important;
+  border-color: rgba(78, 205, 196, 0.4) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2) !important;
+}
+
+.config-tab.active {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%) !important;
+  border-color: #4ecdc4 !important;
+  color: white !important;
+  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4) !important;
+}
+
+.tab-icon {
+  font-size: 14px;
+  display: inline-block;
+}
+
+.tab-text {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Cuerpo del modal */
+.config-modal-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 30px !important;
+  background: linear-gradient(145deg, #fafffe 0%, #f0faf8 100%);
+}
+
+.config-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.config-modal-body::-webkit-scrollbar-track {
+  background: rgba(78, 205, 196, 0.1);
+  border-radius: 4px;
+}
+
+.config-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(78, 205, 196, 0.6);
+  border-radius: 4px;
+}
+
+.config-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(78, 205, 196, 0.8);
+}
+
+/* Secciones de configuración */
+.config-section {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(78, 205, 196, 0.15);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.1);
+  transition: all 0.3s ease;
+}
+
+.config-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(78, 205, 196, 0.15);
+  border-color: rgba(78, 205, 196, 0.25);
+}
+
+.config-section-header {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.section-title {
+  margin: 0 0 8px 0 !important;
+  color: #2d5a27 !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.05) !important;
+}
+
+.section-desc {
+  margin: 0 !important;
+  color: #7fcdcd;
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Grid de formularios */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Grupos de formulario modernizados */
+.config-form-group {
+  margin-bottom: 0;
+}
+
+.config-label {
+  display: block !important;
+  margin-bottom: 10px !important;
+  color: #2d5a27 !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  text-transform: capitalize;
+}
+
+.config-input, .config-select {
+  width: 100% !important;
+  padding: 15px 18px !important;
+  border: 2px solid rgba(78, 205, 196, 0.3) !important;
+  border-radius: 15px !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.3s ease !important;
+  color: #2d5a27 !important;
+  backdrop-filter: blur(10px) !important;
+  box-sizing: border-box !important;
+}
+
+.config-input:focus, .config-select:focus {
+  outline: none !important;
+  border-color: #4ecdc4 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.config-input::placeholder {
+  color: rgba(45, 90, 39, 0.5) !important;
+  font-style: italic;
+}
+
+/* Grid de checkboxes modernizado */
+.config-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.config-checkbox-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 15px 18px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 2px solid rgba(78, 205, 196, 0.2) !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+  color: #2d5a27 !important;
+  backdrop-filter: blur(5px) !important;
+  margin-bottom: 0 !important;
+}
+
+.config-checkbox-item:hover {
+  background: rgba(78, 205, 196, 0.05) !important;
+  border-color: rgba(78, 205, 196, 0.4) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.15) !important;
+}
+
+.config-checkbox-item input[type="checkbox"] {
+  display: none !important;
+}
+
+/* Checkbox personalizado */
+.checkmark {
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(78, 205, 196, 0.4);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checkmark::after {
+  content: '✓';
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.config-checkbox-item input[type="checkbox"]:checked + .checkmark {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  border-color: #4ecdc4;
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+}
+
+.config-checkbox-item input[type="checkbox"]:checked + .checkmark::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkbox-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+/* Área de listas personalizadas */
+.config-custom-lists {
+  background: rgba(248, 255, 248, 0.6);
+  border-radius: 15px;
+  padding: 20px;
+  border: 2px dashed rgba(78, 205, 196, 0.3);
+  text-align: center;
+  backdrop-filter: blur(5px);
+}
+
+/* Responsive design mejorado */
+@media (max-width: 768px) {
+  .config-modal {
+    width: 98% !important;
+    height: 90vh !important;
+    margin: 5% auto !important;
+  }
+
+  .config-modal-header {
+    padding: 20px 15px;
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .config-tabs-container {
+    padding: 15px 15px 0 15px;
+  }
+
+  .config-tab .tab-text {
+    display: none;
+  }
+
+  .config-tab {
+    padding: 12px !important;
+    min-width: 45px !important;
+  }
+
+  .config-modal-body {
+    padding: 20px 15px !important;
+  }
+
+  .config-section {
+    padding: 20px 15px;
+    margin-bottom: 20px;
+  }
+
+  .config-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .config-checkbox-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 20px !important;
+  }
+
+  .config-title {
+    font-size: 24px !important;
+  }
+}
+
+/* ========== TEMAS DE COLOR ========== */
+.tema-verde {
+  /* Ya es el tema por defecto */
+}
+
+.tema-azul {
+  background: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 100%);
+}
+
+.tema-azul .container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(127, 179, 211, 0.3);
+}
+
+.tema-azul .header h1 {
+  color: #2d4a5a;
+}
+
+.tema-azul .boton-guardar {
+  background: linear-gradient(135deg, #7fb3d3 0%, #5a9bd4 100%);
+}
+
+.tema-azul .boton-cargar {
+  background: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 100%);
+  color: #2d4a5a;
+}
+
+.tema-oscuro {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.tema-oscuro .container {
+  background: rgba(30, 30, 45, 0.95);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+}
+
+.tema-oscuro .header h1 {
+  color: #4ecdc4;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.tema-oscuro section {
+  background: rgba(40, 40, 60, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.1);
+}
+
+.tema-oscuro .tarea-item {
+  background: #2a2a40;
+  border: 2px solid #3a3a55;
+  color: #e0e0e0;
+}
+
+.tema-oscuro .modal-content {
+  background: linear-gradient(135deg, rgba(30, 30, 45, 0.95) 0%, rgba(40, 40, 60, 0.98) 100%);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.tema-rosa {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+}
+
+.tema-rosa .container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(250, 177, 160, 0.3);
+}
+
+.tema-rosa .header h1 {
+  color: #d63031;
+}
+
+.tema-rosa .boton-guardar {
+  background: linear-gradient(135deg, #fab1a0 0%, #fd79a8 100%);
+}
+
+.tema-rosa .boton-cargar {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  color: #d63031;
+}
 }

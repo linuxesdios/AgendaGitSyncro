@@ -145,6 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configurar auto-capitalización
   setupAutoCapitalize();
 
+  // Configurar event handlers para selectores de modal de configuración
+  setTimeout(() => {
+    setupEmojiSelectors();
+    setupColorSelectors();
+  }, 500);
+
   // Configurar header colapsable en móvil
   if (isMobile()) {
     const headerCenter = document.querySelector('.header-center');
@@ -284,6 +290,90 @@ function setupAutoCapitalize() {
   });
 }
 
+// ========== SETUP EMOJI SELECTORS ==========
+function setupEmojiSelectors() {
+  console.log('🎭 Configurando selectores de emoji...');
+
+  // Event delegation para botones de emoji en etiquetas
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('emoji-option')) {
+      const emoji = e.target.getAttribute('data-emoji');
+      const hiddenInput = document.getElementById('nueva-etiqueta-simbolo');
+
+      if (hiddenInput) {
+        hiddenInput.value = emoji;
+        console.log('✅ Emoji seleccionado para etiqueta:', emoji);
+
+        // Visual feedback - remover selección previa
+        document.querySelectorAll('.emoji-option').forEach(btn => {
+          btn.style.borderColor = '#ddd';
+          btn.style.transform = 'scale(1)';
+        });
+
+        // Aplicar visual feedback al seleccionado
+        e.target.style.borderColor = '#4ecdc4';
+        e.target.style.transform = 'scale(1.2)';
+      }
+    }
+  });
+
+  console.log('✅ Selectores de emoji configurados');
+}
+
+// ========== SETUP COLOR SELECTORS ==========
+function setupColorSelectors() {
+  console.log('🎨 Configurando selectores de color...');
+
+  // Event delegation para botones de color en etiquetas
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('color-etiqueta-option')) {
+      const color = e.target.getAttribute('data-color');
+      const hiddenInput = document.getElementById('nueva-etiqueta-color');
+
+      if (hiddenInput) {
+        hiddenInput.value = color;
+        console.log('✅ Color seleccionado para etiqueta:', color);
+
+        // Visual feedback - remover selección previa
+        document.querySelectorAll('.color-etiqueta-option').forEach(btn => {
+          btn.style.border = '2px solid transparent';
+          btn.style.transform = 'scale(1)';
+        });
+
+        // Aplicar visual feedback al seleccionado
+        e.target.style.border = `3px solid ${color}`;
+        e.target.style.transform = 'scale(1.2)';
+        e.target.style.boxShadow = `0 0 10px ${color}`;
+      }
+    }
+
+    // Event delegation para botones de color en listas personalizadas
+    if (e.target.classList.contains('color-option')) {
+      const color = e.target.getAttribute('data-color');
+      const hiddenInput = document.getElementById('nueva-lista-color');
+
+      if (hiddenInput) {
+        hiddenInput.value = color;
+        console.log('✅ Color seleccionado para lista:', color);
+
+        // Visual feedback - remover selección previa
+        document.querySelectorAll('.color-option').forEach(btn => {
+          btn.style.border = '3px solid transparent';
+          btn.style.transform = 'scale(1)';
+        });
+
+        // Aplicar visual feedback al seleccionado
+        e.target.style.border = `3px solid ${color}`;
+        e.target.style.transform = 'scale(1.2)';
+        e.target.style.boxShadow = `0 0 10px ${color}`;
+      }
+    }
+  });
+
+  console.log('✅ Selectores de color configurados');
+}
+
+
 // ========== AUTO-SAVE ==========
 function scheduleAutoSave() {
   // La sincronización se maneja automáticamente con Supabase
@@ -346,6 +436,11 @@ function cargarConfigVisual() {
     // Aplicar visibilidad de secciones usando la función centralizada
     if (typeof aplicarVisibilidadSecciones === 'function') {
       aplicarVisibilidadSecciones();
+    }
+
+    // Cargar configuración de listas personalizadas
+    if (typeof cargarConfigListasPersonalizadas === 'function') {
+      cargarConfigListasPersonalizadas();
     }
 
     // Configurar visualización del calendario de citas
@@ -592,7 +687,7 @@ function asegurarListaPorHacerComoPersonalizada() {
 
   // Actualizar configuración global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas: listasPersonalizadas
   };
 
@@ -713,6 +808,8 @@ window.esLargoPlazo = esLargoPlazo;
 window.autoResizeTextarea = autoResizeTextarea;
 window.autoCapitalize = autoCapitalize;
 window.setupAutoCapitalize = setupAutoCapitalize;
+window.setupEmojiSelectors = setupEmojiSelectors;
+window.setupColorSelectors = setupColorSelectors;
 window.scheduleAutoSave = scheduleAutoSave;
 window.cargarConfigOpciones = cargarConfigOpciones;
 window.cargarConfigVisual = cargarConfigVisual;
@@ -966,15 +1063,27 @@ async function guardarConfigVisualPanel() {
     mostrarResumen: config.mostrarResumen
   });
 
-  // Verificar conectividad
-  const conectado = await verificarConectividad();
-  if (!conectado) {
-    mostrarAlertaConectividad('🔴 No se puede guardar la configuración<br><br>⚠️ Sin conexión a la nube', 'error');
-    return;
+  // Guardar DIRECTAMENTE en variables globales PRIMERO (NO localStorage)
+  window.configVisual = config;
+
+  // APLICAR INMEDIATAMENTE los cambios visuales ANTES de verificar conexión
+  const tema = config.tema || 'verde';
+  console.log('🎨 Aplicando tema inmediatamente:', tema);
+  document.body.className = document.body.className.replace(/tema-\w+/g, '').trim();
+  document.body.classList.add('tema-' + tema);
+
+  // Aplicar visibilidad de secciones inmediatamente
+  if (typeof aplicarVisibilidadSecciones === 'function') {
+    console.log('✅ Aplicando visibilidad de secciones inmediatamente');
+    aplicarVisibilidadSecciones();
   }
 
-  // Guardar DIRECTAMENTE en variables globales (NO localStorage)
-  window.configVisual = config;
+  // Verificar conectividad para guardar en la nube
+  const conectado = await probarConexionSupabase();
+  if (!conectado) {
+    mostrarAlertaConectividad('🔴 No se puede guardar en la nube<br><br>⚠️ Sin conexión, pero cambios aplicados localmente', 'warning');
+    return;
+  }
   console.log('💾 Configuración guardada en variables globales:', window.configVisual);
   console.log('🔍 GUARDADO - Confirmación en window.configVisual:', {
     mostrarNotas: window.configVisual.mostrarNotas,
@@ -1240,7 +1349,7 @@ async function guardarConfigFuncionales() {
   };
 
   // Verificar conectividad
-  const conectado = await verificarConectividad();
+  const conectado = await probarConexionSupabase();
   if (!conectado) {
     mostrarAlertaConectividad('🔴 No se puede guardar la configuración funcional<br><br>⚠️ Sin conexión a la nube', 'error');
     return;
@@ -1291,19 +1400,32 @@ function esperarYRenderizarListas(intentos = 0, maxIntentos = 20) {
   setTimeout(() => esperarYRenderizarListas(intentos + 1, maxIntentos), 200);
 }
 
-function toggleConfigFloating() {
+async function toggleConfigFloating() {
   console.log('⚙️ toggleConfigFloating llamada');
   console.log('🔍 Buscando modal con ID: modal-config');
 
   const modal = document.getElementById('modal-config');
   console.log('📦 Modal encontrado:', modal);
 
+  // Pre-cargar configuración desde Supabase ANTES de abrir el modal
+  console.log('📥 Asegurando que configuración esté cargada...');
+  if (typeof asegurarConfiguracionCargada === 'function') {
+    await asegurarConfiguracionCargada();
+  } else {
+    // Fallback: esperar un momento para que Supabase cargue
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  console.log('✅ Configuración cargada, abriendo modal...');
   abrirModal('modal-config');
 
   // Función auxiliar para forzar el renderizado
   const forzarRenderizado = () => {
+    console.log('🔄 Intentando renderizar listas personalizadas...');
     if (typeof renderizarListasPersonalizadas === 'function') {
       renderizarListasPersonalizadas();
+    } else {
+      console.warn('⚠️ renderizarListasPersonalizadas no disponible');
     }
   };
 
@@ -1322,15 +1444,25 @@ function toggleConfigFloating() {
     // 2. Cargar configuración en formulario
     cargarConfigVisualEnFormulario();
 
-    // 3. Estrategia de Fuerza Bruta: Renderizar múltiples veces
-    forzarRenderizado();
+    // 3. Estrategia de Fuerza Bruta: Renderizar múltiples veces con delays crecientes
+    console.log('🔄 Iniciando renderizado múltiple de listas...');
+    forzarRenderizado(); // Inmediato
     setTimeout(() => forzarRenderizado(), 100);
     setTimeout(() => forzarRenderizado(), 300);
     setTimeout(() => forzarRenderizado(), 600);
+    setTimeout(() => forzarRenderizado(), 1000);
+
+    // 4. Re-configurar event handlers para asegurar que funcionen
+    setTimeout(() => {
+      console.log('🔧 Re-configurando event handlers de selectores...');
+      if (typeof setupEmojiSelectors === 'function') setupEmojiSelectors();
+      if (typeof setupColorSelectors === 'function') setupColorSelectors();
+    }, 200);
   }, 100);
 
   console.log('✅ toggleConfigFloating completada');
 }
+
 
 // ========== SISTEMA DE CONTRASEÑAS ENCRIPTADAS ==========
 let contrasenaMaestra = null;
@@ -2606,7 +2738,7 @@ async function agregarListaPersonalizada() {
   }
 
   // Verificar conectividad
-  const conectado = await verificarConectividad();
+  const conectado = await probarConexionSupabase();
   if (!conectado) {
     mostrarAlertaConectividad('🔴 No se puede crear la lista<br><br>⚠️ Sin conexión a Supabase', 'error');
     return;
@@ -2640,7 +2772,7 @@ async function agregarListaPersonalizada() {
 
   // Actualizar configuración global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas: listasPersonalizadas
   };
 
@@ -2694,7 +2826,7 @@ function eliminarListaPersonalizada(id) {
 
     // Actualizar configuración global
     window.configVisual = {
-      ...configVisual,
+      ...window.configVisual,
       listasPersonalizadas: nuevasListas
     };
 
@@ -3131,7 +3263,7 @@ function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
 
   // Actualizar estado global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas: listas
   };
 
@@ -3156,7 +3288,7 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
     appState.ui.subtareaSeleccionada = { tipo: 'lista_personalizada', listaId, tareaIndex, subIndex };
 
     // Actualizar estado global
-    window.configVisual = { ...configVisual, listasPersonalizadas: listas };
+    window.configVisual = { ...window.configVisual, listasPersonalizadas: listas };
     renderizarListaPersonalizada(listaId);
     guardarConfigEnSupabase();
 
@@ -3183,7 +3315,7 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
   }
 
   // Actualizar estado global
-  window.configVisual = { ...configVisual, listasPersonalizadas: listas };
+  window.configVisual = { ...window.configVisual, listasPersonalizadas: listas };
   renderizarListaPersonalizada(listaId);
   guardarConfigEnSupabase();
 }
@@ -3471,7 +3603,7 @@ function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex)
   subtarea.fecha_migrar = fechaMigrar || null;
 
   // Actualizar estado global
-  window.configVisual = { ...configVisual, listasPersonalizadas: listas };
+  window.configVisual = { ...window.configVisual, listasPersonalizadas: listas };
 
   cerrarModal('modal-editor-subtarea-lp');
   renderizarListaPersonalizada(listaId);
@@ -3502,14 +3634,14 @@ function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subI
   listas[listaIndex].tareas[tareaIndex].subtareas.splice(subIndex, 1);
 
   // Actualizar estado global
-  window.configVisual = { ...configVisual, listasPersonalizadas: listas };
+  window.configVisual = { ...window.configVisual, listasPersonalizadas: listas };
 
   renderizarListaPersonalizada(listaId);
   guardarConfigEnSupabase();
   mostrarAlerta('🗑️ Subtarea eliminada', 'info');
 }
 
-function cargarConfigVisual() {
+function cargarConfigListasPersonalizadas() {
   const configVisual = window.configVisual || {};
 
   // Listas Personalizadas - NO crear lista por defecto
@@ -3551,7 +3683,7 @@ function agregarTareaAListaPersonalizada(listaId, texto, fecha = null, etiqueta 
   lista.tareas.push(nuevaTarea);
 
   // Actualizar configuración global
-  window.configVisual = { ...configVisual, listasPersonalizadas };
+  window.configVisual = { ...window.configVisual, listasPersonalizadas };
 
 
   guardarConfigEnSupabase();
@@ -3635,7 +3767,7 @@ function guardarEdicionListaPersonalizada(listaId, index) {
 
   // Actualizar estado global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas: listas
   };
 
@@ -3675,7 +3807,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
 
   // Actualizar configuración global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas
   };
 
@@ -3737,7 +3869,7 @@ function eliminarListaPersonalizada(listaId) {
 
   // Actualizar configuración global
   window.configVisual = {
-    ...configVisual,
+    ...window.configVisual,
     listasPersonalizadas
   };
 
@@ -3786,7 +3918,7 @@ function completarTareaListaPersonalizada(listaId, tareaIndex) {
     };
 
     // Actualizar en memoria
-    window.configVisual = { ...configVisual, listasPersonalizadas };
+    window.configVisual = { ...window.configVisual, listasPersonalizadas };
     renderizarListaPersonalizada(listaId);
     guardarConfigEnSupabase();
 
@@ -3828,7 +3960,7 @@ function completarTareaListaPersonalizada(listaId, tareaIndex) {
   console.log('🔄 Actualizando y guardando...');
 
   // Actualizar configuración global
-  window.configVisual = { ...configVisual, listasPersonalizadas };
+  window.configVisual = { ...window.configVisual, listasPersonalizadas };
 
   guardarConfigEnSupabase();
 
@@ -4031,6 +4163,313 @@ window.eliminarSubtareaListaPersonalizada = eliminarSubtareaListaPersonalizada;
 window.abrirModalSubtareaListaPersonalizada = abrirModalSubtareaListaPersonalizada;
 window.guardarSubtareaListaPersonalizada = guardarSubtareaListaPersonalizada;
 window.toggleSubtareaListaPersonalizada = toggleSubtareaListaPersonalizada;
+
+// ========== FUNCIÓN PARA ABRIR CALENDARIO ==========
+
+// Función para abrir calendario con filtros (redirige a función existente)
+function abrirModalCalendarioConFiltros() {
+  // Redirigir a la función de calendario existente
+  if (typeof window.abrirCalendario === 'function') {
+    window.abrirCalendario();
+  } else if (typeof window.abrirCalendarioTareas === 'function') {
+    window.abrirCalendarioTareas();
+  } else {
+    mostrarAlerta('📅 Funcionalidad de calendario no disponible', 'warning');
+    console.log('📅 Intentando abrir calendario...');
+  }
+}
+
+// Hacer funciones disponibles globalmente
+window.abrirModalCalendarioConFiltros = abrirModalCalendarioConFiltros;
+
+// ========== FUNCIONES PARA LISTAS PERSONALIZADAS ==========
+function abrirModalNuevaListaPersonalizada() {
+  // Resetear formulario
+  document.getElementById('nueva-lista-nombre').value = '';
+  document.getElementById('nueva-lista-color').value = '#4ecdc4';
+
+  // Resetear selección de color visual
+  document.querySelectorAll('.color-option').forEach(btn => {
+    btn.style.border = '3px solid transparent';
+  });
+  document.querySelector('.color-option[data-color="#4ecdc4"]').style.border = '3px solid #333';
+
+  abrirModal('modal-nueva-lista');
+}
+
+function crearNuevaListaPersonalizada() {
+  const nombre = document.getElementById('nueva-lista-nombre').value.trim();
+  const color = document.getElementById('nueva-lista-color').value;
+
+  if (!nombre) {
+    mostrarAlerta('❌ Por favor ingresa un nombre para la lista', 'error');
+    return;
+  }
+
+  // Verificar que no existe una lista con el mismo nombre
+  const listasExistentes = window.configVisual?.listasPersonalizadas || [];
+  if (listasExistentes.some(lista => lista.nombre.toLowerCase() === nombre.toLowerCase())) {
+    mostrarAlerta('❌ Ya existe una lista con ese nombre', 'error');
+    return;
+  }
+
+  // Crear nueva lista
+  const nuevaLista = {
+    id: 'lista_' + Date.now(),
+    nombre: nombre,
+    color: color,
+    tareas: [],
+    fechaCreacion: new Date().toISOString(),
+    activa: true
+  };
+
+  // Agregar a la configuración global
+  if (!window.configVisual) {
+    window.configVisual = {};
+  }
+  if (!window.configVisual.listasPersonalizadas) {
+    window.configVisual.listasPersonalizadas = [];
+  }
+
+  window.configVisual.listasPersonalizadas.push(nuevaLista);
+
+  // Guardar en la nube
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
+
+  // Regenerar las secciones y renderizar
+  if (typeof regenerarSeccionesListasPersonalizadas === 'function') {
+    regenerarSeccionesListasPersonalizadas();
+  }
+  if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
+    renderizarTodasLasListasPersonalizadas();
+  }
+  if (typeof renderizarListasPersonalizadas === 'function') {
+    renderizarListasPersonalizadas();
+  }
+
+  // Cerrar modal y mostrar éxito
+  cerrarModal('modal-nueva-lista');
+  mostrarAlerta(`✨ Lista "${nombre}" creada exitosamente`, 'success');
+}
+
+// Manejo de selección de colores
+document.addEventListener('DOMContentLoaded', function () {
+  // Esperar un momento para que el DOM esté completamente cargado
+  setTimeout(() => {
+    document.querySelectorAll('.color-option').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const color = this.dataset.color;
+
+        // Actualizar input hidden
+        const colorInput = document.getElementById('nueva-lista-color');
+        if (colorInput) {
+          colorInput.value = color;
+        }
+
+        // Actualizar estilos visuales
+        document.querySelectorAll('.color-option').forEach(b => {
+          b.style.border = '3px solid transparent';
+        });
+        this.style.border = '3px solid #333';
+      });
+    });
+  }, 100);
+});
+
+window.abrirModalNuevaListaPersonalizada = abrirModalNuevaListaPersonalizada;
+window.crearNuevaListaPersonalizada = crearNuevaListaPersonalizada;
+
+// ========== SISTEMA DE ETIQUETAS CON SÍMBOLOS ==========
+
+// Función para obtener etiquetas (basada en el commit estudiado)
+function obtenerEtiquetaInfo(nombre, tipo) {
+  if (!window.etiquetasData) return null;
+  if (!window.etiquetasData[tipo]) return null;
+  return window.etiquetasData[tipo].find(e => e.nombre === nombre);
+}
+
+// Función para crear nueva etiqueta
+function crearNuevaEtiqueta() {
+  const nombre = document.getElementById('nueva-etiqueta-nombre').value.trim();
+  const simbolo = document.getElementById('nueva-etiqueta-simbolo').value;
+  const color = document.getElementById('nueva-etiqueta-color').value;
+
+  if (!nombre) {
+    mostrarAlerta('❌ Por favor ingresa un nombre para la etiqueta', 'error');
+    return;
+  }
+
+  // Inicializar estructura de etiquetas si no existe
+  if (!window.etiquetasData) {
+    window.etiquetasData = {
+      tareas: [],
+      criticas: [],
+      citas: []
+    };
+  }
+
+  // Verificar si ya existe una etiqueta con ese nombre
+  const etiquetaExiste = window.etiquetasData.tareas.some(e => e.nombre.toLowerCase() === nombre.toLowerCase()) ||
+    window.etiquetasData.criticas.some(e => e.nombre.toLowerCase() === nombre.toLowerCase()) ||
+    window.etiquetasData.citas.some(e => e.nombre.toLowerCase() === nombre.toLowerCase());
+
+  if (etiquetaExiste) {
+    mostrarAlerta('❌ Ya existe una etiqueta con ese nombre', 'error');
+    return;
+  }
+
+  // Crear nueva etiqueta
+  const nuevaEtiqueta = {
+    id: 'etiqueta_' + Date.now(),
+    nombre: nombre,
+    simbolo: simbolo,
+    color: color,
+    fechaCreacion: new Date().toISOString()
+  };
+
+  // Agregar a todas las categorías (tareas, críticas, citas)
+  window.etiquetasData.tareas.push(nuevaEtiqueta);
+  window.etiquetasData.criticas.push({ ...nuevaEtiqueta });
+  window.etiquetasData.citas.push({ ...nuevaEtiqueta });
+
+  // Guardar en la nube
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
+
+  // Renderizar lista de etiquetas
+  renderizarListaEtiquetas();
+
+  // Limpiar formulario
+  document.getElementById('nueva-etiqueta-nombre').value = '';
+  document.getElementById('nueva-etiqueta-simbolo').value = '⭐';
+  document.getElementById('nueva-etiqueta-color').value = '#4ecdc4';
+
+  // Resetear selecciones visuales
+  document.querySelectorAll('.emoji-option').forEach(btn => btn.style.borderColor = '#ddd');
+  document.querySelector('.emoji-option[data-emoji="⭐"]').style.borderColor = '#4ecdc4';
+
+  document.querySelectorAll('.color-etiqueta-option').forEach(btn => btn.style.border = '2px solid transparent');
+  document.querySelector('.color-etiqueta-option[data-color="#4ecdc4"]').style.border = '2px solid #333';
+
+  mostrarAlerta(`✨ Etiqueta "${simbolo} ${nombre}" creada exitosamente`, 'success');
+}
+
+// Función para renderizar la lista de etiquetas
+function renderizarListaEtiquetas() {
+  const contenedor = document.getElementById('lista-etiquetas-config');
+  if (!contenedor) return;
+
+  if (!window.etiquetasData || !window.etiquetasData.tareas || window.etiquetasData.tareas.length === 0) {
+    contenedor.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; padding: 20px;">No hay etiquetas creadas aún</p>';
+    return;
+  }
+
+  let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">';
+
+  window.etiquetasData.tareas.forEach(etiqueta => {
+    html += `
+      <div class="config-etiqueta-item" style="
+        background: ${etiqueta.color}20;
+        border: 2px solid ${etiqueta.color}40;
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s ease;
+      ">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">${etiqueta.simbolo}</span>
+          <span style="color: ${etiqueta.color}; font-weight: 600; font-size: 14px;">${etiqueta.nombre}</span>
+        </div>
+        <button onclick="eliminarEtiqueta('${etiqueta.id}')" style="
+          background: ${etiqueta.color};
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 24px;
+          height: 24px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.3s ease;
+        ">×</button>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  contenedor.innerHTML = html;
+}
+
+// Función para eliminar etiqueta
+function eliminarEtiqueta(etiquetaId) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta etiqueta?')) return;
+
+  // Eliminar de todas las categorías
+  if (window.etiquetasData.tareas) {
+    window.etiquetasData.tareas = window.etiquetasData.tareas.filter(e => e.id !== etiquetaId);
+  }
+  if (window.etiquetasData.criticas) {
+    window.etiquetasData.criticas = window.etiquetasData.criticas.filter(e => e.id !== etiquetaId);
+  }
+  if (window.etiquetasData.citas) {
+    window.etiquetasData.citas = window.etiquetasData.citas.filter(e => e.id !== etiquetaId);
+  }
+
+  // Guardar en la nube
+  if (typeof guardarConfigEnSupabase === 'function') {
+    guardarConfigEnSupabase();
+  }
+
+  // Re-renderizar
+  renderizarListaEtiquetas();
+  mostrarAlerta('🗑️ Etiqueta eliminada', 'info');
+}
+
+// Event listeners para selección de emoji y color
+document.addEventListener('DOMContentLoaded', function () {
+  // Esperar un momento para que el DOM esté completamente cargado
+  setTimeout(() => {
+    // Manejo de selección de emoji
+    document.querySelectorAll('.emoji-option').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const emoji = this.dataset.emoji;
+        document.getElementById('nueva-etiqueta-simbolo').value = emoji;
+
+        // Actualizar estilos visuales
+        document.querySelectorAll('.emoji-option').forEach(b => b.style.borderColor = '#ddd');
+        this.style.borderColor = '#4ecdc4';
+        this.style.borderWidth = '3px';
+      });
+    });
+
+    // Manejo de selección de color para etiquetas
+    document.querySelectorAll('.color-etiqueta-option').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const color = this.dataset.color;
+        document.getElementById('nueva-etiqueta-color').value = color;
+
+        // Actualizar estilos visuales
+        document.querySelectorAll('.color-etiqueta-option').forEach(b => {
+          b.style.border = '2px solid transparent';
+        });
+        this.style.border = '3px solid #333';
+      });
+    });
+
+    // Cargar etiquetas al abrir la pestaña
+    renderizarListaEtiquetas();
+  }, 200);
+});
+
+// Hacer funciones disponibles globalmente
+window.crearNuevaEtiqueta = crearNuevaEtiqueta;
+window.eliminarEtiqueta = eliminarEtiqueta;
+window.obtenerEtiquetaInfo = obtenerEtiquetaInfo;
+window.renderizarListaEtiquetas = renderizarListaEtiquetas;
 
 
 

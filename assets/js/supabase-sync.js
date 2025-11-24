@@ -99,18 +99,22 @@ async function probarConexionSupabase() {
           } else {
             showSupabaseStatus('✅ Conexión básica exitosa - Click "🛠️ Crear Tablas" cuando estés listo', 'success');
           }
+          return true; // Conexión exitosa aunque las tablas no existan
         } else {
           throw error;
         }
       } else {
         showSupabaseStatus('✅ Conexión exitosa - Las tablas ya existen y funcionan', 'success');
+        return true; // Conexión exitosa
       }
     } catch (error) {
       console.error('❌ Error probando conexión:', error);
       showSupabaseStatus('❌ Error de conexión: ' + error.message, 'error');
+      return false; // Error de conexión
     }
   } else {
     showSupabaseStatus('❌ No se pudo inicializar Supabase - Verifica URL y Anon Key', 'error');
+    return false; // No se pudo inicializar
   }
 }
 
@@ -410,6 +414,11 @@ async function supabasePush(isAutomatic = false) {
   try {
     const logPrefix = isAutomatic ? '🔄 [AUTO-SYNC SUPABASE]' : '💾 [MANUAL SYNC SUPABASE]';
     console.log(`${logPrefix} Iniciando...`);
+    console.log('🔍 DEBUGGING SINCRONIZACIÓN:');
+    console.log('  - URL Supabase:', getSupabaseConfig().url ? '✅ Configurada' : '❌ Faltante');
+    console.log('  - API Key:', getSupabaseConfig().key ? '✅ Configurada' : '❌ Faltante');
+    console.log('  - Cliente inicializado:', !!window.supabaseClient);
+    console.log('  - Método de sync actual:', window.currentSyncMethod);
 
     // Preparar datos para sincronización
     console.log('💾 Preparando datos para Supabase:');
@@ -497,6 +506,15 @@ async function supabasePush(isAutomatic = false) {
     const errors = results.filter(r => r.error);
     if (errors.length > 0) {
       console.error('❌ Errores al guardar:', errors);
+      console.error('🔍 DETALLES DE ERRORES:');
+      errors.forEach((result, index) => {
+        console.error(`  Error ${index + 1}:`, {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code
+        });
+      });
       return false;
     }
 
@@ -855,12 +873,73 @@ window.crearTablasSupabase = crearTablasSupabase;
 window.cambiarMetodoSync = cambiarMetodoSync;
 window.supabasePull = supabasePull;
 window.supabasePush = supabasePush;
+
+// Función alias para guardar configuración (llamada desde app.js)
+function guardarConfigEnSupabase() {
+  console.log('💾 guardarConfigEnSupabase() - Guardando configuración...');
+  return supabasePush();
+}
+
+// Función para asegurar que la configuración esté cargada desde Supabase
+async function asegurarConfiguracionCargada() {
+  console.log('⏳ Asegurando que configuración esté cargada desde Supabase...');
+
+  const maxIntentos = 5;
+  const delayMs = 300;
+
+  for (let i = 0; i < maxIntentos; i++) {
+    // Verificar si ya tenemos configuración cargada
+    if (window.configVisual && Object.keys(window.configVisual).length > 0) {
+      console.log(`✅ Configuración encontrada en intento ${i + 1}:`, window.configVisual);
+      return true;
+    }
+
+    console.log(`⏳ Intento ${i + 1}/${maxIntentos}: Configuración no cargada, esperando...`);
+
+    // Si no está cargada y tenemos Supabase configurado, intentar Pull
+    if (window.supabaseClient) {
+      try {
+        console.log('📥 Intentando Pull desde Supabase...');
+        await supabasePull();
+
+        // Verificar de nuevo si se cargó
+        if (window.configVisual && Object.keys(window.configVisual).length > 0) {
+          console.log('✅ Configuración cargada exitosamente después de Pull');
+          return true;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error en Pull intento ${i + 1}:`, error);
+      }
+    }
+
+    // Esperar antes del siguiente intento
+    if (i < maxIntentos - 1) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  // Si después de todos los intentos no hay configuración, usar valores por defecto
+  console.warn('⚠️ No se pudo cargar configuración desde Supabase, usando valores por defecto');
+  if (!window.configVisual) {
+    window.configVisual = {
+      tema: 'verde',
+      titulo: '🧠 Agenda de Pablo 😊',
+      listasPersonalizadas: [],
+      popupCelebracion: true,
+      mostrarNotas: false,
+      mostrarSentimientos: false,
+      mostrarContrasenas: false
+    };
+  }
+
+  return false;
+}
+
+window.guardarConfigEnSupabase = guardarConfigEnSupabase;
+window.asegurarConfiguracionCargada = asegurarConfiguracionCargada;
 window.initSupabase = initSupabase;
 window.cargarConfigSupabaseEnFormulario = cargarConfigSupabaseEnFormulario;
 window.verificarMetodoSync = verificarMetodoSync;
 window.intentarFallback = intentarFallback;
 window.actualizarInterfazMetodo = actualizarInterfazMetodo;
 window.mostrarEstadoSincronizacion = mostrarEstadoSincronizacion;
-
-
-

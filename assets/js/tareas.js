@@ -223,12 +223,20 @@ function renderizarCriticas() {
 }
 
 function renderizarTareas() {
-  const lista = document.getElementById('lista-metodo');
-  if (!lista) return;
+  console.log('🔄 EJECUTANDO renderizarTareas()');
+  const lista = document.getElementById('lista-tareas');
+  console.log('📍 Elemento lista-tareas encontrado:', !!lista);
+
+  if (!lista) {
+    console.log('❌ No se encontró el elemento lista-tareas');
+    return;
+  }
 
   lista.innerHTML = '';
 
+  console.log('📊 Tareas en appState:', appState.agenda?.tareas?.length || 0);
   if (!appState.agenda.tareas || appState.agenda.tareas.length === 0) {
+    console.log('⚠️ No hay tareas para mostrar');
     lista.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas</div>';
     return;
   }
@@ -530,10 +538,14 @@ function cambiarEstadoTarea(index) {
 
 // ========== MODALES ==========
 function abrirModal(id) {
-  document.getElementById(id).style.display = 'block';
+  const modal = document.getElementById(id);
+  if (!modal) {
+    console.warn(`Modal con ID '${id}' no encontrado`);
+    return;
+  }
+  modal.style.display = 'block';
   // Poner foco en el primer input del modal
   setTimeout(() => {
-    const modal = document.getElementById(id);
     const firstInput = modal.querySelector('input[type="text"], textarea');
     if (firstInput) {
       firstInput.focus();
