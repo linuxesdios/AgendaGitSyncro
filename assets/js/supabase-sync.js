@@ -26,6 +26,11 @@ function saveSupabaseConfig(url, key, serviceKey = '') {
 
 // ========== INICIALIZACIÓN DE SUPABASE ==========
 async function initSupabase() {
+  // Si ya está inicializado, no reinicializar
+  if (window.supabaseClient) {
+    return true;
+  }
+
   const config = getSupabaseConfig();
 
   if (!config.url || !config.key) {
@@ -38,7 +43,7 @@ async function initSupabase() {
     const { createClient } = supabase;
     window.supabaseClient = createClient(config.url, config.key);
 
-    console.log('⚡ Supabase inicializado correctamente');
+    console.log('⚡ Supabase inicializado correctamente (nueva instancia)');
     return true;
   } catch (error) {
     console.error('❌ Error inicializando Supabase:', error);
@@ -289,13 +294,25 @@ async function supabasePull() {
     const results = await Promise.all(promises);
 
     // Aplicar datos a las variables globales (igual que Firebase)
+    console.log('📥 Aplicando datos cargados de Supabase:');
     results.forEach(({ collection, data }) => {
+      console.log(`  - ${collection}:`, data);
+
       switch (collection) {
         case 'tareas':
           window.tareasData = data;
-          if (data.tareas_criticas) window.appState.tareasCriticas = data.tareas_criticas;
-          if (data.tareas) window.appState.tareas = data.tareas;
-          if (data.listasPersonalizadas) window.configVisual.listasPersonalizadas = data.listasPersonalizadas;
+          if (data.tareas_criticas) {
+            window.appState.tareasCriticas = data.tareas_criticas;
+            console.log(`    ✅ Tareas críticas cargadas: ${data.tareas_criticas.length}`);
+          }
+          if (data.tareas) {
+            window.appState.tareas = data.tareas;
+            console.log(`    ✅ Tareas normales cargadas: ${data.tareas.length}`);
+          }
+          if (data.listasPersonalizadas) {
+            window.configVisual.listasPersonalizadas = data.listasPersonalizadas;
+            console.log(`    ✅ Listas personalizadas cargadas: ${data.listasPersonalizadas.length}`);
+          }
           break;
         case 'citas':
           if (data.citas) window.appState.citas = data.citas;
@@ -364,12 +381,17 @@ async function supabasePush(isAutomatic = false) {
     console.log(`${logPrefix} Iniciando...`);
 
     // Preparar datos usando la misma estructura que Firebase
+    console.log('💾 Preparando datos para Supabase:');
+    console.log('  - Tareas críticas:', window.appState?.tareasCriticas?.length || 0);
+    console.log('  - Tareas normales:', window.appState?.tareas?.length || 0);
+    console.log('  - Listas personalizadas:', window.configVisual?.listasPersonalizadas?.length || 0);
+
     const updates = [
       {
         id: 'tareas',
         data: {
-          tareas_criticas: window.appState.tareasCriticas || [],
-          tareas: window.appState.tareas || [],
+          tareas_criticas: window.appState?.tareasCriticas || [],
+          tareas: window.appState?.tareas || [],
           listasPersonalizadas: window.configVisual?.listasPersonalizadas || []
         }
       },
@@ -420,15 +442,50 @@ async function supabasePush(isAutomatic = false) {
     ];
 
     // Hacer upserts (insert o update)
-    const promises = updates.map(({ id, data }) =>
-      window.supabaseClient
+    const promises = updates.map(async ({ id, data }) => {
+      console.log(`  - Guardando ${id}:`, data);
+      const result = await window.supabaseClient
         .from('agenda_data')
-        .upsert({ id, data }, { onConflict: 'id' })
-    );
+        .upsert({ id, data }, { onConflict: 'id' });
 
-    await Promise.all(promises);
+      if (result.error) {
+        console.error(`    ❌ Error guardando ${id}:`, result.error);
+      } else {
+        console.log(`    ✅ ${id} guardado correctamente`);
+      }
+      return result;
+    });
 
-    console.log(`${logPrefix} ✅ Completado`);
+    const results = await Promise.all(promises);
+
+    // Verificar que no haya errores
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      console.error('❌ Errores al guardar:', errors);
+      return false;
+    }
+
+    console.log(`${logPrefix} ✅ Completado - ${updates.length} colecciones guardadas`);
+
+    // Verificar que los datos se guardaron correctamente (solo para tareas)
+    if (!isAutomatic) {
+      setTimeout(async () => {
+        try {
+          const { data: verificacion, error } = await window.supabaseClient
+            .from('agenda_data')
+            .select('*')
+            .eq('id', 'tareas')
+            .single();
+
+          if (!error && verificacion) {
+            console.log('🔍 Verificación post-guardado:', verificacion.data);
+          }
+        } catch (e) {
+          console.warn('⚠️ Error en verificación post-guardado:', e);
+        }
+      }, 1000);
+    }
+
     return true;
   } catch (error) {
     console.error('❌ Error en supabasePush:', error);
@@ -438,24 +495,150 @@ async function supabasePush(isAutomatic = false) {
 
 // ========== FUNCIONES DE CAMBIO DE MÉTODO ==========
 function cambiarMetodoSync(metodo) {
+  console.log(`🔄 Cambiando método de sync a: ${metodo}`);
+
   window.currentSyncMethod = metodo;
   localStorage.setItem('syncMethod', metodo);
+  localStorage.setItem('lastSyncMethod', metodo); // Backup adicional
 
   // Actualizar interfaz
+  actualizarInterfazMetodo(metodo);
+
+  // Verificar que el método seleccionado funcione
+  setTimeout(() => {
+    verificarMetodoSync(metodo);
+  }, 1000);
+
+  console.log(`✅ Método guardado en localStorage: ${localStorage.getItem('syncMethod')}`);
+}
+
+function actualizarInterfazMetodo(metodo) {
   const statusCurrent = document.getElementById('sync-current');
   const realtimeStatus = document.getElementById('realtime-status');
 
-  if (metodo === 'firebase') {
-    statusCurrent.textContent = '🔥 Usando Firebase';
-    realtimeStatus.textContent = '❌ Desactivado';
-    stopSupabaseRealtime();
-  } else {
-    statusCurrent.textContent = '⚡ Usando Supabase';
-    realtimeStatus.textContent = '✅ Activado';
-    startSupabaseRealtime();
+  if (statusCurrent && realtimeStatus) {
+    if (metodo === 'firebase') {
+      statusCurrent.textContent = '🔥 Usando Firebase';
+      realtimeStatus.textContent = '❌ Desactivado';
+      stopSupabaseRealtime();
+    } else {
+      statusCurrent.textContent = '⚡ Usando Supabase';
+      realtimeStatus.textContent = '✅ Activado';
+      startSupabaseRealtime();
+    }
   }
 
-  console.log(`🔄 Método de sincronización cambiado a: ${metodo}`);
+  // Asegurar que el radio button esté marcado correctamente
+  const radioButton = document.querySelector(`input[name="sync-method"][value="${metodo}"]`);
+  if (radioButton) {
+    radioButton.checked = true;
+  }
+}
+
+// ========== SISTEMA DE FALLBACK AUTOMÁTICO ==========
+async function verificarMetodoSync(metodo) {
+  console.log(`🔍 Verificando que ${metodo} funcione...`);
+
+  let funcionaMetodoPrincipal = false;
+
+  try {
+    if (metodo === 'firebase') {
+      // Verificar Firebase (puede estar agotada la cuota)
+      if (window.db && typeof window.verificarConectividad === 'function') {
+        funcionaMetodoPrincipal = await window.verificarConectividad();
+
+        // Si Firebase da error de cuota, es un fallo definitivo
+        if (!funcionaMetodoPrincipal) {
+          console.warn('⚠️ Firebase falló (posiblemente cuota agotada)');
+        }
+      }
+    } else {
+      // Verificar Supabase (no reinicializar si ya existe)
+      if (window.supabaseClient || await initSupabase()) {
+        const { error } = await window.supabaseClient
+          .from('agenda_data')
+          .select('id')
+          .limit(1);
+        funcionaMetodoPrincipal = !error;
+      }
+    }
+  } catch (error) {
+    // Detectar específicamente error de cuota de Firebase
+    if (error.message && error.message.includes('Quota exceeded')) {
+      console.warn(`🔥 Firebase agotó la cuota diaria - necesario cambiar a Supabase`);
+      funcionaMetodoPrincipal = false;
+    } else {
+      console.warn(`⚠️ Error verificando ${metodo}:`, error);
+      funcionaMetodoPrincipal = false;
+    }
+  }
+
+  if (!funcionaMetodoPrincipal) {
+    console.warn(`⚠️ ${metodo} no está funcionando, intentando método alternativo...`);
+    await intentarFallback(metodo);
+  } else {
+    console.log(`✅ ${metodo} funcionando correctamente`);
+    actualizarEstadoSincronizacion(`✅ Conectado con ${metodo === 'firebase' ? 'Firebase' : 'Supabase'}`);
+  }
+}
+
+async function intentarFallback(metodoFallido) {
+  const metodoAlternativo = metodoFallido === 'firebase' ? 'supabase' : 'firebase';
+  console.log(`🔄 Intentando fallback a ${metodoAlternativo}...`);
+
+  let funcionaAlternativo = false;
+
+  try {
+    if (metodoAlternativo === 'firebase') {
+      // Verificar Firebase alternativo
+      if (window.db && typeof window.verificarConectividad === 'function') {
+        funcionaAlternativo = await window.verificarConectividad();
+      }
+    } else {
+      // Verificar Supabase alternativo
+      const connected = await initSupabase();
+      if (connected) {
+        const { error } = await window.supabaseClient
+          .from('agenda_data')
+          .select('id')
+          .limit(1);
+        funcionaAlternativo = !error;
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ Error verificando ${metodoAlternativo}:`, error);
+    funcionaAlternativo = false;
+  }
+
+  if (funcionaAlternativo) {
+    console.log(`✅ Fallback exitoso: Cambiando a ${metodoAlternativo}`);
+
+    // Cambiar automáticamente al método que funciona
+    window.currentSyncMethod = metodoAlternativo;
+    localStorage.setItem('syncMethod', metodoAlternativo);
+
+    actualizarInterfazMetodo(metodoAlternativo);
+    actualizarEstadoSincronizacion(`🔄 Auto-cambiado a ${metodoAlternativo === 'firebase' ? 'Firebase' : 'Supabase'} (principal falló)`);
+
+    // Mostrar notificación discreta al usuario
+    if (typeof showSupabaseStatus === 'function') {
+      showSupabaseStatus(`🔄 Cambiado automáticamente a ${metodoAlternativo} porque ${metodoFallido} no respondía`, 'info');
+    }
+  } else {
+    console.error(`❌ Ningún método de sincronización está funcionando`);
+    actualizarEstadoSincronizacion(`❌ Sin conexión - Configurar Firebase o Supabase`);
+
+    if (typeof showSupabaseStatus === 'function') {
+      showSupabaseStatus('❌ Sin conexión - Verifica configuración de Firebase o Supabase', 'error');
+    }
+  }
+}
+
+function actualizarEstadoSincronizacion(mensaje) {
+  const statusCurrent = document.getElementById('sync-current');
+  if (statusCurrent) {
+    statusCurrent.textContent = mensaje;
+  }
 }
 
 // ========== REAL-TIME CON SUPABASE ==========
@@ -521,23 +704,69 @@ function showSupabaseStatus(message, type) {
 
 // ========== INTEGRACIÓN CON EL SISTEMA EXISTENTE ==========
 
-// Sobrescribir funciones globales para soportar ambos métodos
+// Sobrescribir funciones globales para soportar ambos métodos CON FALLBACK
 const originalGuardarJSON = window.guardarJSON;
 window.guardarJSON = async function(isAutomatic = false) {
+  // Intentar método principal
+  let resultado = false;
+
   if (window.currentSyncMethod === 'supabase') {
-    return await supabasePush(isAutomatic);
+    resultado = await supabasePush(isAutomatic);
   } else {
-    return originalGuardarJSON ? originalGuardarJSON(isAutomatic) : false;
+    resultado = originalGuardarJSON ? await originalGuardarJSON(isAutomatic) : false;
   }
+
+  // Si falla, intentar método alternativo automáticamente
+  if (!resultado && !isAutomatic) {
+    console.warn('⚠️ Método principal falló, intentando alternativo...');
+    const metodoAlternativo = window.currentSyncMethod === 'supabase' ? 'firebase' : 'supabase';
+
+    if (metodoAlternativo === 'supabase') {
+      resultado = await supabasePush(isAutomatic);
+    } else {
+      resultado = originalGuardarJSON ? await originalGuardarJSON(isAutomatic) : false;
+    }
+
+    if (resultado) {
+      // Cambiar automáticamente al método que funciona
+      console.log(`✅ Fallback exitoso: Cambiando a ${metodoAlternativo}`);
+      cambiarMetodoSync(metodoAlternativo);
+    }
+  }
+
+  return resultado;
 };
 
 const originalExtendsClassPull = window.extendsClassPull;
 window.extendsClassPull = async function() {
+  // Intentar método principal
+  let resultado = false;
+
   if (window.currentSyncMethod === 'supabase') {
-    return await supabasePull();
+    resultado = await supabasePull();
   } else {
-    return originalExtendsClassPull ? originalExtendsClassPull() : false;
+    resultado = originalExtendsClassPull ? await originalExtendsClassPull() : false;
   }
+
+  // Si falla, intentar método alternativo automáticamente
+  if (!resultado) {
+    console.warn('⚠️ Método principal falló en pull, intentando alternativo...');
+    const metodoAlternativo = window.currentSyncMethod === 'supabase' ? 'firebase' : 'supabase';
+
+    if (metodoAlternativo === 'supabase') {
+      resultado = await supabasePull();
+    } else {
+      resultado = originalExtendsClassPull ? await originalExtendsClassPull() : false;
+    }
+
+    if (resultado) {
+      // Cambiar automáticamente al método que funciona
+      console.log(`✅ Fallback exitoso en pull: Cambiando a ${metodoAlternativo}`);
+      cambiarMetodoSync(metodoAlternativo);
+    }
+  }
+
+  return resultado;
 };
 
 // ========== CARGAR CONFIGURACIÓN EN FORMULARIOS ==========
@@ -605,23 +834,100 @@ function mostrarGuiaRapidaSupabase() {
   );
 }
 
+function mostrarEstadoFirebaseSupabase() {
+  // Solo mostrar si Firebase está fallando y Supabase está disponible
+  const configSupabase = getSupabaseConfig();
+
+  if (window.currentSyncMethod === 'supabase' && configSupabase.url) {
+    showSupabaseStatus(
+      '✅ Usando Supabase - Sin límites de peticiones, real-time activado',
+      'success'
+    );
+  } else if (window.currentSyncMethod === 'firebase') {
+    // Verificar si Firebase está dando errores
+    showSupabaseStatus(
+      '⚠️ Si Firebase da errores de cuota, cambiar a Supabase (sin límites)',
+      'info'
+    );
+  }
+}
+
 // ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🚀 Inicializando sistema de sincronización dual...');
+
+  // Asegurar que las variables globales existan
+  if (!window.appState) {
+    window.appState = {
+      tareas: [],
+      tareasCriticas: [],
+      citas: [],
+      notas: '',
+      sentimientos: '',
+      contrasenas: []
+    };
+    console.log('📝 Variables globales de appState inicializadas');
+  }
+
+  if (!window.configVisual) {
+    window.configVisual = {
+      listasPersonalizadas: []
+    };
+    console.log('📝 Variables globales de configVisual inicializadas');
+  }
+
   // Cargar configuración guardada
   cargarConfigSupabaseEnFormulario();
 
-  // Inicializar si ya hay configuración
-  const config = getSupabaseConfig();
-  if (config.url && config.key) {
+  // Cargar método de sincronización guardado
+  const savedMethod = localStorage.getItem('syncMethod') || localStorage.getItem('lastSyncMethod') || 'firebase';
+  console.log(`📥 Método guardado en localStorage: ${savedMethod}`);
+
+  // Establecer método actual
+  window.currentSyncMethod = savedMethod;
+
+  // Inicializar configuraciones si existen (sin duplicar)
+  const configSupabase = getSupabaseConfig();
+  if (configSupabase.url && configSupabase.key && !window.supabaseClient) {
     await initSupabase();
+    console.log('⚡ Supabase inicializado en startup');
   }
 
-  // Activar método seleccionado
-  const currentMethod = localStorage.getItem('syncMethod') || 'firebase';
-  document.querySelector(`input[value="${currentMethod}"]`).checked = true;
-  cambiarMetodoSync(currentMethod);
+  // Esperar un poco para que se cargue la interfaz
+  setTimeout(() => {
+    // Activar método seleccionado en la interfaz
+    const radioButton = document.querySelector(`input[name="sync-method"][value="${savedMethod}"]`);
+    if (radioButton) {
+      radioButton.checked = true;
+      console.log(`✅ Radio button marcado: ${savedMethod}`);
+    }
 
-  console.log('⚡ Supabase Sync inicializado');
+    // Actualizar interfaz
+    actualizarInterfazMetodo(savedMethod);
+
+    // Verificar que el método funcione (con fallback automático)
+    setTimeout(() => {
+      verificarMetodoSync(savedMethod);
+
+      // Mostrar notificación específica si Firebase falló
+      if (savedMethod === 'firebase') {
+        setTimeout(() => {
+          mostrarEstadoFirebaseSupabase();
+        }, 3000);
+      }
+    }, 2000);
+  }, 500);
+
+  console.log('⚡ Sistema de sincronización inicializado');
+});
+
+// ========== PERSISTENCIA ADICIONAL ==========
+// Guardar método cada vez que cambie
+window.addEventListener('beforeunload', () => {
+  if (window.currentSyncMethod) {
+    localStorage.setItem('syncMethod', window.currentSyncMethod);
+    localStorage.setItem('lastSyncMethod', window.currentSyncMethod);
+  }
 });
 
 // ========== EXPORTS GLOBALES ==========
@@ -633,3 +939,7 @@ window.supabasePull = supabasePull;
 window.supabasePush = supabasePush;
 window.initSupabase = initSupabase;
 window.cargarConfigSupabaseEnFormulario = cargarConfigSupabaseEnFormulario;
+window.verificarMetodoSync = verificarMetodoSync;
+window.intentarFallback = intentarFallback;
+window.actualizarInterfazMetodo = actualizarInterfazMetodo;
+window.mostrarEstadoFirebaseSupabase = mostrarEstadoFirebaseSupabase;
