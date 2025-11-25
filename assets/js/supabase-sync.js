@@ -900,6 +900,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     // 🎨 FALLBACK: Si no hay Supabase configurado, disparar evento con valores por defecto
     console.log('📄 Supabase no configurado, disparando evento con configuración por defecto');
+
+    // 🔔 MOSTRAR AYUDA si no está configurado
+    detectarPrimeraVezSupabase();
+
     setTimeout(() => {
       const evento = new CustomEvent('supabaseConfigLoaded', {
         detail: {
