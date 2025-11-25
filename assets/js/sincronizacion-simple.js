@@ -163,6 +163,10 @@ function cargarConfiguracionesModal() {
   if (modoVisualizacionEl) modoVisualizacionEl.value = visualConfig.modoVisualizacion || 'estado';
 
   cargarConfigFuncionales();
+
+  // Sincronizar estructuras de etiquetas antes de renderizar
+  sincronizarEstructurasEtiquetas();
+
   renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
   renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
   cargarLog();
@@ -411,8 +415,12 @@ function agregarEtiquetaTarea() {
     return;
   }
 
+  // Inicializar ambas estructuras de datos
   if (!window.tareasData.etiquetas) {
     window.tareasData.etiquetas = { tareas: [], citas: [] };
+  }
+  if (!window.etiquetasData) {
+    window.etiquetasData = { tareas: [], citas: [] };
   }
 
   const etiqueta = {
@@ -421,7 +429,10 @@ function agregarEtiquetaTarea() {
     simbolo: simbolo
   };
 
+  // Agregar a ambas estructuras para mantener sincronización
   window.tareasData.etiquetas.tareas.push(etiqueta);
+  window.etiquetasData.tareas.push(etiqueta);
+
   guardarEnSupabase();
   renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
   document.getElementById('nueva-etiqueta-tarea').value = '';
@@ -437,8 +448,12 @@ function agregarEtiquetaCita() {
     return;
   }
 
+  // Inicializar ambas estructuras de datos
   if (!window.tareasData.etiquetas) {
     window.tareasData.etiquetas = { tareas: [], citas: [] };
+  }
+  if (!window.etiquetasData) {
+    window.etiquetasData = { tareas: [], citas: [] };
   }
 
   const etiqueta = {
@@ -447,7 +462,10 @@ function agregarEtiquetaCita() {
     simbolo: simbolo
   };
 
+  // Agregar a ambas estructuras para mantener sincronización
   window.tareasData.etiquetas.citas.push(etiqueta);
+  window.etiquetasData.citas.push(etiqueta);
+
   guardarEnSupabase();
   renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
   document.getElementById('nueva-etiqueta-cita').value = '';
@@ -457,15 +475,25 @@ function agregarEtiquetaCita() {
 function eliminarEtiqueta(id) {
   const tareas = window.tareasData?.etiquetas?.tareas || [];
   const citas = window.tareasData?.etiquetas?.citas || [];
+  const etiquetasDataTareas = window.etiquetasData?.tareas || [];
+  const etiquetasDataCitas = window.etiquetasData?.citas || [];
 
   const indexTareas = tareas.findIndex(e => e.id === id);
   const indexCitas = citas.findIndex(e => e.id === id);
+  const indexEtiquetasDataTareas = etiquetasDataTareas.findIndex(e => e.id === id);
+  const indexEtiquetasDataCitas = etiquetasDataCitas.findIndex(e => e.id === id);
 
   if (indexTareas !== -1) {
     window.tareasData.etiquetas.tareas.splice(indexTareas, 1);
+    if (indexEtiquetasDataTareas !== -1) {
+      window.etiquetasData.tareas.splice(indexEtiquetasDataTareas, 1);
+    }
     renderizarListaEtiquetas('etiquetas-tareas-lista', 'tareas');
   } else if (indexCitas !== -1) {
     window.tareasData.etiquetas.citas.splice(indexCitas, 1);
+    if (indexEtiquetasDataCitas !== -1) {
+      window.etiquetasData.citas.splice(indexEtiquetasDataCitas, 1);
+    }
     renderizarListaEtiquetas('etiquetas-citas-lista', 'citas');
   }
 
@@ -1004,7 +1032,30 @@ async function guardarEtiquetas() {
   }
 }
 
+// ========== SINCRONIZACIÓN DE ESTRUCTURAS DE ETIQUETAS ==========
+function sincronizarEstructurasEtiquetas() {
+  // Asegurar que ambas estructuras estén sincronizadas
+  if (window.etiquetasData && !window.tareasData?.etiquetas) {
+    if (!window.tareasData) window.tareasData = {};
+    window.tareasData.etiquetas = window.etiquetasData;
+    console.log('✅ Sincronizado etiquetas: etiquetasData → tareasData.etiquetas');
+  } else if (window.tareasData?.etiquetas && !window.etiquetasData) {
+    window.etiquetasData = window.tareasData.etiquetas;
+    console.log('✅ Sincronizado etiquetas: tareasData.etiquetas → etiquetasData');
+  }
+
+  // Si ninguna existe, inicializar ambas
+  if (!window.etiquetasData && !window.tareasData?.etiquetas) {
+    const estructuraInicial = { tareas: [], citas: [] };
+    window.etiquetasData = estructuraInicial;
+    if (!window.tareasData) window.tareasData = {};
+    window.tareasData.etiquetas = estructuraInicial;
+    console.log('✅ Estructuras de etiquetas inicializadas');
+  }
+}
+
 // Exportar globalmente
 window.guardarEtiquetas = guardarEtiquetas;
+window.sincronizarEstructurasEtiquetas = sincronizarEstructurasEtiquetas;
 
 console.log('✅ Sincronización simplificada cargada (Supabase only)');

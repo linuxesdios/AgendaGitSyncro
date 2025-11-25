@@ -357,6 +357,10 @@ async function supabasePull() {
           break;
         case 'etiquetas':
           window.etiquetasData = data;
+          // Sincronizar con tareasData.etiquetas para compatibilidad
+          if (!window.tareasData) window.tareasData = {};
+          if (!window.tareasData.etiquetas) window.tareasData.etiquetas = {};
+          window.tareasData.etiquetas = data;
           break;
         case 'log':
           if (data.acciones) window.logAcciones = data.acciones;
@@ -368,6 +372,11 @@ async function supabasePull() {
     });
 
     console.log('✅ Pull de Supabase completado');
+
+    // ✅ SINCRONIZAR ESTRUCTURAS DE ETIQUETAS
+    if (typeof window.sincronizarEstructurasEtiquetas === 'function') {
+      window.sincronizarEstructurasEtiquetas();
+    }
 
     // ✅ FORZAR RENDERIZADO después de que los datos estén cargados
     setTimeout(() => {
