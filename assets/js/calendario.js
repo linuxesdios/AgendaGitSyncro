@@ -608,7 +608,18 @@ function guardarNuevaCita() {
     lugar: lugar || null,
     etiqueta: etiqueta || null
   };
-  
+
+  // Inicializar estructura de citas de forma segura
+  if (!window.appState) {
+    window.appState = {};
+  }
+  if (!window.appState.agenda) {
+    window.appState.agenda = {};
+  }
+  if (!window.appState.agenda.citas) {
+    window.appState.agenda.citas = [];
+  }
+
   appState.agenda.citas.push(nuevaCita);
   console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
   
@@ -916,9 +927,20 @@ function crearCitaPeriodica() {
   const inicio = new Date(fechaInicio);
   const fin = new Date(fechaFin);
   const citasCreadas = [];
-  
+
+  // Inicializar estructura de citas de forma segura
+  if (!window.appState) {
+    window.appState = {};
+  }
+  if (!window.appState.agenda) {
+    window.appState.agenda = {};
+  }
+  if (!window.appState.agenda.citas) {
+    window.appState.agenda.citas = [];
+  }
+
   let fechaActual = new Date(inicio);
-  
+
   while (fechaActual <= fin) {
     const fechaStr = fechaActual.toISOString().slice(0, 10);
     const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
@@ -1072,7 +1094,18 @@ function guardarCitasRelativas() {
     alert('No hay citas para guardar');
     return;
   }
-  
+
+  // Inicializar estructura de citas de forma segura
+  if (!window.appState) {
+    window.appState = {};
+  }
+  if (!window.appState.agenda) {
+    window.appState.agenda = {};
+  }
+  if (!window.appState.agenda.citas) {
+    window.appState.agenda.citas = [];
+  }
+
   citasRelativasTemp.forEach(cita => {
     const citaConId = {
       id: Date.now() + Math.random(),
