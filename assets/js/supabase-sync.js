@@ -785,10 +785,12 @@ function detectarPrimeraVezSupabase() {
 
   // Si no tiene configuración de Supabase (URL o Key), mostrar ayuda SIEMPRE
   if (!config.url || !config.key) {
-    // Mostrar ayuda después de un pequeño delay para que cargue la interfaz
+    console.log('🔔 Supabase no configurado - Mostrando ayuda en 2 segundos...');
+    // Mostrar ayuda después de un delay mayor para que cargue la interfaz
     setTimeout(() => {
+      console.log('🔔 Ejecutando mostrarAyudaPrimeraVez()');
       mostrarAyudaPrimeraVez();
-    }, 500);
+    }, 2000); // Aumentado de 500ms a 2000ms
   }
 }
 
@@ -1023,7 +1025,7 @@ async function asegurarConfiguracionCargada() {
   if (!window.configVisual) {
     window.configVisual = {
       tema: 'verde',
-      titulo: '🧠 Agenda de Pablo 😊',
+      titulo: 'Agenda',
       listasPersonalizadas: [],
       popupCelebracion: true,
       mostrarNotas: false,

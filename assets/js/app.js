@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ⚡ APLICAR TEMA INMEDIATAMENTE desde localStorage (antes de Supabase)
   // Esto evita el "flash" de color verde mientras carga Supabase
   const temaCache = localStorage.getItem('tema_cache') || 'verde';
-  const tituloCache = localStorage.getItem('titulo_cache') || '🧠 Agenda de Pablo 😊';
+  const tituloCache = localStorage.getItem('titulo_cache') || 'Agenda';
 
   console.log('⚡ Aplicando tema desde cache:', temaCache);
   document.body.classList.add('tema-' + temaCache);
@@ -517,7 +517,7 @@ function cargarConfigVisual() {
     console.log(`🎨 =====================================`);
 
     // APLICAR TÍTULO PERSONALIZADO INMEDIATAMENTE
-    const tituloPersonalizado = config.titulo || '🧠 Agenda de Pablo 😊';
+    const tituloPersonalizado = config.titulo || 'Agenda';
     const tituloElement = document.getElementById('titulo-agenda');
     if (tituloElement) {
       tituloElement.textContent = tituloPersonalizado;
@@ -1100,7 +1100,7 @@ async function guardarConfigVisualPanel() {
 
   const config = {
     tema: temaSeleccionado,
-    titulo: document.getElementById('config-titulo-input')?.value || '🧠 Agenda de Pablo 😊',
+    titulo: document.getElementById('config-titulo-input')?.value || 'Agenda',
     modoVisualizacion: document.getElementById('config-modo-visualizacion')?.value || 'estado',
     popupCelebracion: document.getElementById('config-popup-celebracion')?.checked !== false,
     mostrarNotas: document.getElementById('config-mostrar-notas')?.checked === true,
@@ -1237,11 +1237,11 @@ function cargarConfigVisualEnFormulario() {
   if (temaSelect) temaSelect.value = config.tema || 'verde';
 
   const tituloInput = document.getElementById('config-titulo-input');
-  if (tituloInput) tituloInput.value = config.titulo || '🧠 Agenda de Pablo 😊';
+  if (tituloInput) tituloInput.value = config.titulo || 'Agenda';
 
   // Actualizar título completo
   const titulo = document.getElementById('titulo-agenda');
-  if (titulo) titulo.textContent = config.titulo || '🧠 Agenda de Pablo 😊';
+  if (titulo) titulo.textContent = config.titulo || 'Agenda';
 
   const modoVisualizacion = document.getElementById('config-modo-visualizacion');
   if (modoVisualizacion) modoVisualizacion.value = config.modoVisualizacion || 'estado';
