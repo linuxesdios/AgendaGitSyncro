@@ -780,12 +780,23 @@ function cargarConfigSupabaseEnFormulario() {
   detectarPrimeraVezSupabase();
 }
 
+// Bandera para evitar mostrar el popup múltiples veces
+let ayudaSupabaseMostrada = false;
+
 function detectarPrimeraVezSupabase() {
   const config = getSupabaseConfig();
 
   // Si no tiene configuración de Supabase (URL o Key), mostrar ayuda SIEMPRE
   if (!config.url || !config.key) {
+    // ✅ PREVENIR DUPLICADOS: Solo mostrar una vez por sesión
+    if (ayudaSupabaseMostrada) {
+      console.log('🔔 Ayuda ya mostrada en esta sesión, omitiendo...');
+      return;
+    }
+
     console.log('🔔 Supabase no configurado - Mostrando ayuda en 2 segundos...');
+    ayudaSupabaseMostrada = true; // Marcar como mostrada
+
     // Mostrar ayuda después de un delay mayor para que cargue la interfaz
     setTimeout(() => {
       console.log('🔔 Ejecutando mostrarAyudaPrimeraVez()');
