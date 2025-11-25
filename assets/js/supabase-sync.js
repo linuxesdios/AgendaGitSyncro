@@ -782,19 +782,16 @@ function cargarConfigSupabaseEnFormulario() {
 
 function detectarPrimeraVezSupabase() {
   const config = getSupabaseConfig();
-  const hasSeenSupabaseHelp = localStorage.getItem('supabase_help_shown');
 
-  // Si no tiene configuración Y nunca ha visto la ayuda
-  if (!config.url && !hasSeenSupabaseHelp) {
-    // Marcar que ya vio la ayuda
-    localStorage.setItem('supabase_help_shown', 'true');
-
+  // Si no tiene configuración de Supabase (URL o Key), mostrar ayuda SIEMPRE
+  if (!config.url || !config.key) {
     // Mostrar ayuda después de un pequeño delay para que cargue la interfaz
     setTimeout(() => {
       mostrarAyudaPrimeraVez();
     }, 500);
   }
 }
+
 
 function mostrarAyudaPrimeraVez() {
   const shouldShow = confirm(

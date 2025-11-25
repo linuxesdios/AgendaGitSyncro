@@ -553,10 +553,8 @@
             <label>API Key (anon/public):</label>
             <div style="position: relative;">
               <input type="password" id="supabase-key" class="form-control"
-                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                style="padding-right: 50px;">
-              <button type="button" id="toggle-supabase-key" onclick="toggleSupabaseKeyVisibility()"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="padding-right: 50px;">
+              <button type="button" id="toggle-supabase-key" onclick="toggleSupabaseKeyVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
                        background: none; border: none; font-size: 16px; cursor: pointer;
                        color: #666; padding: 0; width: 30px; height: 30px;
                        display: flex; align-items: center; justify-content: center;">
@@ -676,11 +674,12 @@
                 <button type="button" onclick="insertarIcono('🏆')" class="btn-icono" title="Trofeo">🏆</button>
               </div>
 
-              <input type="text" id="config-titulo-input" placeholder="🧠 Agenda de Pablo 😊" onchange="guardarConfigVisualPanel()"
+              <input type="text" id="config-titulo-input" placeholder="🧠 Agenda de Pablo 😊"
+                onchange="guardarConfigVisualPanel()"
                 style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
             </div>
 
-            <div style="margin-top:15px;">
+            <div id="config-columnas-container" style="margin-top:15px;">
               <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📐 Diseño de
                 columnas:</label>
               <select id="config-columnas" onchange="guardarConfigVisualPanel()"

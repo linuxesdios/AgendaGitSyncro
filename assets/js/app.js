@@ -72,6 +72,19 @@ const isDesktop = () => {
 document.addEventListener('DOMContentLoaded', () => {
   window.appStartTime = Date.now();
 
+  // ⚡ APLICAR TEMA INMEDIATAMENTE desde localStorage (antes de Supabase)
+  // Esto evita el "flash" de color verde mientras carga Supabase
+  const temaCache = localStorage.getItem('tema_cache') || 'verde';
+  const tituloCache = localStorage.getItem('titulo_cache') || '🧠 Agenda de Pablo 😊';
+
+  console.log('⚡ Aplicando tema desde cache:', temaCache);
+  document.body.classList.add('tema-' + temaCache);
+
+  const tituloElement = document.getElementById('titulo-agenda');
+  if (tituloElement) {
+    tituloElement.textContent = tituloCache;
+  }
+
   // Aplicar clases adaptativas
   document.body.classList.add(isMobile() ? 'mobile-device' : 'desktop-device');
 
@@ -166,8 +179,143 @@ document.addEventListener('DOMContentLoaded', () => {
     headerTimer = setTimeout(collapseHeader, 5000);
   }
 
+  // ========== DETECTOR DE CONECTIVIDAD ==========
+  inicializarDetectorConectividad();
+
   // Supabase maneja la sincronización automática
 });
+
+// ========== DETECTOR DE CONECTIVIDAD ==========
+let modalSinInternet = null;
+
+function inicializarDetectorConectividad() {
+  console.log('🌐 Inicializando detector de conectividad...');
+
+  // Escuchar eventos nativos del navegador
+  window.addEventListener('online', manejarConexionRestaurada);
+  window.addEventListener('offline', manejarConexionPerdida);
+
+  // Verificar conectividad periódicamente (cada 30 segundos)
+  setInterval(verificarConectividad, 30000);
+
+  // Verificar inmediatamente
+  verificarConectividad();
+}
+
+async function verificarConectividad() {
+  // Verificar primero la conexión del navegador
+  if (!navigator.onLine) {
+    manejarConexionPerdida();
+    return;
+  }
+
+  // Verificar conexión a Supabase si está configurado
+  if (window.supabaseClient) {
+    try {
+      const { error } = await window.supabaseClient
+        .from('agenda_data')
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        console.warn('⚠️ Error de conectividad con Supabase:', error);
+        // No bloqueamos si solo es error de Supabase, podría ser problema de permisos
+      }
+    } catch (err) {
+      console.warn('⚠️ No se puede verificar Supabase:', err);
+    }
+  }
+}
+
+function manejarConexionPerdida() {
+  console.error('❌ CONEXIÓN A INTERNET PERDIDA');
+  mostrarModalSinInternet();
+}
+
+function manejarConexionRestaurada() {
+  console.log('✅ CONEXIÓN A INTERNET RESTAURADA');
+  cerrarModalSinInternet();
+
+  // Intentar sincronizar inmediatamente
+  if (typeof supabasePush === 'function') {
+    setTimeout(() => {
+      console.log('🔄 Sincronizando datos tras restaurar conexión...');
+      supabasePush();
+    }, 1000);
+  }
+}
+
+function mostrarModalSinInternet() {
+  // No crear duplicados
+  if (modalSinInternet && modalSinInternet.style.display === 'flex') {
+    return;
+  }
+
+  // Crear modal bloqueante
+  if (!modalSinInternet) {
+    modalSinInternet = document.createElement('div');
+    modalSinInternet.id = 'modal-sin-internet';
+    modalSinInternet.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 99999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    `;
+
+    modalSinInternet.innerHTML = `
+      <div style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 3px solid rgba(255,255,255,0.3);
+      ">
+        <div style="font-size: 80px; margin-bottom: 20px; animation: pulse 2s infinite;">📡</div>
+        <h2 style="color: white; margin: 0 0 20px 0; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+          ⚠️ Sin Conexión a Internet
+        </h2>
+        <p style="color: rgba(255,255,255,0.95); font-size: 18px; line-height: 1.6; margin: 0 0 25px 0;">
+          La aplicación está <strong>bloqueada</strong> porque no hay conexión a internet.
+        </p>
+        <p style="color: rgba(255,255,255,0.85); font-size: 16px; line-height: 1.5; margin: 0 0 25px 0;">
+          No puedes trabajar sin conexión porque los cambios no se podrían guardar en Supabase.
+        </p>
+        <div style="
+          background: rgba(255,255,255,0.2);
+          padding: 15px;
+          border-radius: 10px;
+          margin-top: 20px;
+          border: 1px solid rgba(255,255,255,0.3);
+        ">
+          <p style="color: white; margin: 0; font-size: 14px;">
+            ⏳ Esperando reconexión automática...<br>
+            <span style="opacity: 0.8; font-size: 12px;">La aplicación se desbloqueará cuando vuelva internet</span>
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalSinInternet);
+  } else {
+    modalSinInternet.style.display = 'flex';
+  }
+}
+
+function cerrarModalSinInternet() {
+  if (modalSinInternet) {
+    modalSinInternet.style.display = 'none';
+  }
+}
 
 function actualizarFecha() {
   const hoy = new Date();
@@ -376,6 +524,11 @@ function cargarConfigVisual() {
       console.log(`📝 Título aplicado: ${tituloPersonalizado}`);
     }
 
+    // ⚡ ACTUALIZAR CACHE en localStorage
+    localStorage.setItem('tema_cache', tema);
+    localStorage.setItem('titulo_cache', tituloPersonalizado);
+    console.log('⚡ Cache actualizado con tema y título de Supabase');
+
     // Aplicar visibilidad de secciones
     if (typeof aplicarVisibilidadSecciones === 'function') {
       aplicarVisibilidadSecciones();
@@ -456,9 +609,15 @@ function aplicarConfiguracionColumnas() {
   console.log('📐 APLICANDO CONFIGURACIÓN DE COLUMNAS');
 
   const configVisual = window.configVisual || {};
-  const columnas = parseInt(configVisual.columnas) || 2;
+  let columnas = parseInt(configVisual.columnas) || 2;
 
-  console.log('📐 Número de columnas configuradas:', columnas);
+  // 📱 FORZAR UNA COLUMNA EN MÓVIL (ignorar configuración)
+  if (isMobile()) {
+    columnas = 1;
+    console.log('📱 Dispositivo móvil detectado - Forzando UNA columna');
+  }
+
+  console.log('📐 Número de columnas a aplicar:', columnas);
 
   const contenedorDosColumnas = document.querySelector('.contenedor-dos-columnas');
   const contenedorListasPersonalizadas = document.getElementById('contenedor-listas-personalizadas');
@@ -964,6 +1123,11 @@ async function guardarConfigVisualPanel() {
   // Guardar DIRECTAMENTE en variables globales
   window.configVisual = config;
 
+  // ⚡ GUARDAR EN LOCALSTORAGE para aplicación instantánea (evitar flash verde)
+  localStorage.setItem('tema_cache', config.tema);
+  localStorage.setItem('titulo_cache', config.titulo);
+  console.log('⚡ Tema y título guardados en cache localStorage');
+
   // Guardar en Supabase
   if (typeof window.supabasePush === 'function') {
     console.log('⚡ Guardando en Supabase...');
@@ -1120,6 +1284,17 @@ function cargarConfigVisualEnFormulario() {
   const columnas = document.getElementById('config-columnas');
   if (columnas) {
     columnas.value = config.columnas || 2;
+  }
+
+  // 📱 OCULTAR selector de columnas en móvil (siempre usa 1 columna)
+  const columnasContainer = document.getElementById('config-columnas-container');
+  if (columnasContainer) {
+    if (isMobile()) {
+      columnasContainer.style.display = 'none';
+      console.log('📱 Selector de columnas ocultado en móvil');
+    } else {
+      columnasContainer.style.display = 'block';
+    }
   }
 
   const frasesMotivacionales = document.getElementById('config-frases-motivacionales');
