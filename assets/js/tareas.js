@@ -30,6 +30,100 @@ function renderizar() {
   });
 }
 
+// ========== OBTENER SÍMBOLO DE TAREA ==========
+function obtenerSimbolo(tarea) {
+  if (!tarea.estado) tarea.estado = 'pendiente';
+  if (tarea.estado === 'completada' || tarea.completada) return '✔';
+  if (tarea.estado === 'migrada') return '→';
+  if (tarea.estado === 'programada') return '<';
+  return '●';
+}
+
+// ========== FUNCIONES COMPARTIDAS PARA TAREAS ==========
+/**
+ * Genera el HTML para mostrar una fecha con indicadores de urgencia
+ * @param {string} fecha - Fecha en formato string
+ * @param {boolean} esUrgente - Si la fecha es hoy o pasada
+ * @returns {string} HTML formateado para la fecha
+ */
+function renderizarFechaConUrgencia(fecha, esUrgente) {
+  if (!fecha) return '';
+
+  const esPasada = esFechaPasada(fecha);
+  const esHoy = esFechaHoy(fecha);
+  const colorFecha = (esHoy || esPasada) ? '#ff1744' : '#666';
+  const bgColor = esUrgente ? '#ffcdd2' : '#ffe5e5';
+  const fontWeight = esUrgente ? 'bold' : 'normal';
+
+  let textoFecha = '📅 ';
+  if (esPasada) {
+    textoFecha += '⚠️ VENCIDO - ';
+  } else if (esHoy) {
+    textoFecha += '⚠️ VENCE HOY - ';
+  }
+  textoFecha += fecha;
+
+  return `<small style="background: ${bgColor}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${fontWeight};">${textoFecha}</small>`;
+}
+
+/**
+ * Configura drag & drop en un elemento de tarea
+ * @param {HTMLElement} div - Elemento div de la tarea
+ * @param {string} tipo - Tipo de tarea ('critica', 'tarea', 'lista-personalizada')
+ * @param {number} index - Índice de la tarea
+ * @param {string} listaId - ID de la lista personalizada (opcional)
+ */
+function configurarDragAndDrop(div, tipo, index, listaId = null) {
+  const configOpciones = window.configOpciones || {};
+  const sinTactil = configOpciones.sinTactil || false;
+
+  if (sinTactil) return; // No configurar si está deshabilitado
+
+  div.draggable = !(typeof isMobile === 'function' && isMobile());
+  div.dataset.tipo = tipo;
+  div.dataset.index = index;
+
+  if (listaId) {
+    div.dataset.listaId = listaId;
+  }
+
+  // Eventos touch para móvil
+  if (typeof isMobile === 'function' && isMobile()) {
+    div.addEventListener('touchstart', handleTouchStart, { passive: false });
+    div.addEventListener('touchmove', handleTouchMove, { passive: false });
+    div.addEventListener('touchend', handleTouchEnd, { passive: false });
+  } else {
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragend', handleDragEnd);
+  }
+}
+
+/**
+ * Crea un elemento de alerta de urgencia si es necesario
+ * @param {boolean} esPasada - Si la fecha ya pasó
+ * @param {boolean} esHoy - Si la fecha es hoy
+ * @param {boolean} completada - Si la tarea está completada
+ * @returns {HTMLElement|null} Elemento de alerta o null
+ */
+function crearAlertaUrgencia(esPasada, esHoy, completada) {
+  if (completada) return null;
+
+  const alerta = document.createElement('span');
+  alerta.className = 'alerta-urgente';
+
+  if (esPasada) {
+    alerta.textContent = '⚠️⚠️⚠️ Fecha pasada';
+    alerta.title = '¡Fecha pasada!';
+    return alerta;
+  } else if (esHoy) {
+    alerta.textContent = '⚠️ Vence hoy';
+    alerta.title = '¡Vence hoy!';
+    return alerta;
+  }
+
+  return null;
+}
+
 function renderizarCriticas() {
   const lista = document.getElementById('lista-criticas');
   if (!lista) return;
@@ -444,21 +538,11 @@ function renderizarTareas() {
   });
 }
 
-// ========== SÍMBOLOS ==========
-function obtenerSimbolo(tarea) {
-  if (tarea.estado === 'completada') return '✔';
-  if (tarea.estado === 'migrada') return '→';
-  if (tarea.estado === 'programada') return '<';
-  return '●';
-}
-
-// ========== CAMBIAR ESTADO ==========
+// ========== CAMBIAR ESTADO DE TAREAS ==========
 async function cambiarEstadoCritica(index) {
   console.log('🎯 CLICK EN TAREA CRÍTICA:', { index });
   const tarea = appState.agenda.tareas_criticas[index];
   console.log('📊 Estado actual:', tarea.estado, '| Tarea:', tarea.titulo);
-
-  const estadoAnterior = tarea.estado;
 
   if (tarea.estado === 'pendiente') {
     console.log('▶️ Pendiente → Migrada (abriendo modal migrar)');
@@ -769,7 +853,7 @@ async function agregarTarea() {
       fecha_creacion: new Date().toISOString()
     };
     appState.agenda.tareas.push(nuevaTarea);
-    registrarAccion('Crear tarea', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fechaFin ? `(vence: ${fechaFin})` : ''}`.trim());
+    registrarAccion('Crear tarea', `"${texto}" ${etiqueta ? `[${etiqueta}]` : ''} ${fecha ? `(vence: ${fecha})` : ''}`.trim());
   }
 
   cerrarModal('modal-tarea');
@@ -1768,6 +1852,21 @@ function guardarSubtareaCompletada(subtarea, esCritica) {
   }
 }
 
+// ========== GUARDAR TAREAS COMPLETADAS EN HISTORIAL ==========
+function guardarTareaCompletada(tarea, esCritica) {
+  if (typeof guardarEnHistorial === 'function') {
+    const entrada = {
+      id: Date.now().toString(),
+      tipo: esCritica ? 'tarea_critica' : 'tarea',
+      texto: esCritica ? tarea.titulo : tarea.texto,
+      fecha_completada: new Date().toISOString(),
+      fecha_original: tarea.fecha_fin || null,
+      persona: tarea.persona || null
+    };
+    guardarEnHistorial(entrada);
+  }
+}
+
 // ========== POPUP MOTIVACIONAL CON CUENTA ATRÁS ==========
 function mostrarPopupCompletarTarea(callback) {
   // Obtener frase motivadora
@@ -1805,6 +1904,8 @@ function mostrarPopupCompletarTarea(callback) {
     margin: 20px;
     animation: slideIn 0.3s ease;
   `;
+
+  let intervaloCuentaAtras = null;
 
   function actualizarContenido() {
     contenido.innerHTML = `
@@ -1861,7 +1962,7 @@ function mostrarPopupCompletarTarea(callback) {
   }
 
   // Cuenta atrás
-  let intervaloCuentaAtras = setInterval(() => {
+  intervaloCuentaAtras = setInterval(() => {
     segundosRestantes--;
     if (segundosRestantes <= 0) {
       confirmar(); // Auto-confirmar después de 3 segundos
@@ -1921,6 +2022,7 @@ window.scrollToBottom = scrollToBottom;
 window.setupPersonasAutocomplete = setupPersonasAutocomplete;
 window.mostrarCelebracion = mostrarCelebracion;
 window.mostrarCuentaRegresiva = mostrarCuentaRegresiva;
+window.confirmarEliminacion = confirmarEliminacion;
 window.cancelarEliminacion = cancelarEliminacion;
 window.abrirEditorTarea = abrirEditorTarea;
 window.guardarEdicion = guardarEdicion;
@@ -1932,11 +2034,20 @@ window.cambiarEstadoSubtarea = cambiarEstadoSubtarea;
 window.eliminarSubtarea = eliminarSubtarea;
 window.abrirModalSubtareaCritica = abrirModalSubtareaCritica;
 window.agregarSubtareaCritica = agregarSubtareaCritica;
+window.toggleSubtareaCritica = toggleSubtareaCritica;
+window.toggleSubtarea = toggleSubtarea;
 window.eliminarSubtareaCritica = eliminarSubtareaCritica;
 window.abrirEditorSubtarea = abrirEditorSubtarea;
 window.guardarEdicionSubtarea = guardarEdicionSubtarea;
+window.abrirMigracionSubtarea = abrirMigracionSubtarea;
+window.guardarMigracionSubtarea = guardarMigracionSubtarea;
 window.guardarSubtareaCompletada = guardarSubtareaCompletada;
+window.guardarTareaCompletada = guardarTareaCompletada;
 window.manejarSeleccionPersona = manejarSeleccionPersona;
 window.cargarPersonasEnSelect = cargarPersonasEnSelect;
 window.aplicarColorVisualizacion = aplicarColorVisualizacion;
 window.mostrarPopupCelebracion = mostrarPopupCelebracion;
+// Funciones compartidas
+window.renderizarFechaConUrgencia = renderizarFechaConUrgencia;
+window.configurarDragAndDrop = configurarDragAndDrop;
+window.crearAlertaUrgencia = crearAlertaUrgencia;
