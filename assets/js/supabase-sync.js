@@ -465,8 +465,8 @@ async function supabasePull() {
   }
 }
 
-// Función para guardar datos en la nube
-async function supabasePush(isAutomatic = false, skipPullBefore = false) {
+// Función para guardar datos en la nube (CON DETECCIÓN DE CONFLICTOS)
+async function supabasePush(isAutomatic = false, skipPullBefore = false, skipConflictCheck = false) {
   if (window.currentSyncMethod !== 'supabase') return;
 
   const connected = await initSupabase();
@@ -475,21 +475,103 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false) {
     return;
   }
 
-  // ⚠️ IMPORTANTE: Siempre hacer Pull antes de Push (salvo que se indique explícitamente)
-  if (!skipPullBefore) {
+  // ========== DETECCIÓN DE CONFLICTOS ==========
+  if (!skipConflictCheck && typeof getDeviceId === 'function' && typeof showConflictModal === 'function') {
+    try {
+      console.log('🔍 Verificando deviceId para conflictos...');
+
+      // Obtener metadata actual de Supabase
+      const { data: metadataRecord, error: metadataError } = await window.supabaseClient
+        .from('agenda_data')
+        .select('data')
+        .eq('id', '_metadata')
+        .single();
+
+      const currentDeviceId = getDeviceId();
+      const remoteDeviceId = metadataRecord?.data?._deviceId;
+
+      console.log(`  📱 Device actual: ${currentDeviceId}`);
+      console.log(`  ☁️  Device remoto: ${remoteDeviceId || 'ninguno'}`);
+
+      // Si hay un deviceId remoto y es diferente al actual, mostrar modal
+      if (remoteDeviceId && remoteDeviceId !== currentDeviceId) {
+        console.log('⚠️ ¡CONFLICTO! Último guardado fue desde otro dispositivo');
+
+        // Obtener datos remotos actuales para comparar
+        const { data: remoteTareas } = await window.supabaseClient.from('agenda_data').select('data').eq('id', 'tareas').single();
+        const { data: remoteCitas } = await window.supabaseClient.from('agenda_data').select('data').eq('id', 'citas').single();
+        const { data: remoteNotas } = await window.supabaseClient.from('agenda_data').select('data').eq('id', 'notas').single();
+        const { data: remoteSentimientos } = await window.supabaseClient.from('agenda_data').select('data').eq('id', 'sentimientos').single();
+
+        const remoteData = {
+          tareas_criticas: remoteTareas?.data?.tareas_criticas || [],
+          tareas: remoteTareas?.data?.tareas || [],
+          listasPersonalizadas: remoteTareas?.data?.listasPersonalizadas || [],
+          citas: remoteCitas?.data?.citas || [],
+          notas: remoteNotas?.data?.notas || '',
+          sentimientos: remoteSentimientos?.data?.sentimientos || '',
+          _metadata: metadataRecord?.data || {}
+        };
+
+        const localData = {
+          tareas_criticas: window.appState?.agenda?.tareas_criticas || [],
+          tareas: window.appState?.agenda?.tareas || [],
+          listasPersonalizadas: window.configVisual?.listasPersonalizadas || [],
+          citas: window.appState?.agenda?.citas || [],
+          notas: window.appState.notas || '',
+          sentimientos: window.appState.sentimientos || ''
+        };
+
+        // Mostrar modal y esperar decisión del usuario
+        const resolution = await showConflictModal(localData, remoteData);
+
+        console.log(`  👤 Usuario eligió: ${resolution}`);
+
+        if (resolution === 'cancel') {
+          console.log('❌ Push cancelado por el usuario');
+          return false;
+        } else if (resolution === 'remote') {
+          console.log('📥 Usando versión del servidor, descartando cambios locales');
+          // Hacer pull para obtener la versión remota
+          await supabasePull();
+          return true; // No guardar, solo actualizar local
+        }
+        // Si resolution === 'local', continuar guardando
+        console.log('📤 Usando versión local, sobrescribiendo servidor');
+      }
+    } catch (conflictError) {
+      console.warn('⚠️ Error verificando conflictos:', conflictError);
+      // Continuar con el guardado normal si hay error
+    }
+  }
+
+  // ========== PULL ANTES DE PUSH (Opcional) ==========
+  if (!skipPullBefore && skipConflictCheck) {
+    // Solo hacer pull si no se hizo verificación de conflictos
     console.log('📥 Pull automático antes de guardar...');
     try {
       await supabasePull();
       console.log('✅ Pull completado, procediendo a guardar');
     } catch (error) {
       console.warn('⚠️ Error en Pull antes de Push:', error);
-      // Continuar con Push de todas formas
     }
   }
 
   try {
     const logPrefix = isAutomatic ? '🔄 AUTO-PUSH' : '💾 PUSH';
     console.log(`${logPrefix}: Guardando datos en Supabase...`);
+
+    // Obtener metadata del dispositivo
+    let deviceMetadata = {};
+    if (typeof getDeviceMetadata === 'function') {
+      deviceMetadata = getDeviceMetadata();
+    } else if (typeof getDeviceId === 'function' && typeof getDeviceName === 'function') {
+      deviceMetadata = {
+        _deviceId: getDeviceId(),
+        _deviceName: getDeviceName(),
+        _timestamp: new Date().toISOString()
+      };
+    }
 
     const updates = [
       {
@@ -543,6 +625,10 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false) {
       {
         id: 'etiquetas',
         data: window.etiquetasData || {}
+      },
+      {
+        id: '_metadata',
+        data: deviceMetadata
       }
     ];
 
@@ -572,8 +658,10 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false) {
           detalle = `(${total} etiquetas)`;
         } else if (id === 'log') {
           detalle = `(${data.acciones?.length || 0} acciones)`;
+        } else if (id === '_metadata') {
+          detalle = `(${data._deviceName || 'device info'})`;
         }
-        console.log(`  ✅ GUARDADO: ${id} ${detalle}`);
+        if (detalle) console.log(`  ✅ GUARDADO: ${id} ${detalle}`);
       }
       return result;
     });

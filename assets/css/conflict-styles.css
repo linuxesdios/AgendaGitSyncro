@@ -1,0 +1,97 @@
+/* ========== CONFLICT RESOLUTION STYLES ========== */
+
+/* Estilos para el modal de conflictos */
+.conflict-info {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.conflict-version {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.conflict-version h5 {
+    margin: 0 0 10px 0;
+    color: #2d5a27;
+}
+
+.conflict-preview {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.conflict-diff {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* Estilos para diferencias */
+.diff-added {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px 0;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.diff-removed {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px 0;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.diff-modified {
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px 0;
+    display: inline-block;
+    font-size: 12px;
+}
+
+/* Animación para el modal de conflictos */
+#modal-conflicto.modal {
+    an animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    #modal-conflicto .modal-content {
+        max-width: 95% !important;
+    }
+
+    #modal-conflicto [style*="grid-template-columns:1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    .conflict-preview {
+        max-height: 200px;
+    }
+}
