@@ -3440,14 +3440,17 @@ async function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   console.log('✅ Subtarea añadida. Total subtareas:', tarea.subtareas.length);
   console.log('📊 Contenido de la tarea actualizada:', JSON.stringify(tarea, null, 2));
 
-  // Actualizar estado global
-  window.configVisual = {
-    ...configVisual,
-    listasPersonalizadas: listas
-  };
+  // Actualizar estado global - Método directo sin spread
+  if (!window.configVisual) {
+    window.configVisual = {};
+  }
+  window.configVisual.listasPersonalizadas = listas;
 
-  console.log('🔄 window.configVisual actualizado');
+  console.log('🔄 window.configVisual actualizado (mutación directa)');
   console.log('📊 Verificando que se guardó:', window.configVisual.listasPersonalizadas[listaIndex].tareas[tareaIndex].subtareas);
+
+  // Pequeño delay antes de renderizar para asegurar que el estado se actualizó
+  await new Promise(resolve => setTimeout(resolve, 10));
 
   renderizarListaPersonalizada(listaId);
   await guardarJSON(true); // Guardado inmediato
