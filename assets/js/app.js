@@ -3181,12 +3181,13 @@ function renderizarListaPersonalizada(listaId) {
   const tareas = lista.tareas || [];
   console.log(`📋 Tareas en lista ${lista.nombre}:`, tareas.length);
 
-  contenedor.innerHTML = '';
+  try {
+    contenedor.innerHTML = '';
 
-  if (tareas.length === 0) {
-    contenedor.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas en esta lista</div>';
-    return;
-  }
+    if (tareas.length === 0) {
+      contenedor.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas en esta lista</div>';
+      return;
+    }
 
   // Verificar configuración de opciones
   const configOpciones = window.configOpciones || {};
@@ -3315,47 +3316,59 @@ function renderizarListaPersonalizada(listaId) {
     if (tarea.subtareas && tarea.subtareas.length > 0) {
       console.log(`  📝 Renderizando ${tarea.subtareas.length} subtareas para "${tarea.texto}"`);
       tarea.subtareas.forEach((subtarea, subIndex) => {
-        const subDiv = document.createElement('div');
-        subDiv.className = 'subtarea-item';
-        if (subtarea.completada) subDiv.classList.add('subtarea-completada');
+        try {
+          const subDiv = document.createElement('div');
+          subDiv.className = 'subtarea-item';
+          if (subtarea.completada) subDiv.classList.add('subtarea-completada');
 
-        const subSimbolo = document.createElement('span');
-        subSimbolo.className = 'subtarea-simbolo';
-        subSimbolo.textContent = obtenerSimboloSubtarea(subtarea);
-        subSimbolo.onclick = () => cambiarEstadoSubtareaListaPersonalizada(listaId, index, subIndex);
+          const subSimbolo = document.createElement('span');
+          subSimbolo.className = 'subtarea-simbolo';
+          subSimbolo.textContent = obtenerSimboloSubtarea(subtarea);
+          subSimbolo.onclick = () => cambiarEstadoSubtareaListaPersonalizada(listaId, index, subIndex);
 
-        const subTexto = document.createElement('div');
-        subTexto.className = 'subtarea-texto';
-        subTexto.style.cursor = 'pointer';
-        let contenidoSub = subtarea.texto;
-        if (subtarea.persona || subtarea.fecha_migrar) {
-          contenidoSub += ' <span style="font-size: 11px; color: #9c27b0;">→ ';
-          if (subtarea.persona) {
-            contenidoSub += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
+          const subTexto = document.createElement('div');
+          subTexto.className = 'subtarea-texto';
+          subTexto.style.cursor = 'pointer';
+          let contenidoSub = subtarea.texto;
+          if (subtarea.persona || subtarea.fecha_migrar) {
+            contenidoSub += ' <span style="font-size: 11px; color: #9c27b0;">→ ';
+            if (subtarea.persona) {
+              contenidoSub += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
+            }
+            if (subtarea.fecha_migrar) {
+              contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_migrar}</span>`;
+            }
+            contenidoSub += '</span>';
           }
-          if (subtarea.fecha_migrar) {
-            contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_migrar}</span>`;
-          }
-          contenidoSub += '</span>';
+          subTexto.innerHTML = contenidoSub;
+          subTexto.onclick = () => abrirEditorSubtareaListaPersonalizada(listaId, index, subIndex);
+
+          const btnBorrarSub = document.createElement('button');
+          btnBorrarSub.className = 'btn-borrar-subtarea';
+          btnBorrarSub.textContent = '🗑️';
+          btnBorrarSub.onclick = (e) => {
+            e.stopPropagation();
+            eliminarSubtareaListaPersonalizada(listaId, index, subIndex);
+          };
+
+          subDiv.appendChild(subSimbolo);
+          subDiv.appendChild(subTexto);
+          subDiv.appendChild(btnBorrarSub);
+          contenedor.appendChild(subDiv);
+
+          console.log(`    ✅ Subtarea ${subIndex} "${subtarea.texto}" añadida al DOM`);
+        } catch (error) {
+          console.error(`    ❌ Error renderizando subtarea ${subIndex}:`, error);
         }
-        subTexto.innerHTML = contenidoSub;
-        subTexto.onclick = () => abrirEditorSubtareaListaPersonalizada(listaId, index, subIndex);
-
-        const btnBorrarSub = document.createElement('button');
-        btnBorrarSub.className = 'btn-borrar-subtarea';
-        btnBorrarSub.textContent = '🗑️';
-        btnBorrarSub.onclick = (e) => {
-          e.stopPropagation();
-          eliminarSubtareaListaPersonalizada(listaId, index, subIndex);
-        };
-
-        subDiv.appendChild(subSimbolo);
-        subDiv.appendChild(subTexto);
-        subDiv.appendChild(btnBorrarSub);
-        contenedor.appendChild(subDiv);
       });
     }
   });
+
+  console.log(`✅ Renderizado completado para lista "${lista.nombre}". Total elementos en DOM: ${contenedor.children.length}`);
+  } catch (error) {
+    console.error('❌ Error crítico en renderizarListaPersonalizada:', error);
+    console.error('Stack trace:', error.stack);
+  }
 }
 
 // ========== GESTIÓN DE SUBTAREAS EN LISTAS PERSONALIZADAS ==========
