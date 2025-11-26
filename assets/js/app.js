@@ -2963,6 +2963,8 @@ async function guardarEdicionListaPersonalizada() {
   const emoji = document.getElementById('emoji-lista-personalizada')?.value || '📝';
   const color = document.getElementById('color-lista-personalizada')?.value || '#667eea';
 
+  console.log('📊 Valores leídos del formulario:', { nombre, emoji, color });
+
   if (!nombre) {
     mostrarAlerta('❌ Por favor escribe un nombre para la lista', 'error');
     return;
@@ -2971,6 +2973,8 @@ async function guardarEdicionListaPersonalizada() {
   const configVisual = window.configVisual || {};
   const listasPersonalizadas = configVisual.listasPersonalizadas || [];
 
+  console.log('📋 Listas antes de actualizar:', JSON.parse(JSON.stringify(listasPersonalizadas)));
+
   // Buscar la lista
   const listaIndex = listasPersonalizadas.findIndex(l => l.id === listaEnEdicion);
   if (listaIndex === -1) {
@@ -2978,6 +2982,8 @@ async function guardarEdicionListaPersonalizada() {
     cancelarEdicionListaPersonalizada();
     return;
   }
+
+  console.log('🔍 Lista encontrada en índice:', listaIndex, 'Color anterior:', listasPersonalizadas[listaIndex].color);
 
   // Verificar si el nuevo nombre ya existe en otra lista
   const nombreExistente = listasPersonalizadas.find((l, idx) =>
@@ -2997,13 +3003,15 @@ async function guardarEdicionListaPersonalizada() {
     color: color
   };
 
+  console.log('✏️ Lista después de actualizar:', JSON.parse(JSON.stringify(listasPersonalizadas[listaIndex])));
+
   // Actualizar configuración global
   window.configVisual = {
     ...configVisual,
     listasPersonalizadas: listasPersonalizadas
   };
 
-  console.log('💾 Lista actualizada:', listasPersonalizadas[listaIndex]);
+  console.log('💾 window.configVisual.listasPersonalizadas actualizado:', JSON.parse(JSON.stringify(window.configVisual.listasPersonalizadas)));
 
   // Guardar en Supabase
   if (typeof supabasePush === 'function') {
