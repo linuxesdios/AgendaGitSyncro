@@ -112,7 +112,7 @@ function renderizarCriticas() {
     div.appendChild(simbolo);
     div.appendChild(texto);
 
-    // Botón de subtareas para tareas críticas - PRIMERO
+    // Botón de subtareas para tareas críticas
     const btnSubtareaCritica = document.createElement('button');
     btnSubtareaCritica.className = 'btn-subtarea';
     btnSubtareaCritica.textContent = '📝';
@@ -123,7 +123,18 @@ function renderizarCriticas() {
     };
     div.appendChild(btnSubtareaCritica);
 
-    // Botón de borrar - SEGUNDO
+    // Botón de Pomodoro
+    const btnPomodoro = document.createElement('button');
+    btnPomodoro.className = 'btn-pomodoro-tarea';
+    btnPomodoro.textContent = '🍅';
+    btnPomodoro.title = 'Iniciar Pomodoro para esta tarea';
+    btnPomodoro.onclick = (e) => {
+      e.stopPropagation();
+      iniciarPomodoroConTarea(tarea.titulo);
+    };
+    div.appendChild(btnPomodoro);
+
+    // Botón de borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
     btnBorrar.textContent = '🗑️';
@@ -312,7 +323,7 @@ function renderizarTareas() {
     div.appendChild(simbolo);
     div.appendChild(texto);
 
-    // Botón de subtareas - solo para tareas normales - PRIMERO
+    // Botón de subtareas - solo para tareas normales
     const btnSubtarea = document.createElement('button');
     btnSubtarea.className = 'btn-subtarea';
     btnSubtarea.textContent = '📝';
@@ -323,7 +334,18 @@ function renderizarTareas() {
     };
     div.appendChild(btnSubtarea);
 
-    // Botón de borrar - SEGUNDO
+    // Botón de Pomodoro
+    const btnPomodoroNormal = document.createElement('button');
+    btnPomodoroNormal.className = 'btn-pomodoro-tarea';
+    btnPomodoroNormal.textContent = '🍅';
+    btnPomodoroNormal.title = 'Iniciar Pomodoro para esta tarea';
+    btnPomodoroNormal.onclick = (e) => {
+      e.stopPropagation();
+      iniciarPomodoroConTarea(tarea.texto);
+    };
+    div.appendChild(btnPomodoroNormal);
+
+    // Botón de borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
     btnBorrar.textContent = '🗑️';
@@ -431,7 +453,7 @@ function obtenerSimbolo(tarea) {
 }
 
 // ========== CAMBIAR ESTADO ==========
-function cambiarEstadoCritica(index) {
+async function cambiarEstadoCritica(index) {
   console.log('🎯 CLICK EN TAREA CRÍTICA:', { index });
   const tarea = appState.agenda.tareas_criticas[index];
   console.log('📊 Estado actual:', tarea.estado, '| Tarea:', tarea.titulo);
@@ -478,10 +500,10 @@ function cambiarEstadoCritica(index) {
 
   console.log('🔄 Renderizando y guardando...');
   renderizar();
-  scheduleAutoSave();
+  await guardarJSON(true); // Guardado inmediato
 }
 
-function cambiarEstadoTarea(index) {
+async function cambiarEstadoTarea(index) {
   console.log('🎯 CLICK EN TAREA NORMAL:', { index });
   const tarea = appState.agenda.tareas[index];
   console.log('📊 Estado actual:', tarea.estado, '| Tarea:', tarea.texto);
@@ -526,7 +548,7 @@ function cambiarEstadoTarea(index) {
 
   console.log('🔄 Renderizando y guardando...');
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true); // Guardado inmediato
 }
 
 // ========== MODALES ==========
@@ -1317,7 +1339,7 @@ function abrirModalSubtareaCritica(tareaIndex) {
   setTimeout(() => document.getElementById('subtarea-critica-texto').focus(), 100);
 }
 
-function agregarSubtareaCritica(tareaIndex) {
+async function agregarSubtareaCritica(tareaIndex) {
   const texto = document.getElementById('subtarea-critica-texto').value.trim();
   if (!texto) {
     alert('Ingresa una descripción para la subtarea');
@@ -1335,16 +1357,16 @@ function agregarSubtareaCritica(tareaIndex) {
 
   cerrarModal('modal-subtarea-critica');
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
   mostrarAlerta('📝 Subtarea crítica añadida', 'success');
 }
 
-function toggleSubtareaCritica(tareaIndex, subIndex) {
+async function toggleSubtareaCritica(tareaIndex, subIndex) {
   const subtarea = appState.agenda.tareas_criticas[tareaIndex].subtareas[subIndex];
   subtarea.completada = !subtarea.completada;
 
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
 
   if (subtarea.completada) {
     mostrarAlerta('✅ Subtarea crítica completada', 'success');
@@ -1352,10 +1374,10 @@ function toggleSubtareaCritica(tareaIndex, subIndex) {
   }
 }
 
-function eliminarSubtareaCritica(tareaIndex, subIndex) {
+async function eliminarSubtareaCritica(tareaIndex, subIndex) {
   appState.agenda.tareas_criticas[tareaIndex].subtareas.splice(subIndex, 1);
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
   mostrarAlerta('🗑️ Subtarea crítica eliminada', 'info');
 }
 
@@ -1382,7 +1404,7 @@ function abrirModalSubtarea(tareaIndex) {
   setTimeout(() => document.getElementById('subtarea-texto').focus(), 100);
 }
 
-function agregarSubtarea(tareaIndex) {
+async function agregarSubtarea(tareaIndex) {
   const texto = document.getElementById('subtarea-texto').value.trim();
   if (!texto) {
     alert('Ingresa una descripción para la subtarea');
@@ -1400,16 +1422,16 @@ function agregarSubtarea(tareaIndex) {
 
   cerrarModal('modal-subtarea');
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
   mostrarAlerta('📝 Subtarea añadida', 'success');
 }
 
-function toggleSubtarea(tareaIndex, subIndex) {
+async function toggleSubtarea(tareaIndex, subIndex) {
   const subtarea = appState.agenda.tareas[tareaIndex].subtareas[subIndex];
   subtarea.completada = !subtarea.completada;
 
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
 
   if (subtarea.completada) {
     mostrarAlerta('✅ Subtarea completada', 'success');
@@ -1417,10 +1439,10 @@ function toggleSubtarea(tareaIndex, subIndex) {
   }
 }
 
-function eliminarSubtarea(tareaIndex, subIndex) {
+async function eliminarSubtarea(tareaIndex, subIndex) {
   appState.agenda.tareas[tareaIndex].subtareas.splice(subIndex, 1);
   renderizar();
-  guardarJSON(true);
+  await guardarJSON(true);
   mostrarAlerta('🗑️ Subtarea eliminada', 'info');
 }
 

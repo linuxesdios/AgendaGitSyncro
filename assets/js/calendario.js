@@ -585,25 +585,25 @@ function abrirModalNuevaCita() {
   setTimeout(() => document.getElementById('nueva-cita-desc').focus(), 100);
 }
 
-function guardarNuevaCita() {
+async function guardarNuevaCita() {
   const fecha = document.getElementById('nueva-cita-fecha').value;
   const descripcion = document.getElementById('nueva-cita-desc').value.trim();
   const hora = document.getElementById('nueva-cita-hora').value;
   const minutos = document.getElementById('nueva-cita-minutos').value;
   const etiqueta = document.getElementById('nueva-cita-etiqueta').value;
-  
+
   console.log('📅 Guardando nueva cita:', { fecha, descripcion, hora, minutos });
-  
+
   if (!fecha) {
     alert('Por favor, selecciona una fecha');
     return;
   }
-  
+
   if (!descripcion) {
     alert('Por favor, ingresa una descripción');
     return;
   }
-  
+
   const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
   const nuevaCita = {
     id: Date.now(),
@@ -626,12 +626,12 @@ function guardarNuevaCita() {
 
   appState.agenda.citas.push(nuevaCita);
   console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
-  
+
   cerrarModal('modal-nueva-cita');
 
-  // Guardar cambios
+  // Guardar cambios INMEDIATAMENTE
   if (typeof guardarJSON === 'function') {
-    guardarJSON(true);
+    await guardarJSON(true);
   }
 
   renderCalendar();
@@ -914,7 +914,7 @@ function abrirModalCitaPeriodica() {
   setTimeout(() => document.getElementById('periodica-descripcion').focus(), 100);
 }
 
-function crearCitaPeriodica() {
+async function crearCitaPeriodica() {
   const descripcion = document.getElementById('periodica-descripcion').value.trim();
   const lugar = document.getElementById('periodica-lugar').value.trim();
   const fechaInicio = document.getElementById('periodica-fecha-inicio').value;
@@ -983,9 +983,9 @@ function crearCitaPeriodica() {
   
   cerrarModal('modal-cita-periodica');
 
-  // Guardar cambios
+  // Guardar cambios INMEDIATAMENTE
   if (typeof guardarJSON === 'function') {
-    guardarJSON(true);
+    await guardarJSON(true);
   }
 
   renderCalendar();
@@ -1093,7 +1093,7 @@ function eliminarCitaRelativa(index) {
   });
 }
 
-function guardarCitasRelativas() {
+async function guardarCitasRelativas() {
   if (citasRelativasTemp.length === 0) {
     alert('No hay citas para guardar');
     return;
@@ -1121,12 +1121,12 @@ function guardarCitasRelativas() {
     // Programar notificaciones para cada cita
     programarNotificacionesCita(citaConId);
   });
-  
+
   cerrarModal('modal-citas-relativas');
 
-  // Guardar cambios
+  // Guardar cambios INMEDIATAMENTE
   if (typeof guardarJSON === 'function') {
-    guardarJSON(true);
+    await guardarJSON(true);
   }
 
   renderCalendar();

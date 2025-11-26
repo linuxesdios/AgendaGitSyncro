@@ -886,6 +886,7 @@ window.aplicarConfiguracionColumnas = aplicarConfiguracionColumnas;
 window.insertarIcono = insertarIcono;
 window.verificarModoOscuroAutomatico = verificarModoOscuroAutomatico;
 window.iniciarPomodoro = iniciarPomodoro;
+window.iniciarPomodoroConTarea = iniciarPomodoroConTarea;
 window.empezarPomodoro = empezarPomodoro;
 window.terminarPomodoro = terminarPomodoro;
 window.pausarPomodoro = pausarPomodoro;
@@ -1000,6 +1001,32 @@ function iniciarPomodoro() {
   // Mostrar modal inicial
   mostrarEstadoPomodoro('inicial');
   document.getElementById('modal-pomodoro').style.display = 'block';
+}
+
+// Función para iniciar Pomodoro con nombre de tarea pre-cargado
+function iniciarPomodoroConTarea(nombreTarea) {
+  // Resetear estado
+  pomodoroState = {
+    activo: false,
+    pausado: false,
+    tiempoRestante: 0,
+    actividad: '',
+    duracionTotal: 0
+  };
+
+  // Mostrar modal inicial
+  mostrarEstadoPomodoro('inicial');
+  document.getElementById('modal-pomodoro').style.display = 'block';
+
+  // Pre-cargar el nombre de la tarea
+  setTimeout(() => {
+    const inputActividad = document.getElementById('pomodoro-actividad');
+    if (inputActividad) {
+      inputActividad.value = nombreTarea;
+      inputActividad.focus();
+      inputActividad.setSelectionRange(nombreTarea.length, nombreTarea.length);
+    }
+  }, 50);
 }
 
 function empezarPomodoro() {
@@ -1977,7 +2004,7 @@ async function guardarNuevaContrasena() {
     appState.agenda.contrasenas.push(nuevaContrasena);
 
     // Guardar y actualizar interfaz
-    scheduleAutoSave();
+    await guardarJSON(true); // Guardado inmediato en lugar de programado
     await renderizarContrasenas();
     cerrarModalNuevaContrasena();
 
@@ -2011,7 +2038,7 @@ async function eliminarContrasena(id) {
 
     // Eliminar la contraseña
     appState.agenda.contrasenas = appState.agenda.contrasenas.filter(c => c.id !== id);
-    scheduleAutoSave();
+    await guardarJSON(true); // Guardado inmediato en lugar de programado
     await renderizarContrasenas();
 
     // Mostrar confirmación
@@ -2159,7 +2186,7 @@ async function guardarContrasenaEditada(id) {
       };
 
       // Guardar y actualizar interfaz
-      scheduleAutoSave();
+      await guardarJSON(true); // Guardado inmediato en lugar de programado
       await renderizarContrasenas();
       cerrarModalEditarContrasena();
 
@@ -2348,8 +2375,8 @@ async function procesarCambioContrasenaMaestra() {
     contrasenaMaestra = nuevaContrasena;
     mantenerSesion = true; // Mantener sesión automáticamente después del cambio
 
-    // Guardar cambios
-    scheduleAutoSave();
+    // Guardar cambios INMEDIATAMENTE (crítico: todas las contraseñas fueron reencriptadas)
+    await guardarJSON(true);
     await renderizarContrasenas();
     cerrarModalCambiarContrasena();
 
@@ -3201,6 +3228,17 @@ function renderizarListaPersonalizada(listaId) {
     };
     div.appendChild(btnSubtarea);
 
+    // Botón de Pomodoro
+    const btnPomodoroPersonalizada = document.createElement('button');
+    btnPomodoroPersonalizada.className = 'btn-pomodoro-tarea';
+    btnPomodoroPersonalizada.textContent = '🍅';
+    btnPomodoroPersonalizada.title = 'Iniciar Pomodoro para esta tarea';
+    btnPomodoroPersonalizada.onclick = (e) => {
+      e.stopPropagation();
+      iniciarPomodoroConTarea(tarea.texto);
+    };
+    div.appendChild(btnPomodoroPersonalizada);
+
     // Botón de Borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
@@ -3303,29 +3341,50 @@ function abrirModalSubtareaListaPersonalizada(listaId, tareaIndex) {
   setTimeout(() => document.getElementById('subtarea-lp-texto').focus(), 100);
 }
 
-function agregarSubtareaListaPersonalizada(listaId, tareaIndex) {
-  const texto = document.getElementById('subtarea-lp-texto').value.trim();
+async function agregarSubtareaListaPersonalizada(listaId, tareaIndex) {
+  const inputTexto = document.getElementById('subtarea-lp-texto');
+  const texto = inputTexto ? inputTexto.value.trim() : '';
+
+  console.log('📝 Añadiendo subtarea:', { listaId, tareaIndex, texto });
+
   if (texto) {
-    guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto);
+    await guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto);
+    // Limpiar campo de texto
+    if (inputTexto) inputTexto.value = '';
     cerrarModal('modal-subtarea-lp');
+  } else {
+    alert('Por favor, ingresa una descripción para la subtarea');
   }
 }
 
-function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
+async function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
-  if (listaIndex === -1) return;
+  console.log('💾 Guardando subtarea:', { listaIndex, totalListas: listas.length });
+
+  if (listaIndex === -1) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
 
   const tarea = listas[listaIndex].tareas[tareaIndex];
+  if (!tarea) {
+    console.error('❌ Tarea no encontrada:', tareaIndex);
+    return;
+  }
+
   if (!tarea.subtareas) tarea.subtareas = [];
 
   tarea.subtareas.push({
     texto: texto,
     completada: false,
+    estado: 'pendiente',
     fechaCreacion: new Date().toISOString()
   });
+
+  console.log('✅ Subtarea añadida. Total subtareas:', tarea.subtareas.length);
 
   // Actualizar estado global
   window.configVisual = {
@@ -3334,10 +3393,11 @@ function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   };
 
   renderizarListaPersonalizada(listaId);
-  supabasePush();
+  await guardarJSON(true); // Guardado inmediato
+  console.log('✅ Guardado completado');
 }
 
-function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
+async function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
@@ -3356,7 +3416,7 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
     // Actualizar estado global
     window.configVisual = { ...configVisual, listasPersonalizadas: listas };
     renderizarListaPersonalizada(listaId);
-    supabasePush();
+    await guardarJSON(true);
 
     abrirModal('modal-migrar');
     return;
@@ -3383,7 +3443,7 @@ function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) 
   // Actualizar estado global
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
   renderizarListaPersonalizada(listaId);
-  supabasePush();
+  await guardarJSON(true);
 }
 
 function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
@@ -3428,7 +3488,7 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   modal.style.display = 'block';
 }
 
-function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
+async function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
@@ -3457,7 +3517,7 @@ function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex)
 
   cerrarModal('modal-editor-subtarea-lp');
   renderizarListaPersonalizada(listaId);
-  supabasePush();
+  await guardarJSON(true);
   mostrarAlerta('✅ Subtarea actualizada', 'success');
 }
 
@@ -3474,7 +3534,7 @@ function eliminarSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   }
 }
 
-function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
+async function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
@@ -3487,7 +3547,7 @@ function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subI
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
 
   renderizarListaPersonalizada(listaId);
-  supabasePush();
+  await guardarJSON(true);
   mostrarAlerta('🗑️ Subtarea eliminada', 'info');
 }
 
