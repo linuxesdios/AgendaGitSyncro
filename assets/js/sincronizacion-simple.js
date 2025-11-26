@@ -16,7 +16,24 @@ function compararFechaConString(fechaArray, fechaString) {
 
 // ========== FUNCIONES HELPER PARA TAREAS Y LISTAS ==========
 function obtenerListasPersonalizadas() {
-  return window.tareasData?.listasPersonalizadas || [];
+  // FIXED: Leer desde window.configVisual en lugar de window.tareasData
+  const listas = window.configVisual?.listasPersonalizadas || [];
+  console.log('🔍 obtenerListasPersonalizadas() llamado desde sincronizacion-simple.js. Total listas:', listas.length);
+
+  // Log subtasks for debugging
+  listas.forEach((lista, idx) => {
+    const totalTareas = lista.tareas?.length || 0;
+    const tareasConSubtareas = lista.tareas?.filter(t => t.subtareas && t.subtareas.length > 0).length || 0;
+    console.log(`  📋 Lista ${idx} "${lista.nombre}": ${totalTareas} tareas, ${tareasConSubtareas} con subtareas`);
+
+    lista.tareas?.forEach((tarea, tidx) => {
+      if (tarea.subtareas && tarea.subtareas.length > 0) {
+        console.log(`    ✓ Tarea ${tidx} "${tarea.texto}": ${tarea.subtareas.length} subtareas`);
+      }
+    });
+  });
+
+  return listas;
 }
 
 function obtenerTodasLasListas() {
