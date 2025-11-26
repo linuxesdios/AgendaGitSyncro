@@ -1646,6 +1646,200 @@ input[type="file"] {
   font-weight: bold;
 }
 
+.celebration-message {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px 40px;
+  border-radius: 15px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: scale(1);
+  transition: all 0.2s ease;
+  border: 2px solid;
+}
+
+.tema-verde .celebration-message {
+  border-color: #4ecdc4;
+  color: #2d5a27;
+}
+
+.tema-azul .celebration-message {
+  border-color: #7fb3d3;
+  color: #2d4a5a;
+}
+
+.tema-amarillo .celebration-message {
+  border-color: #fed049;
+  color: #8b6914;
+}
+
+.tema-oscuro .celebration-message {
+  background: rgba(30, 30, 45, 0.95);
+  border-color: #4ecdc4;
+  color: #4ecdc4;
+}
+
+.celebration-overlay.show .celebration-message {
+  transform: scale(1);
+}
+
+/* ========== MODO OSCURO PARA NOTIFICACIONES ========== */
+.tema-oscuro .notificaciones-config {
+  background: rgba(78, 205, 196, 0.2);
+  border: 1px solid rgba(78, 205, 196, 0.4);
+}
+
+.tema-oscuro .notif-option {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+.tema-oscuro .notif-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tema-oscuro .notif-option label {
+  color: #e0e0e0;
+}
+
+.tema-oscuro .notif-status {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+}
+
+/* ========== DASHBOARD OVERLAY ========== */
+.dashboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.dashboard-overlay.show {
+  opacity: 1;
+}
+
+.dashboard-content {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 20px;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 3px solid;
+  cursor: default;
+}
+
+.dashboard-content pre {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* ========== CUENTA REGRESIVA ========== */
+.countdown-overlay {
+  cursor: default !important;
+}
+
+.countdown-content {
+  text-align: center;
+  max-width: 350px;
+  padding: 40px 30px;
+}
+
+.countdown-message {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.countdown-number {
+  font-size: 80px;
+  font-weight: bold;
+  color: #f44336;
+  margin: 20px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  animation: countdownPulse 1s infinite;
+}
+
+@keyframes countdownPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.countdown-actions {
+  margin-top: 20px;
+}
+
+.btn-cancelar {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar:hover {
+  background: #7f8c8d;
+  transform: translateY(-2px);
+}
+
+/* Colores por tema */
+.tema-verde .dashboard-content {
+  border-color: #4ecdc4;
+  color: #2d5a27;
+}
+
+.tema-azul .dashboard-content {
+  border-color: #7fb3d3;
+  color: #2d4a5a;
+}
+
+.tema-amarillo .dashboard-content {
+  border-color: #fed049;
+  color: #8b6914;
+}
+
+.tema-oscuro .dashboard-content {
+  background: rgba(30, 30, 45, 0.95);
+  border-color: #4ecdc4;
+  color: #4ecdc4;
+}
+
+/* Estilo especial para celebraciones */
+.celebration-style {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 40px 50px !important;
+  max-width: 400px;
+}
+
+.celebration-style pre {
+  font-size: 24px !important;
+  font-weight: bold;
+}
+
 /* ========== BOTONES DE LISTAS PERSONALIZADAS ========== */
 .boton-add-task {
   transition: all 0.3s ease !important;
@@ -1655,4 +1849,213 @@ input[type="file"] {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
   filter: brightness(1.1);
+}
+
+/* ========== RESPONSIVE DESIGN - MÓVIL ========== */
+@media (max-width: 480px) {
+  /* Header responsive */
+  .header {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+  }
+  
+  /* Ocultar emoji grande del header en móvil */
+  .header > div:first-child {
+    display: none !important;
+  }
+  
+  /* Centro del header */
+  .header-center {
+    order: -1;
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
+  
+  .header h1 {
+    font-size: 24px !important;
+  }
+  
+  .frase-motivacional {
+    font-size: 11px !important;
+  }
+  
+  .fecha-actual {
+    font-size: 14px !important;
+  }
+  
+  /* Contenedor de botones del header */
+  .header > div:last-child {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Botón principal de tarea */
+  #btn-tarea-universal {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+    padding: 6px !important;
+    min-width: 40px !important;
+  }
+  
+  /* Grid de botones pequeños */
+  .header > div:last-child > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+  }
+  
+  .header > div:last-child > div > div {
+    display: flex !important;
+    gap: 3px !important;
+  }
+  
+  /* Botones pequeños del header */
+  .header button.boton-cargar {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+  }
+  
+  /* Container principal */
+  .container {
+    padding: 10px !important;
+    max-width: 100vw !important;
+  }
+  
+  body {
+    padding: 5px 2px !important;
+  }
+  
+  /* Modal content */
+  .modal-content {
+    width: 95% !important;
+    padding: 20px 15px !important;
+    margin: 10% auto !important;
+  }
+  
+  /* Tabs de configuración */
+  .config-tabs {
+    gap: 3px !important;
+    padding: 6px 0 !important;
+  }
+  
+  .config-tab {
+    flex: 1 !important;
+    min-width: 60px !important;
+    padding: 6px 4px !important;
+    font-size: 9px !important;
+  }
+  
+  /* Grids de configuración */
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+  
+  /* Botones de iconos */
+  .btn-icono {
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    padding: 3px 6px !important;
+  }
+  
+  /* Grid de 2 columnas en configuración */
+  div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  
+  /* Botones del modal */
+  .modal-botones button {
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Secciones */
+  section {
+    padding: 12px !important;
+  }
+  
+  section h3 {
+    font-size: 16px !important;
+  }
+  
+  /* Filtros */
+  .filtros-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  
+  .filtro-select {
+    font-size: 11px !important;
+    padding: 6px 4px !important;
+  }
+  
+  .filtro-label {
+    font-size: 9px !important;
+  }
+  
+  /* Botones de calendario */
+  .calendar-btn {
+    padding: 3px 6px !important;
+    font-size: 9px !important;
+  }
+  
+  /* Items de tareas */
+  .tarea-item {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+  }
+  
+  .tarea-simbolo {
+    font-size: 16px !important;
+    min-width: 20px !important;
+  }
+  
+  /* Calendario */
+  .calendar-day {
+    min-height: 60px !important;
+    padding: 4px !important;
+    font-size: 10px !important;
+  }
+  
+  .day-num {
+    font-size: 11px !important;
+  }
+  
+  .day-events {
+    font-size: 8px !important;
+  }
+  
+  /* Notas y sentimientos */
+  #notas-texto,
+  #sentimientos-texto {
+    min-height: 60px !important;
+    max-height: 60px !important;
+    font-size: 13px !important;
+    padding: 10px !important;
+  }
+  
+  /* Ajustar grids que usan display:grid en inline styles */
+  div[style*="display:grid"] {
+    gap: 8px !important;
+  }
+  
+  /* Tooltips en móvil - hacer más pequeños */
+  .tooltip[data-tooltip]::after {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+  }
 }
