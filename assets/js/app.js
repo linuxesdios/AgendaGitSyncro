@@ -2929,7 +2929,7 @@ function editarListaPersonalizada(id) {
     const boton = botonContainer.querySelector('button');
     if (boton) {
       boton.innerHTML = '💾 Guardar Cambios';
-      boton.onclick = guardarEdicionListaPersonalizada;
+      boton.setAttribute('onclick', 'guardarEdicionListaPersonalizada()');
       boton.style.background = 'rgba(76, 209, 55, 0.9)';
 
       // Añadir botón de cancelar si no existe
@@ -2937,7 +2937,7 @@ function editarListaPersonalizada(id) {
         const btnCancelar = document.createElement('button');
         btnCancelar.className = 'btn-cancelar-edicion';
         btnCancelar.innerHTML = '❌ Cancelar';
-        btnCancelar.onclick = cancelarEdicionListaPersonalizada;
+        btnCancelar.setAttribute('onclick', 'cancelarEdicionListaPersonalizada()');
         btnCancelar.style.cssText = 'padding:8px 16px;background:rgba(255,71,87,0.9);color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;';
         botonContainer.appendChild(btnCancelar);
       }
@@ -3054,7 +3054,7 @@ function cancelarEdicionListaPersonalizada() {
     const boton = botonContainer.querySelector('button:not(.btn-cancelar-edicion)');
     if (boton) {
       boton.innerHTML = '✓ Añadir Lista';
-      boton.onclick = agregarListaPersonalizada;
+      boton.setAttribute('onclick', 'agregarListaPersonalizada()');
       boton.style.background = 'rgba(255,255,255,0.9)';
     }
 
