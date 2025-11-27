@@ -333,18 +333,28 @@ function renderizarPanelCriticas() {
 
       html += `
         <div class="tarea-carrusel" ${claseUrgente} onclick="abrirModalReprogramarTarea('critica', '${tarea.id}', '${(tarea.titulo || 'Sin título').replace(/'/g, '&apos;')}')" style="cursor: pointer;">
-          <div class="tarea-header">
-            <span class="tarea-urgencia">${esUrgente ? '🚨' : '⏳'}</span>
-            <span class="tarea-titulo">${tarea.titulo || 'Sin título'}</span>
-          </div>
-          <div class="tarea-meta">
-            <small>📅 ${tarea.fecha_fin || 'Sin fecha'}</small>
-            ${tarea.etiqueta ? `<span class="tarea-etiqueta">${tarea.etiqueta}</span>` : ''}
-          </div>
-          <div class="tarea-acciones" onclick="event.stopPropagation();">
-            <button onclick="completarTareaCritica('${tarea.id}')" class="btn-completar">
-              ✅ Completar
-            </button>
+          <div class="tarea-layout">
+            <div class="tarea-contenido">
+              <div class="tarea-header">
+                <span class="tarea-urgencia">${esUrgente ? '🚨' : '⏳'}</span>
+                <span class="tarea-titulo">${tarea.titulo || 'Sin título'}</span>
+              </div>
+              <div class="tarea-meta-grande">
+                <div class="meta-fecha">📅 ${tarea.fecha_fin || 'Sin fecha'}</div>
+                <div class="meta-persona">${tarea.persona ? `👤 ${tarea.persona}` : '👤 Sin asignar'}</div>
+                ${tarea.etiqueta ? `<div class="meta-etiqueta">${tarea.etiqueta}</div>` : ''}
+              </div>
+              ${tarea.subtareas && tarea.subtareas.length > 0 ? `
+                <div class="subtareas-preview">
+                  <small>📝 ${tarea.subtareas.length} subtarea${tarea.subtareas.length > 1 ? 's' : ''}</small>
+                </div>
+              ` : ''}
+            </div>
+            <div class="tarea-botones" onclick="event.stopPropagation();">
+              <button onclick="eliminarTareaCritica('${tarea.id}')" class="btn-borrar-tarea" title="Eliminar tarea">🗑️</button>
+              <button onclick="iniciarPomodoroTarea('${tarea.id}', 'critica')" class="btn-pomodoro-tarea" title="Iniciar Pomodoro para esta tarea">🍅</button>
+              <button onclick="añadirSubtarea('${tarea.id}', 'critica')" class="btn-subtarea" title="Añadir subtarea">📝</button>
+            </div>
           </div>
         </div>
       `;
@@ -381,20 +391,27 @@ function renderizarPanelPersonalizado(panelInfo) {
 
       html += `
         <div class="tarea-carrusel" ${claseHoy} onclick="abrirModalReprogramarTarea('personalizada', '${panelInfo.id}', '${(tarea.texto || 'Sin título').replace(/'/g, '&apos;')}', ${index})" style="cursor: pointer;">
-          <div class="tarea-header">
-            <span class="tarea-urgencia">${esHoy ? '📅' : '📝'}</span>
-            <span class="tarea-titulo">${tarea.texto || 'Sin título'}</span>
-          </div>
-          ${tieneFecha ? `
-            <div class="tarea-meta">
-              <small>📅 ${tarea.fecha}</small>
-              ${tarea.persona ? `<small>👤 ${tarea.persona}</small>` : ''}
+          <div class="tarea-layout">
+            <div class="tarea-contenido">
+              <div class="tarea-header">
+                <span class="tarea-urgencia">${esHoy ? '📅' : '📝'}</span>
+                <span class="tarea-titulo">${tarea.texto || 'Sin título'}</span>
+              </div>
+              <div class="tarea-meta-grande">
+                <div class="meta-fecha">📅 ${tarea.fecha || 'Sin fecha'}</div>
+                <div class="meta-persona">${tarea.persona ? `👤 ${tarea.persona}` : '👤 Sin asignar'}</div>
+              </div>
+              ${tarea.subtareas && tarea.subtareas.length > 0 ? `
+                <div class="subtareas-preview">
+                  <small>📝 ${tarea.subtareas.length} subtarea${tarea.subtareas.length > 1 ? 's' : ''}</small>
+                </div>
+              ` : ''}
             </div>
-          ` : ''}
-          <div class="tarea-acciones" onclick="event.stopPropagation();">
-            <button onclick="completarTareaPersonalizada('${panelInfo.id}', ${index})" class="btn-completar">
-              ✅ Completar
-            </button>
+            <div class="tarea-botones" onclick="event.stopPropagation();">
+              <button onclick="eliminarTareaPersonalizada('${panelInfo.id}', ${index})" class="btn-borrar-tarea" title="Eliminar tarea">🗑️</button>
+              <button onclick="iniciarPomodoroTarea('${tarea.id || index}', 'personalizada')" class="btn-pomodoro-tarea" title="Iniciar Pomodoro para esta tarea">🍅</button>
+              <button onclick="añadirSubtarea('${tarea.id || index}', 'personalizada')" class="btn-subtarea" title="Añadir subtarea">📝</button>
+            </div>
           </div>
         </div>
       `;
@@ -843,5 +860,188 @@ function crearControlesTesting() {
 
 // Función global para mostrar controles de testing
 window.mostrarControlesTesting = crearControlesTesting;
+
+// ==================== NUEVAS FUNCIONES DE BOTONES ====================
+
+function eliminarTareaCritica(tareaId) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta tarea crítica?')) {
+    return;
+  }
+
+  const tareas = window.appState?.agenda?.tareas_criticas || [];
+  const index = tareas.findIndex(t => t.id === tareaId);
+
+  if (index !== -1) {
+    tareas.splice(index, 1);
+
+    // Guardar cambios
+    if (typeof guardarJSON === 'function') {
+      guardarJSON();
+    }
+
+    mostrarAlerta('🗑️ Tarea crítica eliminada', 'success');
+
+    // Re-renderizar panel
+    renderizarPanelCriticas();
+    actualizarContadoresPaneles();
+
+    // Actualizar vista desktop si está visible
+    if (typeof renderizarTareasCriticas === 'function') {
+      renderizarTareasCriticas();
+    }
+  } else {
+    mostrarAlerta('❌ No se pudo encontrar la tarea', 'error');
+  }
+}
+
+function eliminarTareaPersonalizada(listaId, tareaIndex) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+    return;
+  }
+
+  const lista = configVisual.listasPersonalizadas?.find(l => l.id === listaId);
+  if (!lista || !lista.tareas || !lista.tareas[tareaIndex]) {
+    mostrarAlerta('❌ No se pudo encontrar la tarea', 'error');
+    return;
+  }
+
+  // Eliminar tarea
+  lista.tareas.splice(tareaIndex, 1);
+
+  // Guardar cambios
+  if (typeof supabasePush === 'function') {
+    supabasePush();
+  }
+
+  mostrarAlerta('🗑️ Tarea eliminada', 'success');
+
+  // Re-renderizar panel
+  const panelInfo = carruselState.paneles.find(p => p.id === listaId);
+  if (panelInfo) {
+    renderizarPanelPersonalizado(panelInfo);
+  }
+
+  actualizarContadoresPaneles();
+
+  // Actualizar vista desktop si está visible
+  if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
+    renderizarTodasLasListasPersonalizadas();
+  }
+}
+
+function iniciarPomodoroTarea(tareaId, tipo) {
+  console.log(`🍅 Iniciando Pomodoro para tarea ${tareaId} de tipo ${tipo}`);
+
+  // Buscar la tarea según su tipo
+  let tarea = null;
+  if (tipo === 'critica') {
+    const tareas = window.appState?.agenda?.tareas_criticas || [];
+    tarea = tareas.find(t => t.id === tareaId);
+  } else if (tipo === 'personalizada') {
+    // Para tareas personalizadas, tareaId podría ser el índice
+    const panelActual = carruselState.paneles[carruselState.panelActual];
+    if (panelActual && panelActual.lista && panelActual.lista.tareas) {
+      tarea = panelActual.lista.tareas[tareaId] || { texto: `Tarea ${tareaId}` };
+    }
+  }
+
+  const tituloTarea = tarea ? (tarea.titulo || tarea.texto || 'Tarea sin título') : 'Tarea desconocida';
+
+  // Si existe la función de Pomodoro global, úsala
+  if (typeof iniciarPomodoro === 'function') {
+    iniciarPomodoro();
+    mostrarAlerta(`🍅 Pomodoro iniciado para: "${tituloTarea}"`, 'success');
+  } else {
+    // Fallback: temporizador simple
+    const tiempoPomodoro = 25 * 60 * 1000; // 25 minutos
+    const inicioPomodoro = Date.now();
+
+    mostrarAlerta(`🍅 Pomodoro de 25 min iniciado para: "${tituloTarea}"`, 'info');
+
+    setTimeout(() => {
+      mostrarAlerta(`⏰ ¡Tiempo de descanso! Has trabajado en: "${tituloTarea}"`, 'success');
+    }, tiempoPomodoro);
+  }
+}
+
+function añadirSubtarea(tareaId, tipo) {
+  const textoSubtarea = prompt('✍️ Escribe el texto de la nueva subtarea:');
+
+  if (!textoSubtarea || textoSubtarea.trim() === '') {
+    return;
+  }
+
+  let tarea = null;
+  let guardado = false;
+
+  if (tipo === 'critica') {
+    const tareas = window.appState?.agenda?.tareas_criticas || [];
+    tarea = tareas.find(t => t.id === tareaId);
+
+    if (tarea) {
+      if (!tarea.subtareas) {
+        tarea.subtareas = [];
+      }
+
+      tarea.subtareas.push({
+        id: Date.now().toString(),
+        texto: textoSubtarea.trim(),
+        completada: false,
+        fecha_creacion: new Date().toISOString()
+      });
+
+      // Guardar cambios
+      if (typeof guardarJSON === 'function') {
+        guardarJSON();
+        guardado = true;
+      }
+
+      // Re-renderizar panel
+      renderizarPanelCriticas();
+    }
+  } else if (tipo === 'personalizada') {
+    const panelActual = carruselState.paneles[carruselState.panelActual];
+    if (panelActual && panelActual.lista && panelActual.lista.tareas && panelActual.lista.tareas[tareaId]) {
+      tarea = panelActual.lista.tareas[tareaId];
+
+      if (!tarea.subtareas) {
+        tarea.subtareas = [];
+      }
+
+      tarea.subtareas.push({
+        id: Date.now().toString(),
+        texto: textoSubtarea.trim(),
+        completada: false,
+        fecha_creacion: new Date().toISOString()
+      });
+
+      // Guardar cambios
+      if (typeof supabasePush === 'function') {
+        supabasePush();
+        guardado = true;
+      }
+
+      // Re-renderizar panel
+      renderizarPanelPersonalizado(panelActual);
+    }
+  }
+
+  if (guardado && tarea) {
+    const tituloTarea = tarea.titulo || tarea.texto || 'Tarea';
+    mostrarAlerta(`📝 Subtarea añadida a "${tituloTarea}"`, 'success');
+
+    // Actualizar contadores
+    actualizarContadoresPaneles();
+
+    // Actualizar vista desktop si está visible
+    if (tipo === 'critica' && typeof renderizarTareasCriticas === 'function') {
+      renderizarTareasCriticas();
+    } else if (tipo === 'personalizada' && typeof renderizarTodasLasListasPersonalizadas === 'function') {
+      renderizarTodasLasListasPersonalizadas();
+    }
+  } else {
+    mostrarAlerta('❌ No se pudo añadir la subtarea', 'error');
+  }
+}
 
 console.log('📱 Carrusel móvil TDAH cargado');
