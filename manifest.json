@@ -2,7 +2,7 @@
   "name": "🧠 Agenda de Pablo 🚆",
   "short_name": "Agenda",
   "description": "Mi agenda personal con sincronización ExtendsClass",
-  "start_url": "./agenda_mobile.html",
+  "start_url": "./agenda.html",
   "display": "standalone",
   "background_color": "#a8e6cf",
   "theme_color": "#4ecdc4",
