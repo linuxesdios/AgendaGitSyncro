@@ -332,7 +332,7 @@ function renderizarPanelCriticas() {
       const claseUrgente = esUrgente ? 'style="background: #ffebee; border-left: 4px solid #f44336;"' : '';
 
       html += `
-        <div class="tarea-carrusel" ${claseUrgente}>
+        <div class="tarea-carrusel" ${claseUrgente} onclick="abrirModalReprogramarTarea('critica', '${tarea.id}', '${(tarea.titulo || 'Sin título').replace(/'/g, '&apos;')}')" style="cursor: pointer;">
           <div class="tarea-header">
             <span class="tarea-urgencia">${esUrgente ? '🚨' : '⏳'}</span>
             <span class="tarea-titulo">${tarea.titulo || 'Sin título'}</span>
@@ -341,12 +341,9 @@ function renderizarPanelCriticas() {
             <small>📅 ${tarea.fecha_fin || 'Sin fecha'}</small>
             ${tarea.etiqueta ? `<span class="tarea-etiqueta">${tarea.etiqueta}</span>` : ''}
           </div>
-          <div class="tarea-acciones">
+          <div class="tarea-acciones" onclick="event.stopPropagation();">
             <button onclick="completarTareaCritica('${tarea.id}')" class="btn-completar">
               ✅ Completar
-            </button>
-            <button onclick="posponerTarea('${tarea.id}')" class="btn-posponer">
-              ⏭️ Mañana
             </button>
           </div>
         </div>
@@ -383,7 +380,7 @@ function renderizarPanelPersonalizado(panelInfo) {
       const claseHoy = esHoy ? 'style="background: #fff3cd; border-left: 4px solid #ffc107;"' : '';
 
       html += `
-        <div class="tarea-carrusel" ${claseHoy}>
+        <div class="tarea-carrusel" ${claseHoy} onclick="abrirModalReprogramarTarea('personalizada', '${panelInfo.id}', '${(tarea.texto || 'Sin título').replace(/'/g, '&apos;')}', ${index})" style="cursor: pointer;">
           <div class="tarea-header">
             <span class="tarea-urgencia">${esHoy ? '📅' : '📝'}</span>
             <span class="tarea-titulo">${tarea.texto || 'Sin título'}</span>
@@ -394,12 +391,9 @@ function renderizarPanelPersonalizado(panelInfo) {
               ${tarea.persona ? `<small>👤 ${tarea.persona}</small>` : ''}
             </div>
           ` : ''}
-          <div class="tarea-acciones">
+          <div class="tarea-acciones" onclick="event.stopPropagation();">
             <button onclick="completarTareaPersonalizada('${panelInfo.id}', ${index})" class="btn-completar">
               ✅ Completar
-            </button>
-            <button onclick="editarTareaPersonalizada('${panelInfo.id}', ${index})" class="btn-editar">
-              ✏️ Editar
             </button>
           </div>
         </div>
@@ -547,6 +541,113 @@ function configurarGestosTouch() {
   console.log('👆 Gestos touch configurados para el carrusel');
 }
 
+// ==================== MODAL REPROGRAMAR/DELEGAR ====================
+
+let tareaEnProceso = null; // Variable global para guardar info de la tarea siendo editada
+
+function abrirModalReprogramarTarea(tipo, tareaId, tareaTexto, tareaIndex = null) {
+  console.log('📝 Abriendo modal para reprogramar/delegar:', { tipo, tareaId, tareaTexto, tareaIndex });
+
+  // Guardar información de la tarea
+  tareaEnProceso = {
+    tipo: tipo,
+    id: tareaId,
+    texto: tareaTexto,
+    index: tareaIndex
+  };
+
+  // Abrir el modal existente
+  abrirModal('modal-migrar');
+
+  // Pre-llenar campos si es necesario
+  const fechaInput = document.getElementById('migrar-fecha');
+  const personaSelect = document.getElementById('migrar-persona-select');
+
+  if (fechaInput) {
+    // Sugerir mañana como fecha por defecto
+    const mañana = new Date();
+    mañana.setDate(mañana.getDate() + 1);
+    fechaInput.value = mañana.toISOString().slice(0, 10);
+  }
+
+  if (personaSelect) {
+    personaSelect.value = ''; // Resetear selección
+  }
+
+  console.log('✅ Modal de reprogramar/delegar abierto para tarea móvil');
+}
+
+function guardarMigracionMovil() {
+  if (!tareaEnProceso) {
+    console.error('❌ No hay tarea en proceso para guardar');
+    return;
+  }
+
+  const fechaNueva = document.getElementById('migrar-fecha')?.value;
+  const personaSeleccionada = document.getElementById('migrar-persona-select')?.value;
+  const personaManual = document.getElementById('migrar-persona')?.value;
+
+  const persona = personaSeleccionada === '__otra__' ? personaManual : personaSeleccionada;
+
+  console.log('💾 Guardando migración móvil:', {
+    tarea: tareaEnProceso,
+    fechaNueva,
+    persona
+  });
+
+  if (tareaEnProceso.tipo === 'critica') {
+    // Manejar tarea crítica
+    const tareas = window.appState?.agenda?.tareas_criticas || [];
+    const tarea = tareas.find(t => t.id === tareaEnProceso.id);
+
+    if (tarea) {
+      if (fechaNueva) tarea.fecha_fin = fechaNueva;
+      if (persona) tarea.persona = persona;
+
+      // Guardar cambios
+      if (typeof guardarJSON === 'function') {
+        guardarJSON();
+      }
+    }
+  } else if (tareaEnProceso.tipo === 'personalizada') {
+    // Manejar tarea de lista personalizada
+    const configVisual = window.configVisual || {};
+    const listas = configVisual.listasPersonalizadas || [];
+    const lista = listas.find(l => l.id === tareaEnProceso.id);
+
+    if (lista && lista.tareas && lista.tareas[tareaEnProceso.index]) {
+      const tarea = lista.tareas[tareaEnProceso.index];
+      if (fechaNueva) tarea.fecha = fechaNueva;
+      if (persona) tarea.persona = persona;
+
+      // Guardar cambios
+      if (typeof supabasePush === 'function') {
+        supabasePush();
+      }
+    }
+  }
+
+  // Cerrar modal
+  cerrarModal('modal-migrar');
+
+  // Limpiar variable
+  tareaEnProceso = null;
+
+  // Re-renderizar carrusel
+  renderizarCarrusel();
+
+  // Mostrar confirmación
+  if (fechaNueva && persona) {
+    mostrarAlerta(`📅👤 Tarea reprogramada para ${fechaNueva} y delegada a ${persona}`, 'success');
+  } else if (fechaNueva) {
+    mostrarAlerta(`📅 Tarea reprogramada para ${fechaNueva}`, 'success');
+  } else if (persona) {
+    mostrarAlerta(`👤 Tarea delegada a ${persona}`, 'success');
+  }
+
+  console.log('✅ Migración móvil completada');
+}
+
 // ==================== ACCIONES DE TAREAS ====================
 
 function completarTareaCritica(tareaId) {
@@ -658,6 +759,28 @@ function esFechaPasada(fechaStr) {
   hoy.setHours(0, 0, 0, 0);
   return fecha < hoy;
 }
+
+// ==================== OVERRIDE FUNCIÓN GUARDAR MIGRACIÓN ====================
+
+// Sobrescribir la función guardarMigracion para que funcione con el carrusel móvil
+window.guardarMigracionOriginal = window.guardarMigracion; // Guardar original
+
+window.guardarMigracion = function() {
+  // Si estamos en modo móvil y hay tarea en proceso, usar función móvil
+  if (window.FORZAR_MOVIL === true || (window.FORZAR_MOVIL === undefined && esDispositivoMovil())) {
+    if (tareaEnProceso) {
+      console.log('📱 Usando función de migración móvil');
+      guardarMigracionMovil();
+      return;
+    }
+  }
+
+  // Si no, usar función original
+  if (window.guardarMigracionOriginal) {
+    console.log('🖥️ Usando función de migración original');
+    window.guardarMigracionOriginal();
+  }
+};
 
 // ==================== INICIALIZACIÓN AUTOMÁTICA ====================
 
