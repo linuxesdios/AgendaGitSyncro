@@ -733,6 +733,39 @@
               <label
                 style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
                 <input type="checkbox" id="config-mostrar-resumen" onchange="guardarConfigVisualPanel()"
+                  style="margin:0;">
+                <span style="font-weight:500;">🌅 Mostrar Botón Resumen</span>
+              </label>
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-calendario-mostrar-citas" onchange="mostarCitaCalendario()"
+                  style="margin:0;">
+                <span style="font-weight:500;">📅 Mostrar citas en calendario</span>
+              </label>
+              <label
+                style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:10px;border-radius:8px;cursor:pointer;transition:all 0.3s ease;">
+                <input type="checkbox" id="config-calendario-mostrar-tareas" onchange="mostarTareaCalendario()"
+                  style="margin:0;">
+                <span style="font-weight:500;">✅ Mostrar tareas en calendario</span>
+              </label>
+            </div>
+
+            <div style="margin-top:12px;">
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📅
+                Visualización del calendario:</label>
+              <select id="config-calendario-citas" onchange="cambiarModoCalendario(this.value)"
+                style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
+                <option value="boton">🔘 Con botón (modal)</option>
+                <option value="integrado">📋 Siempre visible</option>
+              </select>
+              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cómo mostrar el
+                calendario en la página principal</small>
+            </div>
+
+            <div id="config-columnas-container" style="margin-top:15px;">
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📐 Diseño de
+                columnas:</label>
+              <select id="config-columnas" onchange="guardarConfigVisualPanel()"
                 style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
                 <option value="2">📱 Dos columnas (recomendado)</option>
                 <option value="1">📄 Una columna (vista simple)</option>

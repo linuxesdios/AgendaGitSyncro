@@ -1228,6 +1228,81 @@ async function guardarConfigVisualPanel() {
   }
 }
 
+// ========== FUNCIONES PARA MOSTRAR/OCULTAR CITAS Y TAREAS EN CALENDARIO ==========
+async function mostarCitaCalendario() {
+  console.log('📅 Cambiando visibilidad de citas en calendario');
+
+  const checkbox = document.getElementById('config-calendario-mostrar-citas');
+  if (!checkbox) {
+    console.warn('⚠️ No se encontró el checkbox de mostrar citas');
+    return;
+  }
+
+  // Actualizar configuración
+  if (!window.configVisual) {
+    window.configVisual = {};
+  }
+
+  window.configVisual.calendarioMostrarCitas = checkbox.checked;
+  console.log('📅 Mostrar citas en calendario:', checkbox.checked);
+
+  // Guardar en Supabase
+  if (typeof window.supabasePush === 'function') {
+    await window.supabasePush();
+    console.log('💾 Configuración guardada en Supabase');
+  }
+
+  // Re-renderizar calendarios
+  if (typeof renderCalendar === 'function') {
+    renderCalendar();
+  }
+  if (typeof renderCalendarTareas === 'function') {
+    renderCalendarTareas();
+  }
+  if (typeof renderCalendarioIntegrado === 'function') {
+    renderCalendarioIntegrado();
+  }
+
+  mostrarAlerta(checkbox.checked ? '✅ Citas visibles en calendario' : '❌ Citas ocultadas del calendario', 'info');
+}
+
+async function mostarTareaCalendario() {
+  console.log('✅ Cambiando visibilidad de tareas en calendario');
+
+  const checkbox = document.getElementById('config-calendario-mostrar-tareas');
+  if (!checkbox) {
+    console.warn('⚠️ No se encontró el checkbox de mostrar tareas');
+    return;
+  }
+
+  // Actualizar configuración
+  if (!window.configVisual) {
+    window.configVisual = {};
+  }
+
+  window.configVisual.calendarioMostrarTareas = checkbox.checked;
+  console.log('✅ Mostrar tareas en calendario:', checkbox.checked);
+
+  // Guardar en Supabase
+  if (typeof window.supabasePush === 'function') {
+    await window.supabasePush();
+    console.log('💾 Configuración guardada en Supabase');
+  }
+
+  // Re-renderizar calendarios
+  if (typeof renderCalendar === 'function') {
+    renderCalendar();
+  }
+  if (typeof renderCalendarTareas === 'function') {
+    renderCalendarTareas();
+  }
+  if (typeof renderCalendarioIntegrado === 'function') {
+    renderCalendarioIntegrado();
+  }
+
+  mostrarAlerta(checkbox.checked ? '✅ Tareas visibles en calendario' : '❌ Tareas ocultadas del calendario', 'info');
+}
+
 function switchTab(tabName) {
   console.log('📊 ========== CAMBIANDO DE PESTAÑA ==========');
   console.log('  - Pestaña destino:', tabName);
