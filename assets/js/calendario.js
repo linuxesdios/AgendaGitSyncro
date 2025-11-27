@@ -45,6 +45,8 @@ function renderCalendar() {
   const mostrarCitas = config.calendarioMostrarCitas !== false;
   const mostrarTareas = config.calendarioMostrarTareas !== false;
 
+  console.log('📅 renderCalendar:', { mostrarCitas, mostrarTareas });
+
   grid.innerHTML = '';
   const monthYearEl = document.getElementById('monthYear');
   if (monthYearEl) {
@@ -97,6 +99,7 @@ function renderCalendar() {
 
       // Añadir tareas si están habilitadas
       if (mostrarTareas) {
+        // Tareas normales
         const tareas = (appState.agenda.tareas || []).filter(tarea => {
           if (!tarea.fecha_fin) return false;
           return compararFechaConString(fechaStringToArray(tarea.fecha_fin), dateStr);
@@ -105,9 +108,40 @@ function renderCalendar() {
           eventos.push({
             ...tarea,
             tipo: 'tarea',
-            nombre: tarea.texto, // Las tareas usan 'texto' en lugar de 'nombre'
-            color: '#2ecc71' // Verde para tareas
+            nombre: tarea.texto,
+            color: '#2ecc71'
           });
+        });
+
+        // Tareas críticas
+        const tareasCriticas = (appState.agenda.tareas_criticas || []).filter(tarea => {
+          if (!tarea.fecha_fin) return false;
+          return tarea.fecha_fin === dateStr;
+        });
+        tareasCriticas.forEach(tarea => {
+          eventos.push({
+            ...tarea,
+            tipo: 'critica',
+            nombre: tarea.titulo || tarea.texto,
+            color: '#e74c3c'
+          });
+        });
+
+        // Tareas de listas personalizadas
+        const listasPersonalizadas = config.listasPersonalizadas || [];
+        listasPersonalizadas.forEach(lista => {
+          if (lista && lista.tareas && Array.isArray(lista.tareas)) {
+            lista.tareas.forEach(tarea => {
+              if (tarea && tarea.fecha === dateStr) {
+                eventos.push({
+                  ...tarea,
+                  tipo: 'personalizada',
+                  nombre: tarea.texto,
+                  color: lista.color || '#9b59b6'
+                });
+              }
+            });
+          }
         });
       }
 
