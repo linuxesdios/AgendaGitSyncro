@@ -80,6 +80,12 @@
       flex-direction: column;
       overflow: hidden;
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
     }
 
     .carrusel-header {
@@ -267,51 +273,42 @@
       transform: translateY(-1px) scale(0.98);
     }
 
-    /* ==================== RESPONSIVO ==================== */
-    @media (max-width: 768px) {
-      .carrusel-movil {
-        display: flex !important;
-      }
+    /* ==================== ESTILOS MÓVIL (controlado por JS) ==================== */
+    /* Ahora la detección se hace por JavaScript, no por media queries */
+    .carrusel-movil.modo-movil-activo .header {
+      padding: 10px 15px;
+    }
 
-      .contenedor-dos-columnas {
-        display: none !important;
-      }
+    .carrusel-movil.modo-movil-activo .carrusel-header h2 {
+      font-size: 20px;
+    }
 
-      .header {
-        padding: 10px 15px;
-      }
+    .carrusel-movil.modo-movil-activo .panel-header {
+      padding: 12px 15px;
+      margin-bottom: 15px;
+    }
 
-      .carrusel-header h2 {
-        font-size: 20px;
-      }
+    .carrusel-movil.modo-movil-activo .panel-icono {
+      font-size: 24px;
+    }
 
-      .panel-header {
-        padding: 12px 15px;
-        margin-bottom: 15px;
-      }
+    .carrusel-movil.modo-movil-activo .panel-nombre {
+      font-size: 18px;
+    }
 
-      .panel-icono {
-        font-size: 24px;
-      }
+    .carrusel-movil.modo-movil-activo .panel-contador {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
 
-      .panel-nombre {
-        font-size: 18px;
-      }
+    .carrusel-movil.modo-movil-activo .carrusel-acciones {
+      padding: 15px;
+      gap: 15px;
+    }
 
-      .panel-contador {
-        padding: 6px 12px;
-        font-size: 14px;
-      }
-
-      .carrusel-acciones {
-        padding: 15px;
-        gap: 15px;
-      }
-
-      .accion-rapida {
-        width: 50px;
-        height: 50px;
-      }
+    .carrusel-movil.modo-movil-activo .accion-rapida {
+      width: 50px;
+      height: 50px;
     }
 
     /* Touch gestures support */
@@ -515,7 +512,10 @@
     <!-- ==================== MODO MÓVIL CARRUSEL ==================== -->
     <div id="carrusel-movil" class="carrusel-movil" style="display: none;">
       <div class="carrusel-header">
-        <h2 id="carrusel-titulo">🚨 Tareas Críticas</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+          <h2 id="carrusel-titulo" style="margin: 0; flex: 1; text-align: center;">🚨 Tareas Críticas</h2>
+          <button onclick="toggleConfigFloating()" style="background: rgba(255,255,255,0.3); border: none; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; backdrop-filter: blur(10px);" title="Configuración">⚙️</button>
+        </div>
         <div class="carrusel-indicadores" id="carrusel-indicadores">
           <!-- Se generan dinámicamente -->
         </div>

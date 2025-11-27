@@ -10,17 +10,153 @@ let carruselState = {
   startTranslateX: 0
 };
 
+// ==================== DETECCIÓN INTELIGENTE DE MÓVIL ====================
+
+function esDispositivoMovil() {
+  const tests = {
+    // Test 1: User Agent
+    userAgent: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+
+    // Test 2: Touch Support
+    touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+
+    // Test 3: No hover support (típico de móviles)
+    noHoverSupport: window.matchMedia('(hover: none)').matches,
+
+    // Test 4: Pointer type
+    touchPointer: window.matchMedia('(pointer: coarse)').matches,
+
+    // Test 5: Orientation support
+    orientationSupport: 'orientation' in window || 'onorientationchange' in window,
+
+    // Test 6: Device pixel ratio alto (común en móviles)
+    highDPI: window.devicePixelRatio > 1.5,
+
+    // Test 7: Tamaño de pantalla pequeño
+    smallScreen: window.innerWidth <= 768
+  };
+
+  // Algoritmo de scoring
+  let score = 0;
+  let totalTests = 0;
+
+  for (const [test, result] of Object.entries(tests)) {
+    totalTests++;
+    if (result) score++;
+    console.log(`📱 ${test}: ${result ? '✅' : '❌'}`);
+  }
+
+  const confidence = (score / totalTests) * 100;
+  const isMovil = score >= 3; // Al menos 3 de 7 tests deben pasar
+
+  console.log(`📊 Score móvil: ${score}/${totalTests} (${confidence.toFixed(1)}%)`);
+  console.log(`🎯 Es móvil: ${isMovil ? '✅ SÍ' : '❌ NO'}`);
+
+  return isMovil;
+}
+
+function forzarModoMovil() {
+  // Función para testing - fuerza modo móvil
+  window.FORZAR_MOVIL = true;
+  aplicarModoMovil();
+  console.log('🔧 Modo móvil FORZADO para testing');
+}
+
+function forzarModoDesktop() {
+  // Función para testing - fuerza modo desktop
+  window.FORZAR_MOVIL = false;
+  aplicarModoDesktop();
+  console.log('🖥️ Modo desktop FORZADO para testing');
+}
+
+function aplicarModoMovil() {
+  const carruselMovil = document.getElementById('carrusel-movil');
+  const contenedorDesktop = document.querySelector('.contenedor-dos-columnas');
+  const headerDesktop = document.querySelector('.header');
+  const container = document.querySelector('.container');
+
+  // Mostrar carrusel móvil
+  if (carruselMovil) {
+    carruselMovil.style.display = 'flex';
+    carruselMovil.classList.add('modo-movil-activo');
+    console.log('📱 Vista móvil ACTIVADA');
+  }
+
+  // Ocultar completamente interfaz desktop
+  if (contenedorDesktop) {
+    contenedorDesktop.style.display = 'none';
+    console.log('🖥️ Vista desktop OCULTA');
+  }
+
+  if (headerDesktop) {
+    headerDesktop.style.display = 'none';
+    console.log('📋 Header desktop OCULTO');
+  }
+
+  // Ajustar container para modo móvil
+  if (container) {
+    container.style.padding = '0';
+    container.style.maxWidth = '100%';
+  }
+
+  // Inicializar funcionalidad del carrusel
+  generarPanelesCarrusel();
+  configurarGestosTouch();
+  renderizarCarrusel();
+}
+
+function aplicarModoDesktop() {
+  const carruselMovil = document.getElementById('carrusel-movil');
+  const contenedorDesktop = document.querySelector('.contenedor-dos-columnas');
+  const headerDesktop = document.querySelector('.header');
+  const container = document.querySelector('.container');
+
+  // Ocultar carrusel móvil
+  if (carruselMovil) {
+    carruselMovil.style.display = 'none';
+    carruselMovil.classList.remove('modo-movil-activo');
+    console.log('📱 Vista móvil OCULTA');
+  }
+
+  // Mostrar interfaz desktop completa
+  if (contenedorDesktop) {
+    contenedorDesktop.style.display = 'flex';
+    console.log('🖥️ Vista desktop ACTIVADA');
+  }
+
+  if (headerDesktop) {
+    headerDesktop.style.display = 'flex';
+    console.log('📋 Header desktop RESTAURADO');
+  }
+
+  // Restaurar container desktop
+  if (container) {
+    container.style.padding = '';
+    container.style.maxWidth = '';
+  }
+}
+
 // ==================== INICIALIZACIÓN ====================
 
 function inicializarCarruselMovil() {
-  console.log('🚀 Inicializando carrusel móvil para TDAH');
+  console.log('🚀 Inicializando detección inteligente de dispositivo...');
 
-  // Solo inicializar en móvil
-  if (window.innerWidth <= 768) {
-    generarPanelesCarrusel();
-    configurarGestosTouch();
-    renderizarCarrusel();
-    console.log('📱 Carrusel móvil activado');
+  // Verificar si hay forzado manual
+  if (window.FORZAR_MOVIL === true) {
+    aplicarModoMovil();
+    return;
+  }
+
+  if (window.FORZAR_MOVIL === false) {
+    aplicarModoDesktop();
+    return;
+  }
+
+  // Detección inteligente automática
+  if (esDispositivoMovil()) {
+    aplicarModoMovil();
+  } else {
+    aplicarModoDesktop();
   }
 }
 
@@ -456,11 +592,58 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(inicializarCarruselMovil, 100);
 });
 
-// Reinicializar en cambio de tamaño de ventana
-window.addEventListener('resize', () => {
-  if (window.innerWidth <= 768) {
+// Reinicializar en cambio de orientación (móviles)
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    console.log('🔄 Cambio de orientación detectado');
     inicializarCarruselMovil();
+  }, 100);
+});
+
+// Reinicializar en cambio de tamaño (para debugging)
+window.addEventListener('resize', () => {
+  // Solo re-evaluar si no hay modo forzado
+  if (window.FORZAR_MOVIL === undefined) {
+    setTimeout(inicializarCarruselMovil, 200);
   }
 });
+
+// ==================== CONTROLES DE TESTING ====================
+
+function crearControlesTesting() {
+  // Solo crear controles si no existen
+  if (document.getElementById('testing-controls')) return;
+
+  const controls = document.createElement('div');
+  controls.id = 'testing-controls';
+  controls.style.cssText = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 9999;
+    font-size: 12px;
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+  `;
+
+  controls.innerHTML = `
+    <div style="font-weight: bold; margin-bottom: 5px;">🧪 Testing</div>
+    <button onclick="forzarModoMovil()" style="padding: 5px; font-size: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">📱 Forzar Móvil</button>
+    <button onclick="forzarModoDesktop()" style="padding: 5px; font-size: 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">🖥️ Forzar Desktop</button>
+    <button onclick="window.FORZAR_MOVIL = undefined; inicializarCarruselMovil()" style="padding: 5px; font-size: 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Auto</button>
+    <button onclick="document.getElementById('testing-controls').remove()" style="padding: 5px; font-size: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">❌ Ocultar</button>
+  `;
+
+  document.body.appendChild(controls);
+  console.log('🧪 Controles de testing agregados');
+}
+
+// Función global para mostrar controles de testing
+window.mostrarControlesTesting = crearControlesTesting;
 
 console.log('📱 Carrusel móvil TDAH cargado');
