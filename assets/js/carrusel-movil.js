@@ -104,8 +104,10 @@ function aplicarModoMovil() {
 
   // Inicializar funcionalidad del carrusel
   generarPanelesCarrusel();
-  configurarGestosTouch();
+  // configurarGestosTouch(); // DESHABILITADO: Solo botones, no gestos
   renderizarCarrusel();
+
+  console.log('👆 Gestos de swipe DESHABILITADOS - Solo navegación con botones ‹ ›');
 }
 
 function aplicarModoDesktop() {
@@ -412,13 +414,29 @@ function renderizarPanelPersonalizado(panelInfo) {
 
 function carruselSiguiente() {
   if (carruselState.panelActual < carruselState.totalPaneles - 1) {
+    console.log('▶️ Navegando al siguiente panel');
     irAPanelCarrusel(carruselState.panelActual + 1);
+
+    // Feedback visual del botón
+    const btnNext = document.getElementById('carrusel-next');
+    if (btnNext) {
+      btnNext.style.transform = 'scale(0.9)';
+      setTimeout(() => btnNext.style.transform = '', 150);
+    }
   }
 }
 
 function carruselAnterior() {
   if (carruselState.panelActual > 0) {
+    console.log('◀️ Navegando al panel anterior');
     irAPanelCarrusel(carruselState.panelActual - 1);
+
+    // Feedback visual del botón
+    const btnPrev = document.getElementById('carrusel-prev');
+    if (btnPrev) {
+      btnPrev.style.transform = 'scale(0.9)';
+      setTimeout(() => btnPrev.style.transform = '', 150);
+    }
   }
 }
 

@@ -204,39 +204,49 @@
       width: 100%;
       display: flex;
       justify-content: space-between;
-      padding: 0 10px;
+      padding: 0 15px;
       pointer-events: none;
+      z-index: 10;
     }
 
     .carrusel-btn {
       pointer-events: all;
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(78, 205, 196, 0.5);
+      background: rgba(255, 255, 255, 0.95);
       color: #2d5a27;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(15px);
     }
 
     .carrusel-btn:hover {
       background: #4ecdc4;
       color: white;
-      transform: scale(1.1);
+      transform: scale(1.05);
+      border-color: #44a08d;
+    }
+
+    .carrusel-btn:active {
+      transform: scale(0.95);
+      background: #44a08d;
+      color: white;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
     }
 
     .carrusel-btn:disabled {
       opacity: 0.3;
       cursor: not-allowed;
       transform: none;
+      background: rgba(200, 200, 200, 0.5);
     }
 
     .carrusel-acciones {
