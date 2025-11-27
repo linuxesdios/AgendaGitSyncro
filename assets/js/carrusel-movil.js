@@ -1033,10 +1033,8 @@ function completarSubtarea(tareaId, subtareaIndex, tipoTarea) {
     if (tarea && tarea.subtareas && tarea.subtareas[subtareaIndex]) {
       tarea.subtareas[subtareaIndex].completada = true;
 
-      if (typeof guardarJSON === 'function') {
-        guardarJSON();
-        guardado = true;
-      }
+      sincronizarTodo();
+      guardado = true;
 
       renderizarPanelCriticas();
     }
@@ -1048,10 +1046,8 @@ function completarSubtarea(tareaId, subtareaIndex, tipoTarea) {
       if (tarea.subtareas && tarea.subtareas[subtareaIndex]) {
         tarea.subtareas[subtareaIndex].completada = true;
 
-        if (typeof supabasePush === 'function') {
-          supabasePush();
-          guardado = true;
-        }
+        sincronizarTodo();
+        guardado = true;
 
         renderizarPanelPersonalizado(panelActual);
       }
@@ -1081,10 +1077,8 @@ function eliminarSubtarea(tareaId, subtareaIndex, tipoTarea) {
     if (tarea && tarea.subtareas && tarea.subtareas[subtareaIndex]) {
       tarea.subtareas.splice(subtareaIndex, 1);
 
-      if (typeof guardarJSON === 'function') {
-        guardarJSON();
-        guardado = true;
-      }
+      sincronizarTodo();
+      guardado = true;
 
       renderizarPanelCriticas();
     }
@@ -1096,10 +1090,8 @@ function eliminarSubtarea(tareaId, subtareaIndex, tipoTarea) {
       if (tarea.subtareas && tarea.subtareas[subtareaIndex]) {
         tarea.subtareas.splice(subtareaIndex, 1);
 
-        if (typeof supabasePush === 'function') {
-          supabasePush();
-          guardado = true;
-        }
+        sincronizarTodo();
+        guardado = true;
 
         renderizarPanelPersonalizado(panelActual);
       }
@@ -1132,10 +1124,8 @@ function eliminarTareaCritica(tareaId) {
   if (index !== -1) {
     tareas.splice(index, 1);
 
-    // Guardar cambios
-    if (typeof guardarJSON === 'function') {
-      guardarJSON();
-    }
+    // Sincronizar todo
+    sincronizarTodo();
 
     mostrarAlerta('🗑️ Tarea crítica eliminada', 'success');
 
@@ -1166,10 +1156,8 @@ function eliminarTareaPersonalizada(listaId, tareaIndex) {
   // Eliminar tarea
   lista.tareas.splice(tareaIndex, 1);
 
-  // Guardar cambios
-  if (typeof supabasePush === 'function') {
-    supabasePush();
-  }
+  // Sincronizar todo
+  sincronizarTodo();
 
   mostrarAlerta('🗑️ Tarea eliminada', 'success');
 
@@ -1251,11 +1239,9 @@ function añadirSubtarea(tareaId, tipo) {
         fecha_creacion: new Date().toISOString()
       });
 
-      // Guardar cambios
-      if (typeof guardarJSON === 'function') {
-        guardarJSON();
-        guardado = true;
-      }
+      // Sincronizar todo
+      sincronizarTodo();
+      guardado = true;
 
       // Re-renderizar panel
       renderizarPanelCriticas();
@@ -1276,11 +1262,9 @@ function añadirSubtarea(tareaId, tipo) {
         fecha_creacion: new Date().toISOString()
       });
 
-      // Guardar cambios
-      if (typeof supabasePush === 'function') {
-        supabasePush();
-        guardado = true;
-      }
+      // Sincronizar todo
+      sincronizarTodo();
+      guardado = true;
 
       // Re-renderizar panel
       renderizarPanelPersonalizado(panelActual);
@@ -1305,6 +1289,26 @@ function añadirSubtarea(tareaId, tipo) {
   }
 }
 
+// ==================== SINCRONIZACIÓN COMPLETA ====================
+
+function sincronizarTodo() {
+  console.log('📤 Sincronizando TODO...');
+
+  // Sincronizar tareas (JSON)
+  if (typeof guardarJSON === 'function') {
+    guardarJSON();
+    console.log('✅ JSON sincronizado');
+  }
+
+  // Sincronizar listas y citas (Supabase)
+  if (typeof supabasePush === 'function') {
+    supabasePush();
+    console.log('✅ Supabase sincronizado');
+  }
+
+  console.log('📤 Sincronización completa finalizada');
+}
+
 // ==================== FUNCIONES DE CITAS ====================
 
 function eliminarCita(citaId) {
@@ -1318,9 +1322,7 @@ function eliminarCita(citaId) {
   if (index !== -1) {
     citas.splice(index, 1);
 
-    if (typeof supabasePush === 'function') {
-      supabasePush();
-    }
+    sincronizarTodo();
 
     mostrarAlerta('🗑️ Cita eliminada', 'success');
     renderizarPanelCitas();
@@ -1341,9 +1343,7 @@ function duplicarCita(citaId) {
 
     citas.push(nuevaCita);
 
-    if (typeof supabasePush === 'function') {
-      supabasePush();
-    }
+    sincronizarTodo();
 
     mostrarAlerta('📋 Cita duplicada', 'success');
     renderizarPanelCitas();
@@ -1382,9 +1382,7 @@ function abrirModalNuevaCita() {
 
   window.appState.agenda.citas.push(nuevaCita);
 
-  if (typeof supabasePush === 'function') {
-    supabasePush();
-  }
+  sincronizarTodo();
 
   mostrarAlerta(`📅 Cita "${titulo}" creada`, 'success');
   renderizarPanelCitas();
