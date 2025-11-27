@@ -3039,16 +3039,40 @@ function editarListaPersonalizada(id) {
 }
 
 async function guardarEdicionListaPersonalizada() {
-  console.log('💾 Guardando edición de lista:', listaEnEdicion);
+  console.log('🚀 [INICIO] Función guardarEdicionListaPersonalizada llamada');
 
-  if (!listaEnEdicion) {
-    mostrarAlerta('❌ No hay lista en edición', 'error');
+  try {
+    console.log('💾 Guardando edición de lista:', listaEnEdicion);
+
+    if (!listaEnEdicion) {
+      mostrarAlerta('❌ No hay lista en edición', 'error');
+      return;
+    }
+
+  // Verificar que los elementos existen
+  const nombreElement = document.getElementById('nueva-lista-personalizada');
+  const emojiElement = document.getElementById('emoji-lista-personalizada');
+  const colorElement = document.getElementById('color-lista-personalizada');
+
+  console.log('🔍 Elementos encontrados:', {
+    nombreElement: !!nombreElement,
+    emojiElement: !!emojiElement,
+    colorElement: !!colorElement
+  });
+
+  if (!nombreElement || !emojiElement || !colorElement) {
+    mostrarAlerta('❌ Error: No se encontraron los elementos del formulario', 'error');
+    console.error('❌ Elementos faltantes:', {
+      'nueva-lista-personalizada': !!nombreElement,
+      'emoji-lista-personalizada': !!emojiElement,
+      'color-lista-personalizada': !!colorElement
+    });
     return;
   }
 
-  const nombre = document.getElementById('nueva-lista-personalizada')?.value?.trim();
-  const emoji = document.getElementById('emoji-lista-personalizada')?.value || '📝';
-  const color = document.getElementById('color-lista-personalizada')?.value || '#667eea';
+  const nombre = nombreElement.value?.trim();
+  const emoji = emojiElement.value || '📝';
+  const color = colorElement.value || '#667eea';
 
   console.log('📊 Valores leídos del formulario:', { nombre, emoji, color });
 
@@ -3135,6 +3159,10 @@ async function guardarEdicionListaPersonalizada() {
   } else {
     mostrarAlerta('⚠️ No se pudo sincronizar con Supabase', 'warning');
     cancelarEdicionListaPersonalizada();
+  }
+  } catch (error) {
+    console.error('❌ Error en guardarEdicionListaPersonalizada:', error);
+    mostrarAlerta(`❌ Error al guardar: ${error.message}`, 'error');
   }
 }
 
@@ -3993,7 +4021,7 @@ function editarTareaListaPersonalizada(listaId, index) {
         <input type="text" id="editor-lp-persona" value="${tarea.persona || ''}" placeholder="Nombre de la persona">
       </div>
       <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarEdicionListaPersonalizada('${listaId}', ${index})">Guardar</button>
+        <button class="btn-primario" onclick="guardarEdicionTareaListaPersonalizada('${listaId}', ${index})">Guardar</button>
         <button class="btn-secundario" onclick="document.getElementById('${modalId}').remove()">Cancelar</button>
       </div>
     </div>
@@ -4009,7 +4037,7 @@ function editarTareaListaPersonalizada(listaId, index) {
   }, 100);
 }
 
-function guardarEdicionListaPersonalizada(listaId, index) {
+function guardarEdicionTareaListaPersonalizada(listaId, index) {
   const configVisual = window.configVisual || {};
   const listas = configVisual.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
