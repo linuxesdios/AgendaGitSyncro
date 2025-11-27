@@ -553,6 +553,88 @@
       transform: scale(0.95);
     }
 
+    /* Estilos para subtareas */
+    .subtarea-carrusel {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0 8px 20px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(5px);
+      border-left: 3px solid rgba(78, 205, 196, 0.5);
+      transition: all 0.3s ease;
+      font-size: 13px;
+    }
+
+    .subtarea-carrusel:hover {
+      border-left-color: rgba(78, 205, 196, 0.8);
+      background: rgba(78, 205, 196, 0.05);
+    }
+
+    .subtarea-layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .subtarea-contenido {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .subtarea-titulo {
+      font-size: 13px;
+      font-weight: 500;
+      color: #2d5a27;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .subtarea-meta {
+      font-size: 11px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .subtarea-botones {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .btn-subtarea-accion {
+      border: none;
+      border-radius: 6px;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-completar-subtarea {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .btn-eliminar-subtarea {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .btn-subtarea-accion:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-subtarea-accion:active {
+      transform: scale(0.95);
+    }
+
     /* Estados especiales móvil */
     @media (max-width: 768px) {
       .tarea-carrusel {
@@ -631,9 +713,9 @@
     <!-- ==================== MODO MÓVIL CARRUSEL ==================== -->
     <div id="carrusel-movil" class="carrusel-movil" style="display: none;">
       <div class="carrusel-header">
-        <!-- Indicador de modo móvil -->
-        <div style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);">
-          📱 MODO MÓVIL
+        <!-- Título personalizado -->
+        <div id="carrusel-titulo-personalizado" style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);">
+          🧠 Agenda de Pablo 🚆
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 10px;">

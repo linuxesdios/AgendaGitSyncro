@@ -1226,6 +1226,11 @@ async function guardarConfigVisualPanel() {
     aplicarConfiguracionColumnas();
     mostrarAlerta('⚠️ No se pudo sincronizar con Supabase', 'warning');
   }
+
+  // Actualizar título en carrusel móvil si está activo
+  if (typeof window.actualizarTituloCarruselMovil === 'function') {
+    window.actualizarTituloCarruselMovil();
+  }
 }
 
 // ========== FUNCIONES PARA MOSTRAR/OCULTAR CITAS Y TAREAS EN CALENDARIO ==========

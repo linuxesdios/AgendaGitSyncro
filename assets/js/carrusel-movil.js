@@ -102,6 +102,9 @@ function aplicarModoMovil() {
   // Mostrar indicadores de modo
   mostrarIndicadorModo('movil');
 
+  // Actualizar título personalizado
+  actualizarTituloCarrusel();
+
   // Inicializar funcionalidad del carrusel
   generarPanelesCarrusel();
   // configurarGestosTouch(); // DESHABILITADO: Solo botones, no gestos
@@ -192,6 +195,38 @@ function mostrarIndicadorModo(modo) {
         setTimeout(() => indicador.remove(), 500);
       }
     }, 3000);
+  }
+}
+
+// ==================== OBTENER TÍTULO PERSONALIZADO ====================
+
+function obtenerTituloPersonalizado() {
+  // Obtener de la configuración visual
+  if (window.configVisual && window.configVisual.titulo) {
+    return window.configVisual.titulo;
+  }
+
+  // Obtener del input si existe
+  const tituloInput = document.getElementById('config-titulo-input');
+  if (tituloInput && tituloInput.value) {
+    return tituloInput.value;
+  }
+
+  // Fallback al título del HTML
+  const htmlTitle = document.querySelector('title')?.textContent;
+  if (htmlTitle) {
+    return htmlTitle;
+  }
+
+  return '🧠 Agenda de Pablo 🚆';
+}
+
+function actualizarTituloCarrusel() {
+  const tituloElement = document.getElementById('carrusel-titulo-personalizado');
+  if (tituloElement) {
+    const titulo = obtenerTituloPersonalizado();
+    tituloElement.textContent = titulo;
+    console.log('📱 Título del carrusel actualizado:', titulo);
   }
 }
 
@@ -357,6 +392,7 @@ function renderizarPanelCriticas() {
             </div>
           </div>
         </div>
+        ${renderizarSubtareas(tarea, tarea.id, 'critica')}
       `;
     });
   }
@@ -414,6 +450,7 @@ function renderizarPanelPersonalizado(panelInfo) {
             </div>
           </div>
         </div>
+        ${renderizarSubtareas(tarea, tarea.id || index, 'personalizada')}
       `;
     });
   }
@@ -860,6 +897,146 @@ function crearControlesTesting() {
 
 // Función global para mostrar controles de testing
 window.mostrarControlesTesting = crearControlesTesting;
+
+// Función global para actualizar título desde configuración
+window.actualizarTituloCarruselMovil = actualizarTituloCarrusel;
+
+// Listener para actualización de configuración
+document.addEventListener('configVisualActualizada', actualizarTituloCarrusel);
+
+// ==================== FUNCIONES DE SUBTAREAS ====================
+
+function renderizarSubtarea(subtarea, subtareaIndex, tareaId, tipoTarea) {
+  const completada = subtarea.completada ? 'style="opacity: 0.6; text-decoration: line-through;"' : '';
+  const fechaCreacion = subtarea.fecha_creacion ? new Date(subtarea.fecha_creacion).toLocaleDateString() : '';
+
+  return `
+    <div class="subtarea-carrusel" ${completada} onclick="abrirModalEditarSubtarea('${tareaId}', ${subtareaIndex}, '${tipoTarea}')" style="cursor: pointer;">
+      <div class="subtarea-layout">
+        <div class="subtarea-contenido">
+          <div class="subtarea-titulo">${subtarea.texto || 'Subtarea sin título'}</div>
+          ${fechaCreacion ? `<div class="subtarea-meta">Creada: ${fechaCreacion}</div>` : ''}
+        </div>
+        <div class="subtarea-botones" onclick="event.stopPropagation();">
+          ${!subtarea.completada ? `
+            <button onclick="completarSubtarea('${tareaId}', ${subtareaIndex}, '${tipoTarea}')" class="btn-subtarea-accion btn-completar-subtarea" title="Completar subtarea">✓</button>
+          ` : ''}
+          <button onclick="eliminarSubtarea('${tareaId}', ${subtareaIndex}, '${tipoTarea}')" class="btn-subtarea-accion btn-eliminar-subtarea" title="Eliminar subtarea">✕</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderizarSubtareas(tarea, tareaId, tipoTarea) {
+  if (!tarea.subtareas || tarea.subtareas.length === 0) {
+    return '';
+  }
+
+  let html = '';
+  tarea.subtareas.forEach((subtarea, index) => {
+    html += renderizarSubtarea(subtarea, index, tareaId, tipoTarea);
+  });
+
+  return html;
+}
+
+function completarSubtarea(tareaId, subtareaIndex, tipoTarea) {
+  let tarea = null;
+  let guardado = false;
+
+  if (tipoTarea === 'critica') {
+    const tareas = window.appState?.agenda?.tareas_criticas || [];
+    tarea = tareas.find(t => t.id === tareaId);
+
+    if (tarea && tarea.subtareas && tarea.subtareas[subtareaIndex]) {
+      tarea.subtareas[subtareaIndex].completada = true;
+
+      if (typeof guardarJSON === 'function') {
+        guardarJSON();
+        guardado = true;
+      }
+
+      renderizarPanelCriticas();
+    }
+  } else if (tipoTarea === 'personalizada') {
+    const panelActual = carruselState.paneles[carruselState.panelActual];
+    if (panelActual && panelActual.lista && panelActual.lista.tareas && panelActual.lista.tareas[tareaId]) {
+      tarea = panelActual.lista.tareas[tareaId];
+
+      if (tarea.subtareas && tarea.subtareas[subtareaIndex]) {
+        tarea.subtareas[subtareaIndex].completada = true;
+
+        if (typeof supabasePush === 'function') {
+          supabasePush();
+          guardado = true;
+        }
+
+        renderizarPanelPersonalizado(panelActual);
+      }
+    }
+  }
+
+  if (guardado) {
+    mostrarAlerta('✅ Subtarea completada', 'success');
+    actualizarContadoresPaneles();
+  } else {
+    mostrarAlerta('❌ No se pudo completar la subtarea', 'error');
+  }
+}
+
+function eliminarSubtarea(tareaId, subtareaIndex, tipoTarea) {
+  if (!confirm('¿Estás seguro de que quieres eliminar esta subtarea?')) {
+    return;
+  }
+
+  let tarea = null;
+  let guardado = false;
+
+  if (tipoTarea === 'critica') {
+    const tareas = window.appState?.agenda?.tareas_criticas || [];
+    tarea = tareas.find(t => t.id === tareaId);
+
+    if (tarea && tarea.subtareas && tarea.subtareas[subtareaIndex]) {
+      tarea.subtareas.splice(subtareaIndex, 1);
+
+      if (typeof guardarJSON === 'function') {
+        guardarJSON();
+        guardado = true;
+      }
+
+      renderizarPanelCriticas();
+    }
+  } else if (tipoTarea === 'personalizada') {
+    const panelActual = carruselState.paneles[carruselState.panelActual];
+    if (panelActual && panelActual.lista && panelActual.lista.tareas && panelActual.lista.tareas[tareaId]) {
+      tarea = panelActual.lista.tareas[tareaId];
+
+      if (tarea.subtareas && tarea.subtareas[subtareaIndex]) {
+        tarea.subtareas.splice(subtareaIndex, 1);
+
+        if (typeof supabasePush === 'function') {
+          supabasePush();
+          guardado = true;
+        }
+
+        renderizarPanelPersonalizado(panelActual);
+      }
+    }
+  }
+
+  if (guardado) {
+    mostrarAlerta('🗑️ Subtarea eliminada', 'success');
+    actualizarContadoresPaneles();
+  } else {
+    mostrarAlerta('❌ No se pudo eliminar la subtarea', 'error');
+  }
+}
+
+function abrirModalEditarSubtarea(tareaId, subtareaIndex, tipoTarea) {
+  // Para futuras mejoras - modal de edición de subtareas
+  console.log(`📝 Editando subtarea ${subtareaIndex} de tarea ${tareaId} (tipo: ${tipoTarea})`);
+}
 
 // ==================== NUEVAS FUNCIONES DE BOTONES ====================
 
