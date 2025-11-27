@@ -394,7 +394,7 @@ function renderizarPanelCitas() {
               <div class="tarea-contenido">
                 <div class="tarea-header">
                   <span class="tarea-urgencia">${esUrgente ? '📅' : '🕐'}</span>
-                  <span class="tarea-titulo">${cita.titulo || 'Cita sin título'}</span>
+                  <span class="tarea-titulo">${cita.nombre || 'Cita sin título'}</span>
                 </div>
                 <div class="tarea-meta-grande">
                   <div class="meta-fecha">📅 ${cita.fecha || 'Sin fecha'}</div>
@@ -1206,7 +1206,7 @@ function iniciarPomodoroTarea(tareaId, tipo) {
     }
   }
 
-  const tituloTarea = tarea ? (tarea.titulo || tarea.texto || 'Tarea sin título') : 'Tarea desconocida';
+  const tituloTarea = tarea ? (tarea.titulo || tarea.nombre || tarea.texto || 'Tarea sin título') : 'Tarea desconocida';
 
   // Si existe la función de Pomodoro global, úsala
   if (typeof iniciarPomodoro === 'function') {
@@ -1318,8 +1318,8 @@ function eliminarCita(citaId) {
   if (index !== -1) {
     citas.splice(index, 1);
 
-    if (typeof guardarJSON === 'function') {
-      guardarJSON();
+    if (typeof supabasePush === 'function') {
+      supabasePush();
     }
 
     mostrarAlerta('🗑️ Cita eliminada', 'success');
@@ -1336,13 +1336,13 @@ function duplicarCita(citaId) {
     const nuevaCita = {
       ...citaOriginal,
       id: Date.now().toString(),
-      titulo: citaOriginal.titulo + ' (copia)'
+      nombre: citaOriginal.nombre + ' (copia)'
     };
 
     citas.push(nuevaCita);
 
-    if (typeof guardarJSON === 'function') {
-      guardarJSON();
+    if (typeof supabasePush === 'function') {
+      supabasePush();
     }
 
     mostrarAlerta('📋 Cita duplicada', 'success');
@@ -1369,7 +1369,7 @@ function abrirModalNuevaCita() {
 
   const nuevaCita = {
     id: Date.now().toString(),
-    titulo: titulo.trim(),
+    nombre: titulo.trim(),
     fecha: fecha,
     hora: hora || '',
     lugar: '',
@@ -1382,8 +1382,8 @@ function abrirModalNuevaCita() {
 
   window.appState.agenda.citas.push(nuevaCita);
 
-  if (typeof guardarJSON === 'function') {
-    guardarJSON();
+  if (typeof supabasePush === 'function') {
+    supabasePush();
   }
 
   mostrarAlerta(`📅 Cita "${titulo}" creada`, 'success');
