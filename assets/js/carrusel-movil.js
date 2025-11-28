@@ -509,7 +509,7 @@ function renderizarPanelCriticas() {
               </div>
               <div class="tarea-meta-grande">
                 <div class="meta-fecha">📅 ${tarea.fecha_fin || 'Sin fecha'}</div>
-                <div class="meta-persona">${tarea.persona ? `👤 ${tarea.persona}` : '👤 Sin asignar'}</div>
+                ${tarea.persona ? `<div class="meta-persona">👤 ${tarea.persona}</div>` : ''}
                 ${tarea.etiqueta ? `<div class="meta-etiqueta">${tarea.etiqueta}</div>` : ''}
               </div>
               ${tarea.subtareas && tarea.subtareas.length > 0 ? `
@@ -568,7 +568,7 @@ function renderizarPanelPersonalizado(panelInfo) {
               </div>
               <div class="tarea-meta-grande">
                 <div class="meta-fecha">📅 ${tarea.fecha || 'Sin fecha'}</div>
-                <div class="meta-persona">${tarea.persona ? `👤 ${tarea.persona}` : '👤 Sin asignar'}</div>
+                ${tarea.persona ? `<div class="meta-persona">👤 ${tarea.persona}</div>` : ''}
               </div>
               ${tarea.subtareas && tarea.subtareas.length > 0 ? `
                 <div class="subtareas-preview">
