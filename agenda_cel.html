@@ -71,6 +71,597 @@
       background: #4a9999 !important;
       border-color: #3d7f7f !important;
     }
+
+    /* ==================== CARRUSEL MÓVIL ==================== */
+    .carrusel-movil {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+    }
+
+    .carrusel-header {
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid rgba(78, 205, 196, 0.3);
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .carrusel-header h2 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      color: #2d5a27;
+      font-weight: bold;
+    }
+
+    .carrusel-indicadores {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .indicador {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(78, 205, 196, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .indicador.activo {
+      background: #4ecdc4;
+      transform: scale(1.2);
+    }
+
+    .carrusel-contenedor {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .carrusel-track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      will-change: transform;
+    }
+
+    .carrusel-panel {
+      min-width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+      opacity: 0.7;
+      transform: scale(0.95);
+      transition: all 0.3s ease;
+    }
+
+    .carrusel-panel.activo {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .panel-icono {
+      font-size: 28px;
+      margin-right: 12px;
+    }
+
+    .panel-nombre {
+      flex: 1;
+      font-size: 20px;
+      font-weight: bold;
+      color: #2d5a27;
+    }
+
+    .panel-contador {
+      background: #4ecdc4;
+      color: white;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-weight: bold;
+      font-size: 16px;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .panel-contenido {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .carrusel-navegacion {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 15px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .carrusel-btn {
+      pointer-events: all;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid rgba(78, 205, 196, 0.5);
+      background: rgba(255, 255, 255, 0.95);
+      color: #2d5a27;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(15px);
+    }
+
+    .carrusel-btn:hover {
+      background: #4ecdc4;
+      color: white;
+      transform: scale(1.05);
+      border-color: #44a08d;
+    }
+
+    .carrusel-btn:active {
+      transform: scale(0.95);
+      background: #44a08d;
+      color: white;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .carrusel-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+      background: rgba(200, 200, 200, 0.5);
+    }
+
+    .carrusel-acciones {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-top: 2px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .accion-rapida {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(78, 205, 196, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .accion-rapida:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+
+    .accion-rapida:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    /* ==================== ESTILOS MÓVIL (controlado por JS) ==================== */
+    /* Ahora la detección se hace por JavaScript, no por media queries */
+    .carrusel-movil.modo-movil-activo .header {
+      padding: 10px 15px;
+    }
+
+    .carrusel-movil.modo-movil-activo .carrusel-header h2 {
+      font-size: 20px;
+    }
+
+    .carrusel-movil.modo-movil-activo .panel-header {
+      padding: 12px 15px;
+      margin-bottom: 15px;
+    }
+
+    .carrusel-movil.modo-movil-activo .panel-icono {
+      font-size: 24px;
+    }
+
+    .carrusel-movil.modo-movil-activo .panel-nombre {
+      font-size: 18px;
+    }
+
+    .carrusel-movil.modo-movil-activo .panel-contador {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+
+    .carrusel-movil.modo-movil-activo .carrusel-acciones {
+      padding: 15px;
+      gap: 15px;
+    }
+
+    .carrusel-movil.modo-movil-activo .accion-rapida {
+      width: 50px;
+      height: 50px;
+    }
+
+    /* Touch gestures support */
+    .carrusel-track {
+      touch-action: pan-x;
+    }
+
+    /* ==================== TAREAS DEL CARRUSEL ==================== */
+    .tarea-carrusel {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .tarea-carrusel:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .tarea-carrusel[style*="cursor: pointer"] {
+      border: 2px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .tarea-carrusel[style*="cursor: pointer"]:hover {
+      border-color: rgba(78, 205, 196, 0.6);
+      background: rgba(78, 205, 196, 0.05);
+    }
+
+    .tarea-carrusel[style*="cursor: pointer"]:active {
+      transform: translateY(0px) scale(0.98);
+    }
+
+    .tarea-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .tarea-urgencia {
+      font-size: 20px;
+      margin-right: 10px;
+    }
+
+    .tarea-titulo {
+      flex: 1;
+      font-weight: bold;
+      font-size: 16px;
+      color: #2d5a27;
+      line-height: 1.3;
+    }
+
+    .tarea-meta {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .tarea-etiqueta {
+      background: rgba(78, 205, 196, 0.2);
+      color: #2d5a27;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .tarea-acciones {
+      display: flex;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .btn-completar,
+    .btn-posponer,
+    .btn-editar,
+    .btn-agregar-movil {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+
+    .btn-completar {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .btn-completar:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-posponer {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+    }
+
+    .btn-posponer:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn-editar {
+      background: linear-gradient(135deg, #2196F3, #1976D2);
+      color: white;
+    }
+
+    .btn-editar:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+    }
+
+    .btn-agregar-movil {
+      background: linear-gradient(135deg, #4ecdc4, #44a08d);
+      color: white;
+      margin: 20px auto;
+      display: block;
+      width: auto;
+      padding: 12px 24px;
+      font-size: 14px;
+    }
+
+    .btn-agregar-movil:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 15px rgba(78, 205, 196, 0.4);
+    }
+
+    /* Nuevo layout de tareas móviles */
+    .tarea-layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .tarea-contenido {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tarea-meta-grande {
+      margin: 8px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .meta-fecha,
+    .meta-persona,
+    .meta-etiqueta {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d5a27;
+      background: rgba(78, 205, 196, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .subtareas-preview {
+      margin-top: 6px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .tarea-botones {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-borrar-tarea,
+    .btn-pomodoro-tarea,
+    .btn-subtarea {
+      border: none;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-borrar-tarea {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .btn-borrar-tarea:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-pomodoro-tarea {
+      background: linear-gradient(135deg, #ff8a65, #ff7043);
+      color: white;
+    }
+
+    .btn-pomodoro-tarea:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(255, 138, 101, 0.4);
+    }
+
+    .btn-subtarea {
+      background: linear-gradient(135deg, #42a5f5, #2196f3);
+      color: white;
+    }
+
+    .btn-subtarea:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(66, 165, 245, 0.4);
+    }
+
+    .btn-borrar-tarea:active,
+    .btn-pomodoro-tarea:active,
+    .btn-subtarea:active {
+      transform: scale(0.95);
+    }
+
+    /* Estilos para subtareas */
+    .subtarea-carrusel {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0 8px 20px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(5px);
+      border-left: 3px solid rgba(78, 205, 196, 0.5);
+      transition: all 0.3s ease;
+      font-size: 13px;
+    }
+
+    .subtarea-carrusel:hover {
+      border-left-color: rgba(78, 205, 196, 0.8);
+      background: rgba(78, 205, 196, 0.05);
+    }
+
+    .subtarea-layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .subtarea-contenido {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .subtarea-titulo {
+      font-size: 13px;
+      font-weight: 500;
+      color: #2d5a27;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .subtarea-meta {
+      font-size: 11px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .subtarea-botones {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .btn-subtarea-accion {
+      border: none;
+      border-radius: 6px;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-completar-subtarea {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .btn-eliminar-subtarea {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .btn-subtarea-accion:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-subtarea-accion:active {
+      transform: scale(0.95);
+    }
+
+    /* Estados especiales móvil */
+    @media (max-width: 768px) {
+      .tarea-carrusel {
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .tarea-titulo {
+        font-size: 15px;
+      }
+
+      .tarea-urgencia {
+        font-size: 18px;
+      }
+
+      .tarea-acciones {
+        gap: 6px;
+      }
+
+      .btn-completar,
+      .btn-posponer,
+      .btn-editar {
+        padding: 10px 8px;
+        font-size: 11px;
+        min-height: 40px;
+      }
+    }
   </style>
 </head>
 
@@ -119,142 +710,72 @@
 
     <div id="alertas"></div>
 
-    <!-- ==================== MODO DESKTOP ==================== -->
-    <div class="contenedor-dos-columnas">
-      <div class="columna-izquierda">
-        <section class="drop-zone" data-target="criticas">
-          <h3>🚨 Tareas Críticas 🚨</h3>
+    <!-- ==================== MODO MÓVIL CARRUSEL ==================== -->
+    <div id="carrusel-movil" class="carrusel-movil" style="display: none;">
+      <div class="carrusel-header">
+        <!-- Título personalizado -->
+        <div id="carrusel-titulo-personalizado" style="background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);">
+          🧠 Agenda de Pablo 🚆
+        </div>
 
-          <div class="filtros-container">
-            <button class="filtros-toggle" onclick="toggleFiltros('criticas')">
-              <span>🔍 Filtros</span>
-              <span id="filtros-icon-criticas">▼</span>
-            </button>
-            <div id="filtros-content-criticas" class="filtros-content">
-              <div class="filtros-grid">
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Estado</label>
-                  <select id="filtro-estado-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todos</option>
-                    <option value="pendiente">Pendientes</option>
-                    <option value="migrada">Migradas</option>
-                    <option value="programada">Programadas</option>
-                    <option value="completada">Completadas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Fecha</label>
-                  <select id="filtro-fecha-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                    <option value="hoy">Hoy</option>
-                    <option value="pasadas">Pasadas</option>
-                    <option value="proximas">Próximas</option>
-                    <option value="sin-fecha">Sin fecha</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Persona</label>
-                  <select id="filtro-persona-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Etiqueta</label>
-                  <select id="filtro-etiqueta-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <button class="btn-limpiar-filtros" onclick="limpiarFiltros('criticas')">Limpiar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="lista-criticas"></div>
-          <button class="boton-agregar tooltip" onclick="nuevaTareaCritica()" data-tooltip="Crear nueva tarea crítica">➕
-            Añadir tarea crítica</button>
-        </section>
-
-        <section>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">📅 Citas</h3>
-            <div style="display: flex; gap: 3px; flex-wrap: wrap;">
-              <button onclick="abrirModalNuevaCita()" class="boton-cargar calendar-btn"
-                style="padding: 4px 8px; font-size: 10px; background: #4ecdc4; color: white;">➕</button>
-              <button onclick="abrirModalCitasRelativas()" class="boton-cargar calendar-btn"
-                style="padding: 4px 8px; font-size: 10px; background: #9c27b0; color: white;">📅+</button>
-              <button onclick="abrirModalCitaPeriodica()" class="boton-cargar calendar-btn"
-                style="padding: 4px 8px; font-size: 10px; background: #e91e63; color: white;">🔄</button>
-              <button id="btn-calendario-citas" onclick="toggleCalendarioCitas()" class="boton-cargar calendar-btn"
-                style="padding: 4px 8px; font-size: 10px; background: #ff9800; color: white;">📅</button>
-            </div>
-          </div>
-          <div style="margin-bottom: 10px;">
-            <select id="filtro-citas" onchange="cambiarFiltroCitas()"
-              style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px;">
-              <option value="todas">Todas las citas</option>
-              <option value="proximas">15 días atrás + 30 adelante</option>
-            </select>
-          </div>
-          <div id="citas-panel" style="max-height:200px;overflow-y:auto;"></div>
-
-          <!-- Calendario integrado en la página -->
-          <div id="calendario-citas-integrado"
-            style="display:none;margin-top:15px;border:1px solid #ddd;border-radius:8px;padding:10px;background:#f9f9f9;">
-            <div class="calendar-header"
-              style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-              <button id="prevMonthIntegrado" class="calendar-nav-btn"
-                style="padding:5px 10px;background:#4ecdc4;color:white;border:none;border-radius:4px;cursor:pointer;">◀</button>
-              <h4 id="monthYearIntegrado" style="margin:0;font-size:14px;"></h4>
-              <button id="nextMonthIntegrado" class="calendar-nav-btn"
-                style="padding:5px 10px;background:#4ecdc4;color:white;border:none;border-radius:4px;cursor:pointer;">▶</button>
-            </div>
-            <div class="calendar-weekdays"
-              style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:5px;">
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Lun</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Mar</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Mié</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Jue</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Vie</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Sáb</div>
-              <div style="text-align:center;font-size:10px;font-weight:bold;padding:3px;">Dom</div>
-            </div>
-            <div class="calendar-grid" id="calendarGridIntegrado"
-              style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;min-height:200px;"></div>
-            <div id="appointmentsListIntegrado" style="margin-top:10px;max-height:150px;overflow-y:auto;"></div>
-          </div>
-        </section>
-
-        <section id="seccion-notas" style="display: block;">
-          <h3>📝 Notas / Brain Dump</h3>
-          <textarea id="notas-texto" placeholder="Escribe aquí tus notas, ideas, recordatorios..."></textarea>
-        </section>
-
-        <section id="seccion-sentimientos" style="display: block;">
-          <h3>😊 ¿Cómo te sientes?</h3>
-          <textarea id="sentimientos-texto"
-            placeholder="Describe cómo te sientes hoy, tus emociones, pensamientos..."></textarea>
-        </section>
-
-        <section id="seccion-contrasenas" style="display: block;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">🔐 Contraseñas Encriptadas</h3>
-            <button onclick="abrirModalNuevaContrasena()" class="boton-agregar"
-              style="padding: 6px 12px; font-size: 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-              ➕ Nueva Contraseña
-            </button>
-          </div>
-          <div id="lista-contrasenas">
-            <p style="text-align: center; color: #666; font-style: italic;">
-              Carga las contraseñas guardadas o agrega una nueva.
-            </p>
-          </div>
-        </section>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+          <h2 id="carrusel-titulo" style="margin: 0; flex: 1; text-align: center;">🚨 Tareas Críticas</h2>
+          <button onclick="toggleConfigFloating()" style="background: rgba(255,255,255,0.3); border: none; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; backdrop-filter: blur(10px);" title="Configuración">⚙️</button>
+        </div>
+        <div class="carrusel-indicadores" id="carrusel-indicadores">
+          <!-- Se generan dinámicamente -->
+        </div>
       </div>
 
-      <div class="columna-derecha">
-        <!-- La Lista para hacer ahora se maneja dinámicamente a través de las listas personalizadas -->
+      <div class="carrusel-contenedor" id="carrusel-contenedor">
+        <div class="carrusel-track" id="carrusel-track">
+          <!-- Panel 1: Tareas Críticas -->
+          <div class="carrusel-panel activo" data-panel="criticas">
+            <div class="panel-header">
+              <span class="panel-icono">🚨</span>
+              <span class="panel-nombre">Críticas</span>
+              <span class="panel-contador" id="contador-criticas">0</span>
+            </div>
+            <div class="panel-contenido" id="contenido-criticas">
+              <!-- Se renderiza dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Panel 2: Citas -->
+          <div class="carrusel-panel" data-panel="citas">
+            <div class="panel-header">
+              <span class="panel-icono">📅</span>
+              <span class="panel-nombre">Citas</span>
+              <span class="panel-contador" id="contador-citas">0</span>
+            </div>
+            <div class="panel-contenido" id="contenido-citas">
+              <!-- Se renderiza dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Los demás paneles se generan dinámicamente según las listas personalizadas -->
+        </div>
+      </div>
+
+      <div class="carrusel-navegacion">
+        <button class="carrusel-btn carrusel-prev" id="carrusel-prev" onclick="carruselAnterior()">‹</button>
+        <button class="carrusel-btn carrusel-next" id="carrusel-next" onclick="carruselSiguiente()">›</button>
+      </div>
+
+      <!-- Zona de acciones rápidas -->
+      <div class="carrusel-acciones">
+        <button class="accion-rapida" onclick="abrirModalTareaUniversal()" title="Agregar tarea">
+          <span style="font-size: 20px;">➕</span>
+        </button>
+        <button class="accion-rapida" onclick="mostrarResumenDiarioManual()" title="Resumen del día">
+          <span style="font-size: 20px;">🌅</span>
+        </button>
+        <button class="accion-rapida" onclick="iniciarPomodoro()" title="Pomodoro">
+          <span style="font-size: 20px;">🍅</span>
+        </button>
+        <button class="accion-rapida" onclick="abrirModalNuevaCita()" title="Nueva cita">
+          <span style="font-size: 20px;">📅</span>
+        </button>
       </div>
     </div>
 
@@ -1737,6 +2258,7 @@
 
   <!-- Scripts modulares -->
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/carrusel-movil.js"></script>
   <script src="assets/js/tareas.js"></script>
   <script src="assets/js/calendario.js"></script>
   <script src="assets/js/sincronizacion-simple.js"></script>
