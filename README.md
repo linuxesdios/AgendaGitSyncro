@@ -1,187 +1,269 @@
-# 🧠 Agenda de Pablo - Sistema de Productividad Personal
+# 🗄️ Configuración de Supabase para Agenda
 
-Una aplicación web completa y avanzada para gestión personal y productividad, diseñada específicamente para personas con TDAH y cualquiera que busque un sistema robusto de organización.
+Esta guía te explicará paso a paso cómo configurar Supabase como base de datos para tu aplicación de Agenda.
 
-![Version](https://img.shields.io/badge/version-2.0-brightgreen)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
-![CSS](https://img.shields.io/badge/CSS-3-blue)
-![Supabase](https://img.shields.io/badge/Supabase-Sincronización-green)
-![PWA](https://img.shields.io/badge/PWA-Compatible-purple)
+## 📋 Índice
 
-## ✨ Características Principales
-
-### 🚨 Sistema de Tareas Inteligente
-- **Tareas Críticas**: Sistema priorizado con estados avanzados (pendiente → migrada → programada → completada)
-- **Tareas Normales**: Método de productividad con seguimiento de estados
-- **Listas Personalizadas**: Crea y gestiona listas ilimitadas con emojis y colores
-- **Filtros Avanzados**: Filtra por estado, fecha, persona, etiquetas
-- **Drag & Drop**: Reorganiza tareas intuitivamente
-
-### 📅 Calendario y Citas Completo
-- **Calendario Integrado**: Vista mensual con navegación fluida
-- **Citas Flexibles**: Soporte para citas de un solo día o múltiples días
-- **Citas Relativas**: Programa múltiples citas basadas en fechas relativas
-- **Notificaciones**: Alertas automáticas 30 minutos antes de cada cita
-- **Vista de Dos Modos**: Calendario integrado o botón popup
-
-### 🔐 Gestor de Contraseñas Seguro
-- **Encriptación Local**: Todas las contraseñas se cifran con AES antes de guardarse
-- **Contraseña Maestra**: Sistema de autenticación seguro
-- **Gestión Completa**: Agregar, editar, eliminar contraseñas
-- **Usuarios Visibles**: Muestra usuarios pero mantiene contraseñas ocultas
-- **Copiado Rápido**: Copia usuarios y contraseñas al portapapeles
-
-### 🍅 Pomodoro TDAH Especializado
-- **Diseñado para TDAH**: Intervalos optimizados para mejor concentración
-- **Control Completo**: Empezar, pausar, terminar, cancelar
-- **Seguimiento Visual**: Barra de progreso y tiempo restante
-- **Estados Intuitivos**: Interfaz que cambia según el estado actual
-
-### 📊 Dashboard de Progreso
-- **Métricas Personales**: Seguimiento de productividad y logros
-- **Visualización Clara**: Gráficos y estadísticas fáciles de entender
-- **Historial Completo**: Revisa tu progreso a través del tiempo
-
-### 🌅 Resumen Diario Automático
-- **Generación Automática**: Resumen inteligente de tu día
-- **Vista Manual**: Accede cuando necesites revisar tu progreso
-- **Análisis de Productividad**: Insights sobre tus patrones de trabajo
-
-## 🎨 Características de Interfaz
-
-### ☁️ Sincronización en la Nube
-- **Supabase Integration**: Sincronización automática en tiempo real
-- **Backup Automático**: Tus datos siempre están seguros
-- **Multi-dispositivo**: Accede desde cualquier lugar
-
-### 🏷️ Sistema de Etiquetas
-- **Organización Flexible**: Etiqueta tareas y citas para mejor organización
-- **Colores Personalizados**: Asigna colores a cada etiqueta
-- **Filtrado por Etiquetas**: Encuentra rápidamente lo que buscas
-
-### 📝 Brain Dump y Notas
-- **Captura Rápida**: Anota ideas y pensamientos sin perder el foco
-- **Auto-expansión**: El área de texto crece automáticamente
-- **Capitalización Automática**: Mejora la legibilidad automáticamente
-
-### 😊 Seguimiento de Estado de Ánimo
-- **Registro Diario**: Anota cómo te sientes cada día
-- **Análisis de Patrones**: Identifica tendencias en tu bienestar
-- **Integración Completa**: Conecta emociones con productividad
-
-## 🚀 Tecnologías Utilizadas
-
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: Supabase (PostgreSQL, Real-time)
-- **Encriptación**: CryptoJS para gestión de contraseñas
-- **PWA**: Service Worker, Web App Manifest
-- **Responsive**: CSS Grid, Flexbox
-- **Performance**: Debouncing, Lazy Loading, Memory Management
-
-## 📦 Instalación y Uso
-
-### Instalación Local
-```bash
-# Clona el repositorio
-git clone https://github.com/tuusuario/agenda-pablo.git
-
-# Navega al directorio
-
-## 🎯 Uso Recomendado
-
-### Para Personas con TDAH
-1. **Empieza Simple**: Usa solo tareas críticas al principio
-2. **Usa el Pomodoro**: Los intervalos te ayudarán a mantener el foco
-3. **Brain Dump**: Anota todo lo que se te ocurra sin filtro
-4. **Revisa Diariamente**: Usa el resumen diario para reflexionar
-
-### Para Productividad General
-1. **Organiza por Prioridades**: Usa tareas críticas para lo urgente
-2. **Calendario Integrado**: Programa todo en el mismo lugar
-3. **Listas Personalizadas**: Organiza por proyectos o áreas
-4. **Análisis de Datos**: Revisa tu progreso regularmente
-
-## 🔧 Características Técnicas
-
-### Seguridad
-- **Encriptación Local**: Las contraseñas nunca se envían sin cifrar
-- **Sin Tracking**: Respetamos completamente tu privacidad
-- **Datos Locales**: Todo funciona offline, Supabase es solo sincronización
-
-### Performance
-- **Optimización TDAH**: Diseñado para minimizar distracciones
-- **Carga Rápida**: Menos de 2 segundos en dispositivos móviles
-- **Memoria Eficiente**: Limpieza automática cada 5 minutos
-
-### Compatibilidad
-- **Navegadores**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
-- **Dispositivos**: Smartphones, tablets, escritorio
-- **Offline**: Funciona completamente sin conexión
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas! Por favor:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📝 Roadmap
-
-### Próximas Características
-- [ ] **Integración con calendarios externos** (Google Calendar, Outlook)
-- [ ] **Modo equipo** para colaboración
-- [ ] **Análisis avanzado de productividad** con ML
-- [ ] **Integración con Notion/Obsidian**
-- [ ] **App móvil nativa** (React Native)
-- [ ] **Widgets de escritorio**
-
-### Mejoras Planificadas
-- [ ] **Mejor accesibilidad** (WCAG 2.1 AA)
-- [ ] **Más temas visuales**
-- [ ] **Exportación de datos** (PDF, Excel)
-- [ ] **API pública** para integraciones
-
-## 🐛 Reportar Bugs
-
-Si encuentras algún problema:
-1. Verifica que no esté ya reportado en Issues
-2. Incluye pasos para reproducir el bug
-3. Adjunta capturas de pantalla si es necesario
-4. Especifica tu navegador y sistema operativo
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
-
-## 🙏 Agradecimientos
-
-- **Comunidad TDAH**: Por el feedback invaluable sobre usabilidad
-- **Supabase**: Por la excelente plataforma de desarrollo
-- **Contributors**: A todos los que han contribuido al proyecto
-
-## 📊 Estadísticas del Proyecto
-
-- **Líneas de código**: ~15,000
-- **Archivos**: 12
-- **Funciones**: 200+
-- **Tests**: En desarrollo
-- **Performance Score**: 95/100
+1. [Crear cuenta en Supabase](#1-crear-cuenta-en-supabase)
+2. [Crear un nuevo proyecto](#2-crear-un-nuevo-proyecto)
+3. [Obtener credenciales](#3-obtener-credenciales-api)
+4. [Crear la tabla en la base de datos](#4-crear-la-tabla-en-la-base-de-datos)
+5. [Configurar en la aplicación](#5-configurar-en-la-aplicación)
+6. [Verificar conexión](#6-verificar-conexión)
 
 ---
 
-**Hecho con ❤️ para mejorar la productividad personal**
+## 1. Crear cuenta en Supabase
 
-¿Te gusta el proyecto? ⭐ ¡Dale una estrella en GitHub!
+1. **Visita el sitio web:**
+   - Ve a https://supabase.com/
+   - Haz clic en **"Start your project"** o **"Sign Up"**
 
-## 📞 Contacto
+2. **Regístrate:**
+   - Puedes registrarte con:
+     - ✅ GitHub (Recomendado - más rápido)
+     - ✅ Email y contraseña
+   - Sigue las instrucciones para confirmar tu email si usas email/contraseña
 
-- **Desarrollador**: Pablo
-- **Issues**: [GitHub Issues](https://github.com/tuusuario/agenda-pablo/issues)
-- **Discusiones**: [GitHub Discussions](https://github.com/tuusuario/agenda-pablo/discussions)
+3. **Confirma tu cuenta:**
+   - Revisa tu email y confirma la cuenta si es necesario
 
 ---
 
-*"El éxito es la suma de pequeños esfuerzos repetidos día tras día"*
+## 2. Crear un nuevo proyecto
+
+1. **Dashboard de Supabase:**
+   - Una vez dentro, verás tu dashboard
+   - Haz clic en **"New Project"** o **"+ Nuevo Proyecto"**
+
+2. **Configurar el proyecto:**
+   - **Name (Nombre):** Elige un nombre para tu proyecto (ej: `MiAgenda` o `AgendaPersonal`)
+   - **Database Password (Contraseña de BD):** 
+     - Supabase generará una contraseña automática
+     - ⚠️ **IMPORTANTE:** Guarda esta contraseña en un lugar seguro
+     - Puedes cambiarla o dejar la generada automáticamente
+   - **Region (Región):** Selecciona la región más cercana a ti
+     - Para España: `Europe (Frankfurt)` o `Europe (London)`
+     - Para Latinoamérica: `South America (São Paulo)` o `US East (N. Virginia)`
+   - **Pricing Plan:** Selecciona **"Free"** (es suficiente para uso personal)
+
+3. **Crear proyecto:**
+   - Haz clic en **"Create new project"**
+   - ⏳ Espera 1-2 minutos mientras Supabase configura tu proyecto
+
+---
+
+## 3. Obtener credenciales (API)
+
+Una vez que tu proyecto esté listo, necesitas obtener dos cosas importantes:
+
+### 3.1 URL del Proyecto (Project URL)
+
+1. En el menú lateral izquierdo, haz clic en **"Settings"** (⚙️ Configuración)
+2. Haz clic en **"API"**
+3. Busca la sección **"Project URL"**
+4. Copia la URL que verás (algo como: `https://abcdefgh.supabase.co`)
+
+### 3.2 Anon Public Key (Clave pública)
+
+1. En la misma página de **Settings > API**
+2. Busca la sección **"Project API keys"**
+3. Encontrarás dos claves:
+   - **`anon` `public`** ← **Esta es la que necesitas**
+   - **`service_role` `secret`** ← No uses esta (es para el servidor)
+
+4. **Copia la clave `anon public`**
+   - Tiene un formato similar a: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - Es una cadena muy larga (varios cientos de caracteres)
+
+> **📝 Nota:** La clave `anon public` es segura para usar en el navegador. No compartas la clave `service_role`.
+
+---
+
+## 4. Crear la tabla en la base de datos
+
+Ahora necesitas crear la estructura de la base de datos donde se guardará toda la información de tu agenda.
+
+### 4.1 Abrir el SQL Editor
+
+1. En el menú lateral izquierdo, haz clic en **"SQL Editor"** (ícono de </>)
+2. Haz clic en **"+ New query"** o **"Nueva consulta"**
+
+### 4.2 Ejecutar el Script SQL
+
+Copia y pega exactamente este código SQL en el editor:
+
+```sql
+-- Crear la tabla principal para almacenar todos los datos de la agenda
+CREATE TABLE agenda_data (
+  id text PRIMARY KEY,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  last_updated timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Crear índice para búsquedas más rápidas
+CREATE INDEX idx_agenda_data_last_updated ON agenda_data(last_updated);
+
+-- Habilitar Row Level Security (seguridad a nivel de fila)
+ALTER TABLE agenda_data ENABLE ROW LEVEL SECURITY;
+
+-- Crear política para permitir lectura y escritura anónima
+-- IMPORTANTE: Esto permite acceso completo. Para producción, considera usar autenticación.
+CREATE POLICY "Permitir acceso completo anónimo" 
+ON agenda_data 
+FOR ALL 
+USING (true) 
+WITH CHECK (true);
+
+-- Insertar datos iniciales
+INSERT INTO agenda_data (id, data) VALUES
+  ('tareas', '{"tareas_criticas": [], "tareas": [], "listasPersonalizadas": []}'::jsonb),
+  ('citas', '{"citas": []}'::jsonb),
+  ('config', '{"visual": {}, "funcionales": {}, "opciones": {}}'::jsonb),
+  ('notas', '{"notas": ""}'::jsonb),
+  ('sentimientos', '{"sentimientos": ""}'::jsonb),
+  ('contrasenas', '{"lista": []}'::jsonb),
+  ('historial_eliminados', '{"items": []}'::jsonb),
+  ('historial_tareas', '{"items": []}'::jsonb),
+  ('personas', '{"lista": []}'::jsonb),
+  ('etiquetas', '{"tareas": [{"nombre": "trabajo", "simbolo": "💼", "color": "#3498db"}, {"nombre": "ocio", "simbolo": "🎮", "color": "#9b59b6"}, {"nombre": "médicos", "simbolo": "🏥", "color": "#e74c3c"}], "citas": [{"nombre": "trabajo", "simbolo": "💼", "color": "#3498db"}, {"nombre": "ocio", "simbolo": "🎮", "color": "#9b59b6"}, {"nombre": "médicos", "simbolo": "🏥", "color": "#e74c3c"}]}'::jsonb),
+  ('log', '{"acciones": []}'::jsonb),
+  ('salvados', '{}'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+```
+
+### 4.3 Ejecutar el Script
+
+1. Haz clic en el botón **"Run"** (Ejecutar) o presiona `Ctrl + Enter`
+2. Deberías ver un mensaje de éxito: **"Success. No rows returned"**
+3. Si ves algún error, verifica que copiaste todo el código correctamente
+
+### 4.4 Verificar que la tabla se creó
+
+1. En el menú lateral izquierdo, haz clic en **"Table Editor"** (Editor de tablas)
+2. Deberías ver la tabla **`agenda_data`**
+3. Haz clic en ella para ver los registros iniciales que se insertaron
+
+---
+
+## 5. Configurar en la aplicación
+
+Ahora que tienes Supabase configurado, vamos a conectar la aplicación:
+
+1. **Abre la aplicación** (agenda.html o agendaphone.html)
+
+2. **Abre el modal de configuración:**
+   - Haz clic en el botón de **configuración** (⚙️) en la parte superior
+
+3. **Ve a la pestaña "Sincronización"**
+
+4. **Completa los campos de Supabase:**
+   - **URL del Proyecto:** Pega la URL que copiaste en el paso 3.1
+     - Ejemplo: `https://abcdefgh.supabase.co`
+   - **Anon Key:** Pega la clave `anon public` que copiaste en el paso 3.2
+     - Es el texto muy largo que empieza con `eyJhbGci...`
+   - **Service Key (Opcional):** Déjalo vacío (no es necesario para uso normal)
+
+5. **Guardar configuración:**
+   - Haz clic en **"Guardar Configuración"**
+   - Deberías ver un mensaje: ✅ "Configuración guardada correctamente"
+
+---
+
+## 6. Verificar conexión
+
+Es importante verificar que todo funciona correctamente:
+
+1. **Probar conexión:**
+   - En la pestaña "Sincronización" del modal de configuración
+   - Haz clic en el botón **"🔌 Probar Conexión"**
+   - Deberías ver uno de estos mensajes:
+     - ✅ "Conexión exitosa - Las tablas ya existen y funcionan"
+     - 🆕 "Primera vez detectada - Las tablas no existen todavía"
+
+2. **Si sale "Primera vez detectada":**
+   - Haz clic en **"🛠️ Crear Tablas"**
+   - O simplemente haz clic "Sí" en el diálogo que aparece
+   - ⚠️ **Nota:** Si ya creaste las tablas manualmente en el paso 4, ignora este paso
+
+3. **Sincronizar datos:**
+   - Haz clic en **"📤 Guardar en la Nube"** para subir tus datos locales
+   - Haz clic en **"📥 Obtener de la Nube"** para descargar datos
+
+4. **Verificar en Supabase:**
+   - Vuelve al dashboard de Supabase
+   - Ve a **"Table Editor"** > **"agenda_data"**
+   - Deberías ver tus datos guardados en la columna `data`
+
+---
+
+## ✅ ¡Listo!
+
+Tu aplicación de Agenda ahora está conectada a Supabase. Los cambios se sincronizarán automáticamente en tiempo real.
+
+### 🔄 Funcionamiento automático
+
+- **Guardado automático:** La aplicación guarda automáticamente cada vez que haces cambios
+- **Sincronización en tiempo real:** Si usas la app en varios dispositivos, se actualiza automáticamente
+- **Sin límites:** Supabase en el plan gratuito es suficiente para uso personal
+
+---
+
+## 🔒 Seguridad
+
+> **⚠️ Nota de seguridad:** La configuración actual permite acceso anónimo a los datos. Esto es adecuado para uso personal, pero **no compartas tu URL y API Key públicamente**.
+
+### Si quieres más seguridad:
+
+1. **Habilitar autenticación de usuarios:**
+   - Supabase soporta autenticación con email, Google, GitHub, etc.
+   - Modificar las políticas RLS para requerir autenticación
+
+2. **Usar autenticación (avanzado):**
+   - Requerirá modificaciones al código de la aplicación
+   - Consulta la documentación de Supabase: https://supabase.com/docs/guides/auth
+
+---
+
+## 🆘 Solución de Problemas
+
+### Error: "No se pudo inicializar Supabase"
+- ✅ Verifica que la URL del proyecto sea correcta
+- ✅ Verifica que la Anon Key esté completa (es muy larga)
+- ✅ Asegúrate de no tener espacios extras al copiar/pegar
+
+### Error: "Las tablas no existen"
+- ✅ Ejecuta el script SQL del paso 4 nuevamente
+- ✅ Verifica en "Table Editor" que existe la tabla `agenda_data`
+
+### "Error de permisos" o "permission denied"
+- ✅ Asegúrate de haber ejecutado las políticas RLS del script SQL
+- ✅ Verifica que la política "Permitir acceso completo anónimo" esté creada
+
+### Los datos no se sincronizan
+- ✅ Verifica la conexión a internet
+- ✅ Abre la consola del navegador (F12) y busca errores
+- ✅ Prueba hacer "Pull" y "Push" manualmente desde configuración
+
+---
+
+## 📚 Recursos adicionales
+
+- **Documentación de Supabase:** https://supabase.com/docs
+- **Dashboard de tu proyecto:** https://app.supabase.com/
+- **Comunidad de Supabase:** https://github.com/supabase/supabase/discussions
+
+---
+
+## 🎯 Resumen rápido
+
+1. Crear cuenta en https://supabase.com/
+2. Crear nuevo proyecto
+3. Obtener **Project URL** y **Anon Key** desde Settings > API
+4. Ejecutar el **script SQL** en SQL Editor
+5. Configurar URL y Key en la aplicación (⚙️ Configuración > Sincronización)
+6. Probar conexión y ¡listo!
+
+---
+
+¿Tienes problemas? Abre un issue en GitHub o revisa la sección de solución de problemas.
