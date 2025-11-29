@@ -102,19 +102,34 @@ function renderizarCriticasMovil() {
     const activas = tareas.filter(t => !t.completada);
     console.log('📊 Tareas críticas:', tareas.length, 'Activas:', activas.length);
   
-  if (activas.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">✨ No hay tareas críticas</div>';
-    return;
-  }
+    if (activas.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">No hay tareas críticas<br><small>Crea una nueva con el botón +</small></div></div>';
+      return;
+    }
   
-  container.innerHTML = activas.map(t => `
-    <div style="background:white;padding:16px;margin-bottom:12px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-      <div style="font-size:16px;font-weight:600;color:#2d5a27;margin-bottom:8px;">🚨 ${t.titulo || 'Sin título'}</div>
-      <div style="font-size:13px;color:#666;">📅 ${t.fecha_fin || 'Sin fecha'}</div>
-      ${t.persona ? `<div style="font-size:13px;color:#666;margin-top:4px;">👤 ${t.persona}</div>` : ''}
-      ${t.etiqueta ? `<div style="font-size:13px;color:#666;margin-top:4px;">#${t.etiqueta}</div>` : ''}
-    </div>
-  `).join('');
+    container.innerHTML = activas.map(t => `
+      <div class="task-card">
+        <div class="task-main">
+          <span class="task-icon">🚨</span>
+          <div class="task-content-area">
+            <div class="task-title">${t.titulo || 'Sin título'}</div>
+            <div class="task-meta">
+              ${t.fecha_fin ? `<span class="task-meta-item">📅 ${t.fecha_fin}</span>` : ''}
+              ${t.persona ? `<span class="task-meta-item">👤 ${t.persona}</span>` : ''}
+              ${t.etiqueta ? `<span class="task-meta-item">🏷️ ${t.etiqueta}</span>` : ''}
+            </div>
+          </div>
+          <div class="task-buttons">
+            <button class="task-btn btn-edit" onclick="editarTareaCritica('${t.id}')" title="Editar">✏️</button>
+            <button class="task-btn btn-delete" onclick="eliminarTareaCritica('${t.id}')" title="Eliminar">🗑️</button>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="action-btn btn-complete" onclick="completarTareaCritica('${t.id}')">Completar</button>
+          <button class="action-btn btn-postpone" onclick="abrirModalMigrarCritica('${t.id}')">Posponer</button>
+        </div>
+      </div>
+    `).join('');
   
     console.log('✅ Críticas renderizadas:', activas.length);
   } catch (error) {
@@ -193,6 +208,46 @@ function renderizarListasMovil() {
   
   container.innerHTML = html;
   console.log('✅ Listas renderizadas:', listas.length, 'listas con', totalTareas, 'tareas');
+}
+
+// ==================== FUNCIONES AUXILIARES PARA TAREAS CRÍTICAS ====================
+
+function completarTareaCritica(id) {
+  const tarea = window.appState.agenda.tareas_criticas.find(t => t.id === id);
+  if (!tarea) return;
+  
+  tarea.completada = true;
+  tarea.fecha_completada = new Date().toISOString();
+  guardarJSON();
+  renderizarCriticasMovil();
+  mostrarAlerta('✅ Tarea completada', 'success');
+}
+
+function eliminarTareaCritica(id) {
+  if (confirm('¿Eliminar esta tarea crítica?')) {
+    window.appState.agenda.tareas_criticas = window.appState.agenda.tareas_criticas.filter(t => t.id !== id);
+    guardarJSON();
+    renderizarCriticasMovil();
+    mostrarAlerta('🗑️ Tarea eliminada', 'info');
+  }
+}
+
+function editarTareaCritica(id) {
+  const tarea = window.appState.agenda.tareas_criticas.find(t => t.id === id);
+  if (!tarea) return;
+  
+  const nuevoTitulo = prompt('Editar título:', tarea.titulo);
+  if (nuevoTitulo && nuevoTitulo.trim()) {
+    tarea.titulo = nuevoTitulo.trim();
+    guardarJSON();
+    renderizarCriticasMovil();
+    mostrarAlerta('✏️ Tarea actualizada', 'success');
+  }
+}
+
+function abrirModalMigrarCritica(id) {
+  window.tareaActualMigrar = { id, tipo: 'critica' };
+  abrirModal('modal-migrar');
 }
 
 console.log('✅ bottom-nav.js COMPLETAMENTE CARGADO');
