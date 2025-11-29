@@ -118,20 +118,26 @@ function renderizarCriticasMovil() {
 
     container.innerHTML = activas.map(t => {
       let alertaHtml = '';
+      let cardStyle = ''; // Estilo para la tarjeta completa
+
       if (t.fecha_fin) {
         const [year, month, day] = t.fecha_fin.split('-').map(Number);
         const fechaTarea = new Date(year, month - 1, day);
         fechaTarea.setHours(0, 0, 0, 0);
 
         if (fechaTarea < hoy) {
-          alertaHtml = '<div style="background:#ffcdd2;color:#ff1744;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
+          // FECHA PASADA - Toda la tarjeta en rojo
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
+          alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
         } else if (fechaTarea.getTime() === hoy.getTime()) {
-          alertaHtml = '<div style="background:#fff9c4;color:#f57f17;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
+          // PARA HOY - Toda la tarjeta en amarillo
+          cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
+          alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
         }
       }
 
       return `
-      <div class="task-card">
+      <div class="task-card" style="${cardStyle}">
         <div class="task-main">
           <span class="task-icon">🚨</span>
           <div class="task-content-area">
@@ -188,10 +194,46 @@ function renderizarCitasMovil() {
     return;
   }
 
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
   container.innerHTML = citas.map(c => {
     const fechaStr = Array.isArray(c.fecha) ? `${c.fecha[2]}/${c.fecha[1]}/${c.fecha[0]}` : c.fecha;
+    let cardStyle = '';
+    let alertaHtml = '';
+
+    if (c.fecha) {
+      let fechaCita;
+      if (Array.isArray(c.fecha)) {
+        fechaCita = new Date(c.fecha[0], c.fecha[1] - 1, c.fecha[2]);
+      } else if (typeof c.fecha === 'string') {
+        if (c.fecha.includes('-')) {
+          const [year, month, day] = c.fecha.split('-').map(Number);
+          fechaCita = new Date(year, month - 1, day);
+        } else if (c.fecha.includes('/')) {
+          const parts = c.fecha.split('/');
+          if (parts[2]?.length === 4) {
+            fechaCita = new Date(parts[2], parts[1] - 1, parts[0]);
+          }
+        }
+      }
+
+      if (fechaCita) {
+        fechaCita.setHours(0, 0, 0, 0);
+        if (fechaCita < hoy) {
+          // FECHA PASADA - Toda la tarjeta en rojo
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
+          alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
+        } else if (fechaCita.getTime() === hoy.getTime()) {
+          // PARA HOY - Toda la tarjeta en amarillo
+          cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
+          alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
+        }
+      }
+    }
+
     return `
-      <div class="task-card">
+      <div class="task-card" style="${cardStyle}">
         <div class="task-main">
           <span class="task-icon">📅</span>
           <div class="task-content-area">
@@ -202,6 +244,7 @@ function renderizarCitasMovil() {
               ${c.lugar ? `<span class="task-meta-item">📍 ${c.lugar}</span>` : ''}
               ${c.etiqueta ? `<span class="task-meta-item">🏷️ ${c.etiqueta}</span>` : ''}
             </div>
+            ${alertaHtml}
           </div>
           <div class="task-buttons">
             <button class="task-btn btn-edit" onclick="editarCita('${c.id}')" title="Editar">✏️</button>
@@ -252,22 +295,18 @@ function renderizarListasMovil() {
     activas.forEach(tarea => {
       let fechaStr = '';
       let alertaHtml = '';
+      let cardStyle = `margin-left:20px;border-left:4px solid ${lista.color || '#667eea'};`; // Estilo base
 
       if (tarea.fecha) {
+        let fechaTarea;
+
         if (Array.isArray(tarea.fecha)) {
           fechaStr = `${tarea.fecha[2]}/${tarea.fecha[1]}/${tarea.fecha[0]}`;
-          const fechaTarea = new Date(tarea.fecha[0], tarea.fecha[1] - 1, tarea.fecha[2]);
+          fechaTarea = new Date(tarea.fecha[0], tarea.fecha[1] - 1, tarea.fecha[2]);
           fechaTarea.setHours(0, 0, 0, 0);
-
-          if (fechaTarea < hoy) {
-            alertaHtml = '<div style="background:#ffcdd2;color:#ff1744;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
-          } else if (fechaTarea.getTime() === hoy.getTime()) {
-            alertaHtml = '<div style="background:#fff9c4;color:#f57f17;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
-          }
         } else if (typeof tarea.fecha === 'string') {
           fechaStr = tarea.fecha;
           // Intentar parsear diferentes formatos
-          let fechaTarea;
           if (tarea.fecha.includes('-')) {
             const [year, month, day] = tarea.fecha.split('-').map(Number);
             fechaTarea = new Date(year, month - 1, day);
@@ -277,20 +316,24 @@ function renderizarListasMovil() {
               fechaTarea = new Date(parts[2], parts[1] - 1, parts[0]);
             }
           }
+        }
 
-          if (fechaTarea) {
-            fechaTarea.setHours(0, 0, 0, 0);
-            if (fechaTarea < hoy) {
-              alertaHtml = '<div style="background:#ffcdd2;color:#ff1744;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
-            } else if (fechaTarea.getTime() === hoy.getTime()) {
-              alertaHtml = '<div style="background:#fff9c4;color:#f57f17;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
-            }
+        if (fechaTarea) {
+          fechaTarea.setHours(0, 0, 0, 0);
+          if (fechaTarea < hoy) {
+            // FECHA PASADA - Toda la tarjeta en rojo
+            cardStyle = 'margin-left:20px;background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
+            alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
+          } else if (fechaTarea.getTime() === hoy.getTime()) {
+            // PARA HOY - Toda la tarjeta en amarillo
+            cardStyle = 'margin-left:20px;background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
+            alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
           }
         }
       }
 
       html += `
-        <div class="task-card" style="margin-left:20px;border-left:4px solid ${lista.color || '#667eea'};">
+        <div class="task-card" style="${cardStyle}">
           <div class="task-main">
             <span class="task-icon">${lista.emoji || '📝'}</span>
             <div class="task-content-area">
@@ -598,15 +641,13 @@ function completarTareaLista(listaId, tareaId) {
 }
 
 function eliminarTareaLista(listaId, tareaId) {
-  if (confirm('¿Eliminar esta tarea?')) {
-    const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
-    if (!lista) return;
+  const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
+  if (!lista) return;
 
-    lista.tareas = lista.tareas.filter(t => t.id != tareaId);
-    guardarJSON();
-    renderizarListasMovil();
-    mostrarAlerta('🗑️ Tarea eliminada', 'info');
-  }
+  lista.tareas = lista.tareas.filter(t => t.id != tareaId);
+  guardarJSON();
+  renderizarListasMovil();
+  mostrarAlerta('🗑️ Tarea eliminada', 'success');
 }
 
 function editarTareaLista(listaId, tareaId) {
