@@ -1154,19 +1154,19 @@
 
             <!-- Formulario para nueva lista -->
             <div style="background:rgba(255,255,255,0.2);padding:15px;border-radius:8px;">
-              <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end;">
-                <div>
+              <div>
+                <div style="margin-bottom:12px;">
                   <label
                     style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Nombre
                     de la lista:</label>
                   <input type="text" id="nueva-lista-personalizada" placeholder="Ej: Médico, Ocio, Trabajo..."
                     style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
                 </div>
-                <div>
+                <div style="margin-bottom:12px;">
                   <label
                     style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Emoji:</label>
                   <select id="emoji-lista-personalizada"
-                    style="padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;min-width:100px;">
+                    style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
                     <option value="🏥">🏥 Médico</option>
                     <option value="🎮">🎮 Ocio</option>
                     <option value="💼">💼 Trabajo</option>
@@ -1184,14 +1184,14 @@
                     <option value="🔧">🔧 Tareas</option>
                   </select>
                 </div>
-                <div>
+                <div style="margin-bottom:12px;">
                   <label
                     style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:5px;display:block;font-size:12px;">Color:</label>
                   <input type="color" id="color-lista-personalizada" value="#667eea"
-                    style="width:40px;height:40px;padding:2px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);">
+                    style="width:100%;height:40px;padding:2px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);">
                 </div>
                 <button onclick="agregarListaPersonalizada()"
-                  style="padding:8px 16px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;">
+                  style="width:100%;padding:10px 16px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;">
                   ✓ Añadir Lista
                 </button>
               </div>
