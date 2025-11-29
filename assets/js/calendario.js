@@ -1178,63 +1178,89 @@ async function guardarCitasRelativas() {
 }
 
 // ========== PROGRAMACIÓN DE NOTIFICACIONES ==========
-function programarNotificacionesCita(cita) {
-  const config = window.configFuncionales || {};
+let citasNotificadas = new Set();
 
+function verificarNotificacionesCitas() {
+  const config = window.configFuncionales || {};
+  
   if (!config.notificacionesActivas || Notification.permission !== 'granted') {
     return;
   }
 
-  const fechaCita = parsearFechaCita(cita);
-  if (!fechaCita) return;
-
   const ahora = new Date();
-  const tiempoHastaCita = fechaCita.getTime() - ahora.getTime();
+  const citas = window.appState?.agenda?.citas || [];
 
-  // Solo programar si la cita es en el futuro
-  if (tiempoHastaCita <= 0) return;
+  citas.forEach(cita => {
+    const fechaCita = parsearFechaCita(cita);
+    if (!fechaCita) return;
 
-  const descripcion = cita.nombre.split(' - ')[1] || cita.nombre;
+    const tiempoHastaCita = fechaCita.getTime() - ahora.getTime();
+    if (tiempoHastaCita <= 0) return;
 
-  // Programar notificación 1 día antes
-  if (config.notif1Dia && tiempoHastaCita > 24 * 60 * 60 * 1000) {
-    const tiempo1Dia = tiempoHastaCita - (24 * 60 * 60 * 1000);
-    setTimeout(() => {
-      if (Notification.permission === 'granted') {
-        new Notification('🔔 Recordatorio: Cita mañana', {
-          body: `${descripcion}\nMañana a las ${cita.nombre.split(' - ')[0]}`,
-          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>'
-        });
+    const descripcion = cita.nombre.split(' - ')[1] || cita.nombre;
+    const hora = cita.nombre.split(' - ')[0] || '';
+    const citaId = `${fechaArrayToString(cita.fecha)}-${cita.nombre}`;
+
+    // 1 día antes (entre 23h 50min y 24h 10min)
+    if (config.notif1Dia) {
+      const unDia = 24 * 60 * 60 * 1000;
+      if (tiempoHastaCita >= unDia - 10 * 60 * 1000 && tiempoHastaCita <= unDia + 10 * 60 * 1000) {
+        const notifId = `${citaId}-1dia`;
+        if (!citasNotificadas.has(notifId)) {
+          new Notification('🔔 Recordatorio: Cita mañana', {
+            body: `${descripcion}\nMañana a las ${hora}`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>'
+          });
+          citasNotificadas.add(notifId);
+          console.log('🔔 Notificación enviada: 1 día antes');
+        }
       }
-    }, tiempo1Dia);
-  }
+    }
 
-  // Programar notificación 2 horas antes
-  if (config.notif2Horas && tiempoHastaCita > 2 * 60 * 60 * 1000) {
-    const tiempo2Horas = tiempoHastaCita - (2 * 60 * 60 * 1000);
-    setTimeout(() => {
-      if (Notification.permission === 'granted') {
-        new Notification('⏰ Recordatorio: Cita en 2 horas', {
-          body: `${descripcion}\nHoy a las ${cita.nombre.split(' - ')[0]}`,
-          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏰</text></svg>'
-        });
+    // 2 horas antes (entre 1h 50min y 2h 10min)
+    if (config.notif2Horas) {
+      const dosHoras = 2 * 60 * 60 * 1000;
+      if (tiempoHastaCita >= dosHoras - 10 * 60 * 1000 && tiempoHastaCita <= dosHoras + 10 * 60 * 1000) {
+        const notifId = `${citaId}-2horas`;
+        if (!citasNotificadas.has(notifId)) {
+          new Notification('⏰ Recordatorio: Cita en 2 horas', {
+            body: `${descripcion}\nHoy a las ${hora}`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏰</text></svg>'
+          });
+          citasNotificadas.add(notifId);
+          console.log('🔔 Notificación enviada: 2 horas antes');
+        }
       }
-    }, tiempo2Horas);
-  }
+    }
 
-  // Programar notificación 30 minutos antes
-  if (config.notif30Min && tiempoHastaCita > 30 * 60 * 1000) {
-    const tiempo30Min = tiempoHastaCita - (30 * 60 * 1000);
-    setTimeout(() => {
-      if (Notification.permission === 'granted') {
-        new Notification('🚨 ¡Cita en 30 minutos!', {
-          body: `${descripcion}\nA las ${cita.nombre.split(' - ')[0]}`,
-          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚨</text></svg>',
-          requireInteraction: true
-        });
+    // 30 minutos antes (entre 25min y 35min)
+    if (config.notif30Min) {
+      const treintaMin = 30 * 60 * 1000;
+      if (tiempoHastaCita >= treintaMin - 5 * 60 * 1000 && tiempoHastaCita <= treintaMin + 5 * 60 * 1000) {
+        const notifId = `${citaId}-30min`;
+        if (!citasNotificadas.has(notifId)) {
+          new Notification('🚨 ¡Cita en 30 minutos!', {
+            body: `${descripcion}\nA las ${hora}`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚨</text></svg>',
+            requireInteraction: true
+          });
+          citasNotificadas.add(notifId);
+          console.log('🔔 Notificación enviada: 30 minutos antes');
+        }
       }
-    }, tiempo30Min);
-  }
+    }
+  });
+}
+
+// Iniciar verificación periódica cada minuto
+setInterval(verificarNotificacionesCitas, 60000);
+
+// Verificar inmediatamente al cargar
+setTimeout(verificarNotificacionesCitas, 3000);
+
+function programarNotificacionesCita(cita) {
+  // Esta función ya no es necesaria pero la mantenemos por compatibilidad
+  console.log('📅 Cita registrada para notificaciones periódicas');
 }
 
 // Hacer funciones disponibles globalmente
@@ -1264,6 +1290,7 @@ window.agregarCitaRelativa = agregarCitaRelativa;
 window.eliminarCitaRelativa = eliminarCitaRelativa;
 window.guardarCitasRelativas = guardarCitasRelativas;
 window.programarNotificacionesCita = programarNotificacionesCita;
+window.verificarNotificacionesCitas = verificarNotificacionesCitas;
 
 // ========== EDITOR DE CITAS ==========
 function abrirEditorCita(fecha, nombre) {
