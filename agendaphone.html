@@ -647,7 +647,6 @@
       <div class="form-group">
         <label><strong>📋 ¿Dónde quieres guardarla?</strong></label>
         <select id="tarea-universal-destino" style="padding: 12px; font-size: 14px; min-height: 44px;">
-          <option value="normales">📝 Tareas Normales</option>
           <option value="criticas">🚨 Tareas Críticas</option>
           <optgroup label="📁 Listas Personalizadas" id="listas-personalizadas-options">
             <!-- Se llenarán dinámicamente -->
@@ -2031,6 +2030,15 @@
   <script src="assets/js/rendimiento.js"></script>
   <script src="assets/js/compatibility.js"></script>
   <script src="assets/js/restore-backup.js"></script> <!-- TEMPORAL: Para restaurar backup -->
+  
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✅ Service Worker registrado'))
+        .catch(err => console.error('❌ Error al registrar Service Worker:', err));
+    }
+  </script>
 
 </body>
 
