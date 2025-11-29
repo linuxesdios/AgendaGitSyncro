@@ -208,58 +208,164 @@
       opacity: 1;
     }
 
-    /* Tarjetas de tareas optimizadas */
+    /* Tarjetas de tareas completas (estilo carrusel) */
     .task-card {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      transition: all 0.2s ease;
+      padding: 0;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(78, 205, 196, 0.2);
+      overflow: hidden;
     }
 
-    .task-card:active {
-      transform: scale(0.98);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .task-header {
+    .task-main {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 12px;
+      padding: 14px;
     }
 
     .task-icon {
-      font-size: 20px;
+      font-size: 22px;
       flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .task-content-area {
+      flex: 1;
+      min-width: 0;
     }
 
     .task-title {
-      flex: 1;
       font-size: 15px;
       font-weight: 600;
       color: #2d5a27;
       line-height: 1.4;
+      margin-bottom: 6px;
+      word-wrap: break-word;
     }
 
     .task-meta {
       display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 4px;
       margin-top: 8px;
-      font-size: 12px;
-      color: #666;
+      font-size: 13px;
     }
 
-    .task-tag {
-      background: rgba(78, 205, 196, 0.15);
+    .task-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(78, 205, 196, 0.08);
+      padding: 4px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      font-weight: 500;
       color: #2d5a27;
-      padding: 3px 8px;
+    }
+
+    .task-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-btn {
+      border: none;
       border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .task-btn:active {
+      transform: scale(0.9);
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #2196F3, #1976D2);
+      color: white;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .btn-pomodoro {
+      background: linear-gradient(135deg, #ff8a65, #ff7043);
+      color: white;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(78, 205, 196, 0.05);
+      border-top: 1px solid rgba(78, 205, 196, 0.1);
+    }
+
+    .action-btn {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-complete {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .btn-postpone {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+    }
+
+    .subtasks-container {
+      padding: 0 14px 10px 50px;
+    }
+
+    .subtask-item {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 6px;
+      border-left: 3px solid rgba(78, 205, 196, 0.5);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtask-text {
+      flex: 1;
+      color: #2d5a27;
+    }
+
+    .subtask-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
     }
 
     .empty-state {
