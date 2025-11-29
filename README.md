@@ -103,23 +103,6 @@ Una aplicación web completa y avanzada para gestión personal y productividad, 
 git clone https://github.com/tuusuario/agenda-pablo.git
 
 # Navega al directorio
-cd agenda-pablo
-
-# Abre agenda.html en tu navegador
-open agenda.html
-```
-
-### Configuración de Supabase (Opcional)
-1. Ve a [Supabase](https://supabase.com)
-2. Crea un nuevo proyecto
-3. Copia la URL y API Key
-4. Pégalas en la sección de configuración de la app
-
-### Instalación como PWA
-1. Abre la aplicación en Chrome/Edge
-2. Haz clic en el icono de instalación en la barra de direcciones
-3. Confirma la instalación
-4. ¡Ya tienes la app instalada como aplicación nativa!
 
 ## 🎯 Uso Recomendado
 
