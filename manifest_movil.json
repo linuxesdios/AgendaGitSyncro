@@ -1,4 +1,5 @@
 {
+  "id": "/agendaphone.html",
   "name": "🧠 Agenda de Pablo 🚆 - Móvil",
   "short_name": "Agenda Móvil",
   "description": "Agenda personal optimizada para móvil con carrusel",
@@ -7,6 +8,19 @@
   "background_color": "#a8e6cf",
   "theme_color": "#4ecdc4",
   "orientation": "portrait",
+  "categories": [
+    "productivity",
+    "utilities",
+    "lifestyle"
+  ],
+  "screenshots": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "Vista principal de la agenda móvil"
+    }
+  ],
   "icons": [
     {
       "src": "./icon-192.png",

@@ -1,4 +1,5 @@
 {
+  "id": "/agenda.html",
   "name": "🧠 Agenda de Pablo 🚆 - Desktop",
   "short_name": "Agenda PC",
   "description": "Agenda personal optimizada para PC con vista de columnas",
@@ -7,6 +8,11 @@
   "background_color": "#a8e6cf",
   "theme_color": "#4ecdc4",
   "orientation": "any",
+  "categories": [
+    "productivity",
+    "utilities",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "./icon-192.png",
