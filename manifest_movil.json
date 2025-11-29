@@ -2,7 +2,7 @@
   "name": "🧠 Agenda de Pablo 🚆 - Móvil",
   "short_name": "Agenda Móvil",
   "description": "Agenda personal optimizada para móvil con carrusel",
-  "start_url": "./agenda_cel.html",
+  "start_url": "./agendaphone.html",
   "display": "standalone",
   "background_color": "#a8e6cf",
   "theme_color": "#4ecdc4",
