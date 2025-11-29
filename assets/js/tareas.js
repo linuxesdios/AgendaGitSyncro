@@ -880,6 +880,10 @@ function editarTarea(index) {
 
 function editarTareaCritica(index) {
   const tarea = appState.agenda.tareas_criticas[index];
+  if (!tarea) {
+    console.warn('⚠️ Tarea crítica no encontrada (posiblemente eliminada)');
+    return;
+  }
   appState.ui.criticaEditando = index;
 
   document.getElementById('critica-titulo').value = tarea.titulo;

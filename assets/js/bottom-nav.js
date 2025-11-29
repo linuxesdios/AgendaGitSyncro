@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     renderizarTodo();
   });
 
+  // Escuchar cuando se guardan datos nuevos (AUTO-PUSH)
+  window.addEventListener('supabaseDataSaved', () => {
+    console.log('💾 Datos guardados - Re-renderizando vista móvil');
+    renderizarTodo();
+  });
+
   // Timeout de seguridad
   setTimeout(() => {
     console.log('⏰ Timeout - Renderizando datos');
@@ -327,12 +333,10 @@ function completarTareaCritica(id) {
 }
 
 function eliminarTareaCritica(id) {
-  if (confirm('¿Eliminar esta tarea crítica?')) {
-    window.appState.agenda.tareas_criticas = window.appState.agenda.tareas_criticas.filter(t => t.id !== id);
-    guardarJSON();
-    renderizarCriticasMovil();
-    mostrarAlerta('🗑️ Tarea eliminada', 'info');
-  }
+  window.appState.agenda.tareas_criticas = window.appState.agenda.tareas_criticas.filter(t => t.id !== id);
+  guardarJSON();
+  renderizarCriticasMovil();
+  mostrarAlerta('🗑️ Tarea crítica eliminada', 'success');
 }
 
 function editarTareaCritica(id) {
@@ -462,12 +466,10 @@ function abrirModalMigrarCritica(id) {
 // ==================== FUNCIONES AUXILIARES PARA CITAS ====================
 
 function eliminarCita(id) {
-  if (confirm('¿Eliminar esta cita?')) {
-    window.appState.agenda.citas = window.appState.agenda.citas.filter(c => c.id != id);
-    guardarJSON();
-    renderizarCitasMovil();
-    mostrarAlerta('🗑️ Cita eliminada', 'info');
-  }
+  window.appState.agenda.citas = window.appState.agenda.citas.filter(c => c.id != id);
+  guardarJSON();
+  renderizarCitasMovil();
+  mostrarAlerta('🗑️ Cita eliminada', 'success');
 }
 
 function editarCita(id) {

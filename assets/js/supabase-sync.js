@@ -676,6 +676,12 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
 
     console.log(`✅ ${logPrefix} completado - ${updates.length} colecciones sincronizadas`);
 
+    // Disparar evento para que la interfaz móvil se actualice
+    const evento = new CustomEvent('supabaseDataSaved', {
+      detail: { timestamp: Date.now(), isAutomatic }
+    });
+    window.dispatchEvent(evento);
+
     return true;
   } catch (error) {
     console.error('❌ Error en PUSH:', error);
