@@ -497,6 +497,36 @@ function editarCita(id) {
     `<option value="${e.nombre}" ${cita.etiqueta === e.nombre ? 'selected' : ''}>${e.simbolo || '🏷️'} ${e.nombre}</option>`
   ).join('');
 
+  // Extraer hora y minutos de la cita existente
+  let hora = '14';  // Valor por defecto
+  let minutos = '00'; // Valor por defecto
+
+  if (cita.hora) {
+    const partes = cita.hora.split(':');
+    if (partes.length >= 2) {
+      hora = partes[0];
+      minutos = partes[1];
+    }
+  }
+
+  // Formatear fecha para el input
+  let fechaValue = '';
+  if (cita.fecha) {
+    if (Array.isArray(cita.fecha)) {
+      const [year, month, day] = cita.fecha;
+      fechaValue = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    } else if (typeof cita.fecha === 'string') {
+      if (cita.fecha.includes('-')) {
+        fechaValue = cita.fecha;
+      } else if (cita.fecha.includes('/')) {
+        const parts = cita.fecha.split('/');
+        if (parts[2]?.length === 4) {
+          fechaValue = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+        }
+      }
+    }
+  }
+
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 500px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white;">
@@ -505,7 +535,16 @@ function editarCita(id) {
       
       <div style="padding: 24px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
         <div class="form-group" style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">📅 Nombre de la cita:</label>
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">📅 Fecha:</label>
+          <input type="date" id="edit-cita-fecha" value="${fechaValue}"
+            style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: white;"
+            onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'"
+            onkeydown="return false;" onclick="this.showPicker();">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">📝 Descripción:</label>
           <input type="text" id="edit-cita-nombre" value="${cita.nombre || ''}" 
             style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: white;"
             onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
@@ -513,7 +552,7 @@ function editarCita(id) {
             placeholder="Describe la cita...">
         </div>
         
-        <div class="form-group" style="margin-bottom: 24px;">
+        <div class="form-group" style="margin-bottom: 20px;">
           <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">🏷️ Etiqueta (opcional):</label>
           <select id="edit-cita-etiqueta" 
             style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: white; cursor: pointer;"
@@ -522,6 +561,50 @@ function editarCita(id) {
             <option value="">Sin etiqueta</option>
             ${opcionesEtiquetas}
           </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">⏰ Hora:</label>
+            <select id="edit-cita-hora" style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:15px;background:white;cursor:pointer;"
+              onfocus="this.style.borderColor='#667eea';this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+              onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+              <option value="08" ${hora === '08' ? 'selected' : ''}>08</option>
+              <option value="09" ${hora === '09' ? 'selected' : ''}>09</option>
+              <option value="10" ${hora === '10' ? 'selected' : ''}>10</option>
+              <option value="11" ${hora === '11' ? 'selected' : ''}>11</option>
+              <option value="12" ${hora === '12' ? 'selected' : ''}>12</option>
+              <option value="13" ${hora === '13' ? 'selected' : ''}>13</option>
+              <option value="14" ${hora === '14' ? 'selected' : ''}>14</option>
+              <option value="15" ${hora === '15' ? 'selected' : ''}>15</option>
+              <option value="16" ${hora === '16' ? 'selected' : ''}>16</option>
+              <option value="17" ${hora === '17' ? 'selected' : ''}>17</option>
+              <option value="18" ${hora === '18' ? 'selected' : ''}>18</option>
+              <option value="19" ${hora === '19' ? 'selected' : ''}>19</option>
+              <option value="20" ${hora === '20' ? 'selected' : ''}>20</option>
+              <option value="21" ${hora === '21' ? 'selected' : ''}>21</option>
+              <option value="22" ${hora === '22' ? 'selected' : ''}>22</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2d3748; font-size: 14px;">⏱️ Minutos:</label>
+            <select id="edit-cita-minutos" style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:15px;background:white;cursor:pointer;"
+              onfocus="this.style.borderColor='#667eea';this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+              onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+              <option value="00" ${minutos === '00' ? 'selected' : ''}>00</option>
+              <option value="05" ${minutos === '05' ? 'selected' : ''}>05</option>
+              <option value="10" ${minutos === '10' ? 'selected' : ''}>10</option>
+              <option value="15" ${minutos === '15' ? 'selected' : ''}>15</option>
+              <option value="20" ${minutos === '20' ? 'selected' : ''}>20</option>
+              <option value="25" ${minutos === '25' ? 'selected' : ''}>25</option>
+              <option value="30" ${minutos === '30' ? 'selected' : ''}>30</option>
+              <option value="35" ${minutos === '35' ? 'selected' : ''}>35</option>
+              <option value="40" ${minutos === '40' ? 'selected' : ''}>40</option>
+              <option value="45" ${minutos === '45' ? 'selected' : ''}>45</option>
+              <option value="50" ${minutos === '50' ? 'selected' : ''}>50</option>
+              <option value="55" ${minutos === '55' ? 'selected' : ''}>55</option>
+            </select>
+          </div>
         </div>
         
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -558,12 +641,21 @@ function editarCita(id) {
   }, 100);
 }
 
+
 function guardarEdicionCitaMovil(id) {
+  const fecha = document.getElementById('edit-cita-fecha').value;
   const nombre = document.getElementById('edit-cita-nombre').value.trim();
   const etiqueta = document.getElementById('edit-cita-etiqueta').value;
+  const hora = document.getElementById('edit-cita-hora').value;
+  const minutos = document.getElementById('edit-cita-minutos').value;
 
   if (!nombre) {
     alert('El nombre de la cita no puede estar vacío');
+    return;
+  }
+
+  if (!fecha) {
+    alert('La fecha es obligatoria');
     return;
   }
 
@@ -571,6 +663,13 @@ function guardarEdicionCitaMovil(id) {
   if (cita) {
     cita.nombre = nombre;
     cita.etiqueta = etiqueta || null;
+
+    // Guardar fecha como array [año, mes, día]
+    const [year, month, day] = fecha.split('-').map(Number);
+    cita.fecha = [year, month, day];
+
+    // Guardar hora en formato HH:MM
+    cita.hora = `${hora}:${minutos}`;
 
     console.log('📤 SUPABASE: Editando cita');
     guardarJSON();
@@ -582,6 +681,7 @@ function guardarEdicionCitaMovil(id) {
     mostrarAlerta('✏️ Cita actualizada', 'success');
   }
 }
+
 
 
 // ==================== FUNCIONES AUXILIARES PARA LISTAS PERSONALIZADAS ====================
