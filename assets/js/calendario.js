@@ -621,58 +621,6 @@ function abrirModalNuevaCita() {
   if (typeof window.cargarEtiquetasEnSelect === 'function') {
     window.cargarEtiquetasEnSelect('nueva-cita-etiqueta', 'citas');
   }
-
-  abrirModal('modal-nueva-cita');
-  setTimeout(() => document.getElementById('nueva-cita-desc').focus(), 100);
-}
-
-async function guardarNuevaCita() {
-  const fecha = document.getElementById('nueva-cita-fecha').value;
-  const descripcion = document.getElementById('nueva-cita-desc').value.trim();
-  const hora = document.getElementById('nueva-cita-hora').value;
-  const minutos = document.getElementById('nueva-cita-minutos').value;
-  const etiqueta = document.getElementById('nueva-cita-etiqueta').value;
-
-  console.log('📅 Guardando nueva cita:', { fecha, descripcion, hora, minutos });
-
-}
-if (!window.appState.agenda) {
-  window.appState.agenda = {};
-}
-if (!window.appState.agenda.citas) {
-  window.appState.agenda.citas = [];
-}
-
-appState.agenda.citas.push(nuevaCita);
-console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
-
-cerrarModal('modal-nueva-cita');
-
-// Guardar cambios INMEDIATAMENTE
-if (typeof guardarJSON === 'function') {
-  await guardarJSON(true);
-}
-
-renderCalendar();
-renderAllAppointmentsList();
-renderCitasPanel();
-
-const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-  renderCalendarioIntegrado();
-}
-
-mostrarAlerta('📅 Cita añadida', 'success');
-
-// Programar notificaciones para esta nueva cita
-programarNotificacionesCita(nuevaCita);
-
-mostrarAlerta('📅 Cita añadida correctamente', 'success');
-}
-
-function abrirCalendario() {
-  abrirModal('modal-calendar');
-  renderCalendar();
   renderAllAppointmentsList();
   renderAppointmentsList();
 }
