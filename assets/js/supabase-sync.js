@@ -347,15 +347,33 @@ async function supabasePull() {
     results.forEach(({ collection, data }) => {
       switch (collection) {
         case 'tareas':
-          window.tareasData = data;
-          if (data.tareas_criticas) {
-            if (!window.appState.agenda) window.appState.agenda = {}; window.appState.agenda.tareas_criticas = data.tareas_criticas;
-          }
-          if (data.tareas) {
-            if (!window.appState.agenda) window.appState.agenda = {}; window.appState.agenda.tareas = data.tareas;
-          }
+          console.log('📦 CARGANDO TAREAS desde Supabase:', data);
+          
+          // Inicializar tareasData si no existe
+          if (!window.tareasData) window.tareasData = {};
+          
+          // Actualizar tareasData PRIMERO
+          window.tareasData = {
+            ...window.tareasData,
+            tareas_criticas: data.tareas_criticas || [],
+            tareas: data.tareas || [],
+            listasPersonalizadas: data.listasPersonalizadas || []
+          };
+          
+          // Luego actualizar appState
+          if (!window.appState.agenda) window.appState.agenda = {};
+          window.appState.agenda.tareas_criticas = data.tareas_criticas || [];
+          window.appState.agenda.tareas = data.tareas || [];
+          window.appState.agenda.listasPersonalizadas = data.listasPersonalizadas || [];
+          
+          console.log('  ✅ Tareas críticas cargadas:', data.tareas_criticas?.length || 0);
+          console.log('  ✅ Tareas normales cargadas:', data.tareas?.length || 0);
+          console.log('  ✅ Listas personalizadas cargadas:', data.listasPersonalizadas?.length || 0);
+          
           if (data.listasPersonalizadas) {
-            window.configVisual.listasPersonalizadas = data.listasPersonalizadas;
+            data.listasPersonalizadas.forEach((lista, idx) => {
+              console.log(`    📋 Lista ${idx}: "${lista.nombre}" con ${lista.tareas?.length || 0} tareas`);
+            });
           }
           break;
         case 'citas':
@@ -446,6 +464,16 @@ async function supabasePull() {
     }
     if (typeof window.renderizar === 'function') {
       window.renderizar();
+    }
+
+    // IMPORTANTE: Renderizar listas personalizadas DESPUÉS de actualizar tareasData
+    console.log('🔄 Verificando tareasData antes de renderizar:', window.tareasData?.listasPersonalizadas?.length || 0);
+    if (typeof window.renderizarTodasLasListasPersonalizadas === 'function') {
+      // Pequeño delay para asegurar que tareasData está actualizado
+      setTimeout(() => {
+        console.log('🎨 Renderizando listas personalizadas con datos:', window.tareasData?.listasPersonalizadas?.length || 0);
+        window.renderizarTodasLasListasPersonalizadas();
+      }, 100);
     }
 
     if (typeof window.cargarLog === 'function') {
@@ -572,7 +600,7 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
         data: {
           tareas_criticas: window.appState?.agenda?.tareas_criticas || window.appState?.tareasCriticas || [],
           tareas: window.appState?.agenda?.tareas || window.appState?.tareas || [],
-          listasPersonalizadas: window.configVisual?.listasPersonalizadas || []
+          listasPersonalizadas: window.tareasData?.listasPersonalizadas || window.appState?.agenda?.listasPersonalizadas || []
         }
       },
       {

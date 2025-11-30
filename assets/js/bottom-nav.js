@@ -687,7 +687,7 @@ function guardarEdicionCitaMovil(id) {
 // ==================== FUNCIONES AUXILIARES PARA LISTAS PERSONALIZADAS ====================
 
 function completarTareaLista(listaId, tareaId) {
-  const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
+  const lista = window.tareasData.listasPersonalizadas.find(l => l.id === listaId);
   if (!lista) return;
 
   const tarea = lista.tareas.find(t => t.id == tareaId);
@@ -701,7 +701,7 @@ function completarTareaLista(listaId, tareaId) {
 }
 
 function eliminarTareaLista(listaId, tareaId) {
-  const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
+  const lista = window.tareasData.listasPersonalizadas.find(l => l.id === listaId);
   if (!lista) return;
 
   console.log('📤 SUPABASE: Eliminando tarea de lista');
@@ -712,7 +712,7 @@ function eliminarTareaLista(listaId, tareaId) {
 }
 
 function editarTareaLista(listaId, tareaId) {
-  const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
+  const lista = window.tareasData.listasPersonalizadas.find(l => l.id === listaId);
   if (!lista) return;
 
   const tarea = lista.tareas.find(t => t.id == tareaId);
@@ -847,7 +847,7 @@ function guardarEdicionListaMovil(listaId, tareaId) {
     return;
   }
 
-  const lista = window.configVisual.listasPersonalizadas.find(l => l.id === listaId);
+  const lista = window.tareasData.listasPersonalizadas.find(l => l.id === listaId);
   if (!lista) return;
 
   const tarea = lista.tareas.find(t => t.id == tareaId);

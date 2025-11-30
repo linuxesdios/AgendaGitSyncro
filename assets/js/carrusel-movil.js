@@ -285,7 +285,7 @@ function generarPanelesCarrusel() {
 
   // Agregar listas personalizadas
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = tareasData.listasPersonalizadas || [];
 
   listasPersonalizadas.forEach(lista => {
     if (lista && lista.tareas && lista.tareas.length > 0) {
@@ -800,7 +800,7 @@ function guardarMigracionMovil() {
   } else if (tareaEnProceso.tipo === 'personalizada') {
     // Manejar tarea de lista personalizada
     const configVisual = window.configVisual || {};
-    const listas = configVisual.listasPersonalizadas || [];
+    const listas = tareasData.listasPersonalizadas || [];
     const lista = listas.find(l => l.id === tareaEnProceso.id);
 
     if (lista && lista.tareas && lista.tareas[tareaEnProceso.index]) {
@@ -864,7 +864,7 @@ function completarTareaCritica(tareaId) {
 
 function completarTareaPersonalizada(listaId, tareaIndex) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = tareasData.listasPersonalizadas || [];
   const lista = listas.find(l => l.id === listaId);
 
   if (lista && lista.tareas && lista.tareas[tareaIndex]) {
@@ -1221,7 +1221,7 @@ function eliminarTareaPersonalizada(listaId, tareaIndex) {
     return;
   }
 
-  const lista = configVisual.listasPersonalizadas?.find(l => l.id === listaId);
+  const lista = tareasData.listasPersonalizadas?.find(l => l.id === listaId);
   if (!lista || !lista.tareas || !lista.tareas[tareaIndex]) {
     mostrarAlerta('❌ No se pudo encontrar la tarea', 'error');
     return;

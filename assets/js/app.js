@@ -1,8 +1,10 @@
 // ========== FUNCIONES HELPER ==========
 function obtenerListasPersonalizadas() {
-  // TEMPORALMENTE: usar estructura antigua hasta completar migración
-  const listas = window.configVisual?.listasPersonalizadas || [];
+  // LEER DESDE tareasData (window.tareasData.listasPersonalizadas)
+  const listas = window.tareasData?.listasPersonalizadas || window.configVisual?.listasPersonalizadas || [];
   console.log('🔍 obtenerListasPersonalizadas() llamado. Total listas:', listas.length);
+  console.log('📍 window.tareasData:', window.tareasData);
+  console.log('📍 window.configVisual:', window.configVisual);
 
   // Log subtasks for each list for debugging
   listas.forEach((lista, idx) => {
@@ -576,7 +578,7 @@ function cargarConfigVisual() {
     // Regenerar y renderizar listas personalizadas (funcionalidad de la función duplicada)
     if (!config.listasPersonalizadas) {
       config.listasPersonalizadas = [];
-      window.configVisual.listasPersonalizadas = [];
+      window.tareasData.listasPersonalizadas = [];
     }
     if (typeof regenerarSeccionesListasPersonalizadas === 'function') {
       regenerarSeccionesListasPersonalizadas();
@@ -1179,7 +1181,7 @@ async function guardarConfigVisualPanel() {
     calendarioMostrarTareas: document.getElementById('config-calendario-mostrar-tareas')?.checked !== false,
     columnas: parseInt(document.getElementById('config-columnas')?.value) || 2,
     frases: document.getElementById('config-frases-motivacionales')?.value.split('\n').filter(f => f.trim()) || [],
-    listasPersonalizadas: (window.configVisual && window.configVisual.listasPersonalizadas) || []
+    listasPersonalizadas: (window.configVisual && window.tareasData.listasPersonalizadas) || []
   };
 
   console.log('💾 Guardando configuración visual en Supabase:', config);
@@ -2972,7 +2974,7 @@ async function agregarListaPersonalizada() {
 
   // Obtener listas actuales
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
 
   console.log('📋 Listas actuales:', listasPersonalizadas);
 
@@ -3044,7 +3046,7 @@ function editarListaPersonalizada(id) {
   console.log('✏️ Editando lista:', id);
 
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
 
   // Buscar la lista
   const lista = listasPersonalizadas.find(l => l.id === id);
@@ -3133,7 +3135,7 @@ async function guardarEdicionListaPersonalizada() {
     }
 
     const configVisual = window.configVisual || {};
-    const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+    const listasPersonalizadas = tareasData.listasPersonalizadas || [];
 
     console.log('📋 Listas antes de actualizar:', JSON.parse(JSON.stringify(listasPersonalizadas)));
 
@@ -3173,7 +3175,7 @@ async function guardarEdicionListaPersonalizada() {
       listasPersonalizadas: listasPersonalizadas
     };
 
-    console.log('💾 window.configVisual.listasPersonalizadas actualizado:', JSON.parse(JSON.stringify(window.configVisual.listasPersonalizadas)));
+    console.log('💾 window.tareasData.listasPersonalizadas actualizado:', JSON.parse(JSON.stringify(window.tareasData.listasPersonalizadas)));
 
     // Guardar en Supabase
     if (typeof supabasePush === 'function') {
@@ -3248,7 +3250,7 @@ function cancelarEdicionListaPersonalizada() {
 
 function eliminarListaPersonalizada(id) {
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
 
   // Buscar la lista
   const lista = listasPersonalizadas.find(l => l.id === id);
@@ -3289,7 +3291,7 @@ function renderizarListasPersonalizadas() {
   }
 
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
 
   // Debug simplificado
 
@@ -3349,7 +3351,7 @@ function regenerarSeccionesListasPersonalizadas() {
   });
 
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
 
   console.log('📋 Listas a generar:', listasPersonalizadas.length);
 
@@ -3457,7 +3459,7 @@ function abrirModalNuevaTareaLista(listaId) {
 
   // Encontrar la lista
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
   if (!lista) {
@@ -3483,7 +3485,7 @@ function abrirModalNuevaTareaLista(listaId) {
 
 function limpiarListaPersonalizada(listaId) {
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
   const lista = listasPersonalizadas.find(l => l.id === listaId);
 
   if (!lista) return;
@@ -3504,6 +3506,8 @@ function renderizarListaPersonalizada(listaId) {
   console.log('🎨 Renderizando lista:', listaId);
   console.log('📊 Lista encontrada:', lista ? lista.nombre : 'null');
   console.log('📋 Tareas en lista:', lista?.tareas?.length || 0);
+  console.log('🔍 window.tareasData:', window.tareasData);
+  console.log('🔍 window.configVisual:', window.configVisual);
 
   // Log subtareas para cada tarea
   if (lista && lista.tareas) {
@@ -3806,7 +3810,7 @@ async function agregarSubtareaListaPersonalizada(listaId, tareaIndex) {
 
 async function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
   console.log('💾 Guardando subtarea:', { listaIndex, totalListas: listas.length });
@@ -3838,10 +3842,10 @@ async function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
   if (!window.configVisual) {
     window.configVisual = {};
   }
-  window.configVisual.listasPersonalizadas = listas;
+  window.tareasData.listasPersonalizadas = listas;
 
   console.log('🔄 window.configVisual actualizado (mutación directa)');
-  console.log('📊 Verificando que se guardó:', window.configVisual.listasPersonalizadas[listaIndex].tareas[tareaIndex].subtareas);
+  console.log('📊 Verificando que se guardó:', window.tareasData.listasPersonalizadas[listaIndex].tareas[tareaIndex].subtareas);
 
   // Pequeño delay antes de renderizar para asegurar que el estado se actualizó
   await new Promise(resolve => setTimeout(resolve, 10));
@@ -3853,7 +3857,7 @@ async function guardarSubtareaListaPersonalizada(listaId, tareaIndex, texto) {
 
 async function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) return;
@@ -3902,7 +3906,7 @@ async function cambiarEstadoSubtareaListaPersonalizada(listaId, tareaIndex, subI
 
 function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const lista = listas.find(l => l.id === listaId);
 
   if (!lista || !lista.tareas[tareaIndex] || !lista.tareas[tareaIndex].subtareas[subIndex]) return;
@@ -3944,7 +3948,7 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
 
 async function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) return;
@@ -3990,7 +3994,7 @@ function eliminarSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
 
 async function ejecutarEliminacionSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) return;
@@ -4038,7 +4042,7 @@ function agregarTareaAListaPersonalizada(listaId, texto, fecha = null, etiqueta 
 
 function editarTareaListaPersonalizada(listaId, index) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const lista = listas.find(l => l.id === listaId);
 
   if (!lista || !lista.tareas[index]) return;
@@ -4090,7 +4094,7 @@ function editarTareaListaPersonalizada(listaId, index) {
 
 function guardarEdicionTareaListaPersonalizada(listaId, index) {
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) return;
@@ -4134,7 +4138,7 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
   window.eliminandoTarea = true;
 
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
   const listaIndex = listasPersonalizadas.findIndex(l => l.id === listaId);
 
   if (listaIndex === -1) {
@@ -4583,7 +4587,7 @@ function renderizarListasEnModalPersonalizado() {
   if (!contenedor) return;
 
   const configVisual = window.configVisual || {};
-  const listas = configVisual.listasPersonalizadas || [];
+  const listas = window.tareasData?.listasPersonalizadas || [];
 
   if (listas.length === 0) {
     contenedor.innerHTML = '<p style="color:#999;text-align:center;font-style:italic;">No hay listas personalizadas aún.</p>';
@@ -4621,7 +4625,7 @@ function agregarListaPersonalizadaDesdeModal() {
   }
 
   if (!window.configVisual) window.configVisual = {};
-  if (!window.configVisual.listasPersonalizadas) window.configVisual.listasPersonalizadas = [];
+  if (!window.tareasData.listasPersonalizadas) window.tareasData.listasPersonalizadas = [];
 
   // Crear ID único
   const id = 'lista-' + Date.now();
@@ -4635,7 +4639,7 @@ function agregarListaPersonalizadaDesdeModal() {
     tareas: []
   };
 
-  window.configVisual.listasPersonalizadas.push(nuevaLista);
+  window.tareasData.listasPersonalizadas.push(nuevaLista);
 
   // Limpiar formulario
   nombreInput.value = '';
@@ -4656,8 +4660,8 @@ function agregarListaPersonalizadaDesdeModal() {
 function eliminarListaDesdeModal(id) {
   if (!confirm('¿Seguro que quieres eliminar esta lista?')) return;
 
-  if (window.configVisual && window.configVisual.listasPersonalizadas) {
-    window.configVisual.listasPersonalizadas = window.configVisual.listasPersonalizadas.filter(l => l.id !== id);
+  if (window.configVisual && window.tareasData.listasPersonalizadas) {
+    window.tareasData.listasPersonalizadas = window.tareasData.listasPersonalizadas.filter(l => l.id !== id);
     renderizarListasEnModalPersonalizado();
   }
 }
@@ -4670,7 +4674,7 @@ async function guardarYSalirListasPersonalizadas() {
 
   // 1. Asegurar que window.configVisual tiene los datos actualizados
   if (!window.configVisual) window.configVisual = {};
-  // (Las listas ya se agregaron a window.configVisual.listasPersonalizadas en la función agregar...)
+  // (Las listas ya se agregaron a window.tareasData.listasPersonalizadas en la función agregar...)
 
   // 2. Guardar directamente en Supabase
   if (typeof window.supabasePush === 'function') {

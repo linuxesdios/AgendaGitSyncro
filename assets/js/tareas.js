@@ -787,7 +787,7 @@ async function agregarTarea() {
 
   // VERIFICAR SI EXISTE UNA LISTA POR HACER PERSONALIZADA
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = tareasData.listasPersonalizadas || [];
   const listaPorHacerPersonalizada = listasPersonalizadas.find(lista => lista.esListaPorDefecto === true);
 
   if (listaPorHacerPersonalizada) {
@@ -943,7 +943,7 @@ function guardarMigracion() {
     // Subtarea de lista personalizada
     if (tipo === 'lista_personalizada') {
       const configVisual = window.configVisual || {};
-      const listas = configVisual.listasPersonalizadas || [];
+      const listas = tareasData.listasPersonalizadas || [];
       const lista = listas.find(l => l.id === listaId);
 
       if (lista && lista.tareas[tareaIndex] && lista.tareas[tareaIndex].subtareas[subIndex]) {
@@ -1008,7 +1008,7 @@ function guardarMigracion() {
   // ========== MANEJAR LISTAS PERSONALIZADAS ==========
   if (tipo === 'lista_personalizada') {
     const configVisual = window.configVisual || {};
-    const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+    const listasPersonalizadas = tareasData.listasPersonalizadas || [];
     const lista = listasPersonalizadas.find(l => l.id === listaId);
 
     if (lista && lista.tareas[tareaIndex]) {

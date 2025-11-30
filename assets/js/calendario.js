@@ -891,7 +891,7 @@ function renderAllTasksList() {
 
   // Tareas de listas personalizadas
   const configVisual = window.configVisual || {};
-  const listasPersonalizadas = configVisual.listasPersonalizadas || [];
+  const listasPersonalizadas = tareasData.listasPersonalizadas || [];
   listasPersonalizadas.forEach(lista => {
     if (lista && lista.tareas && Array.isArray(lista.tareas)) {
       lista.tareas.forEach(t => {
