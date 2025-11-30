@@ -962,55 +962,39 @@ async function crearCitaPeriodica() {
     window.appState.agenda.citas = [];
   }
 
-  let fechaActual = new Date(inicio);
+  programarNotificacionesCita(nuevaCita);
 
-  while (fechaActual <= fin) {
-    const fechaStr = fechaActual.toISOString().slice(0, 10);
-    const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
-    const nuevaCita = {
-      id: Date.now(),
-      fecha: fechaStr.split('-').map(n => parseInt(n)),
-      nombre: citaCompleta,
-      lugar: lugar || null
-    };
-
-    appState.agenda.citas.push(nuevaCita);
-    citasCreadas.push(fechaStr);
-
-    // Programar notificaciones para cada cita creada
-    programarNotificacionesCita(nuevaCita);
-
-    // Calcular siguiente fecha según frecuencia
-    switch (frecuencia) {
-      case 'semanal':
-        fechaActual.setDate(fechaActual.getDate() + 7);
-        break;
-      case 'quincenal':
-        fechaActual.setDate(fechaActual.getDate() + 15);
-        break;
-      case 'mensual':
-        fechaActual.setMonth(fechaActual.getMonth() + 1);
-        break;
-      case 'semestral':
-        fechaActual.setMonth(fechaActual.getMonth() + 6);
-        break;
-      case 'anual':
-        fechaActual.setFullYear(fechaActual.getFullYear() + 1);
-        break;
-    }
+  // Calcular siguiente fecha según frecuencia
+  switch (frecuencia) {
+    case 'semanal':
+      fechaActual.setDate(fechaActual.getDate() + 7);
+      break;
+    case 'quincenal':
+      fechaActual.setDate(fechaActual.getDate() + 15);
+      break;
+    case 'mensual':
+      fechaActual.setMonth(fechaActual.getMonth() + 1);
+      break;
+    case 'semestral':
+      fechaActual.setMonth(fechaActual.getMonth() + 6);
+      break;
+    case 'anual':
+      fechaActual.setFullYear(fechaActual.getFullYear() + 1);
+      break;
   }
+}
 
-  cerrarModal('modal-cita-periodica');
+cerrarModal('modal-cita-periodica');
 
-  // Guardar cambios INMEDIATAMENTE
-  if (typeof guardarJSON === 'function') {
-    await guardarJSON(true);
-  }
+// Guardar cambios INMEDIATAMENTE
+if (typeof guardarJSON === 'function') {
+  await guardarJSON(true);
+}
 
-  renderCalendar();
-  renderAllAppointmentsList();
-  renderCitasPanel();
-  mostrarAlerta(`📅 ${citasCreadas.length} citas periódicas creadas`, 'success');
+renderCalendar();
+renderAllAppointmentsList();
+renderCitasPanel();
+mostrarAlerta(`📅 ${citasCreadas.length} citas periódicas creadas`, 'success');
 }
 
 // ========== CITAS RELATIVAS ==========
