@@ -224,7 +224,10 @@ function renderizarListasMovil() {
   const container = document.getElementById('listas-personalizadas-movil');
   if (!container) return;
 
-  const listas = window.configVisual?.listasPersonalizadas || [];
+  // CORRECCIÓN: Leer de window.tareasData que es donde Supabase guarda las listas ahora
+  const listas = window.tareasData?.listasPersonalizadas || window.configVisual?.listasPersonalizadas || [];
+
+  console.log('📱 Renderizando listas móvil. Encontradas:', listas.length);
 
   if (listas.length === 0) {
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No hay listas personalizadas<br><small>Crea una en Configuración</small></div></div>';

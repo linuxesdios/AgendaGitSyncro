@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarConfigOpciones();
 
   actualizarFecha();
-  initializeCalendar();
+  if (typeof initializeCalendar === 'function') {
+    initializeCalendar();
+  }
   renderCalendar();
 
   // Renderizar estado inicial (puede estar vacío)
@@ -644,7 +646,7 @@ function solicitarPermisoNotificaciones() {
 // ========== CONFIGURACIÓN DE COLUMNAS ==========
 function aplicarConfiguracionColumnas() {
   const contenedorDosColumnas = document.querySelector('.contenedor-dos-columnas');
-  
+
   // Si no existe el contenedor (agendaphone.html), salir silenciosamente
   if (!contenedorDosColumnas) {
     return;
@@ -660,7 +662,7 @@ function aplicarConfiguracionColumnas() {
   }
 
   console.log('📐 Número de columnas a aplicar:', columnas);
-  
+
   const contenedorListasPersonalizadas = document.getElementById('contenedor-listas-personalizadas');
 
   // Aplicar estilos según la configuración
@@ -4375,6 +4377,14 @@ function renderizarTodasLasListasPersonalizadas() {
   renderizarListasTimeout = setTimeout(() => {
     console.log('🔄 RENDERIZANDO TODAS LAS LISTAS PERSONALIZADAS');
 
+    // Detectar si estamos en móvil (agendaphone.html)
+    if (typeof renderizarListasMovil === 'function' && document.getElementById('listas-personalizadas-movil')) {
+      console.log('📱 Detectado modo móvil, delegando a renderizarListasMovil()');
+      renderizarListasMovil();
+      renderizarListasTimeout = null;
+      return;
+    }
+
     // Usar función helper para obtener las listas
     const listasPersonalizadas = obtenerListasPersonalizadas();
 
@@ -4633,7 +4643,7 @@ async function agregarListaPersonalizadaDesdeModal() {
   if (typeof window.regenerarSeccionesListasPersonalizadas === 'function') {
     window.regenerarSeccionesListasPersonalizadas();
   }
-  
+
   // Renderizar contenido
   if (typeof window.renderizarTodasLasListasPersonalizadas === 'function') {
     window.renderizarTodasLasListasPersonalizadas();
@@ -4645,14 +4655,14 @@ async function eliminarListaDesdeModal(id) {
 
   if (window.tareasData?.listasPersonalizadas) {
     window.tareasData.listasPersonalizadas = window.tareasData.listasPersonalizadas.filter(l => l.id !== id);
-    
+
     // Guardar en Supabase
     if (typeof window.supabasePush === 'function') {
       await window.supabasePush();
     }
-    
+
     renderizarListasEnModalPersonalizado();
-    
+
     // Regenerar secciones
     if (typeof window.regenerarSeccionesListasPersonalizadas === 'function') {
       window.regenerarSeccionesListasPersonalizadas();
