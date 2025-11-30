@@ -5,7 +5,9 @@ function renderizar() {
   requestAnimationFrame(() => {
     renderizarCriticas();
     renderizarTareas();
-    renderCitasPanel();
+    if (typeof renderCitasPanel === 'function') {
+      renderCitasPanel();
+    }
 
     // Renderizar listas personalizadas
     if (typeof renderizarTodasLasListasPersonalizadas === 'function') {

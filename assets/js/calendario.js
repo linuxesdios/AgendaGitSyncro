@@ -128,7 +128,7 @@ function renderCalendar() {
         });
 
         // Tareas de listas personalizadas
-        const listasPersonalizadas = config.listasPersonalizadas || [];
+        const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
         listasPersonalizadas.forEach(lista => {
           if (lista && lista.tareas && Array.isArray(lista.tareas)) {
             lista.tareas.forEach(tarea => {
@@ -496,11 +496,12 @@ function renderCitasPanel() {
 
   // Actualizar calendario integrado si está visible
   const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
-  // Debug simplificado
 
   if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
     console.log('🔄 Calendario integrado visible, actualizando...');
-    setTimeout(() => renderCalendarioIntegrado(), 50);
+    if (typeof renderCalendarioIntegrado === 'function') {
+      setTimeout(() => renderCalendarioIntegrado(), 50);
+    }
   } else {
     console.log('⚠️ Calendario integrado NO visible o no encontrado');
   }
@@ -635,16 +636,28 @@ async function guardarNuevaCita() {
 
   console.log('📅 Guardando nueva cita:', { fecha, descripcion, hora, minutos });
 
-}
-if (!window.appState.agenda) {
-  window.appState.agenda = {};
-}
-if (!window.appState.agenda.citas) {
-  window.appState.agenda.citas = [];
-}
+  if (!fecha || !descripcion) {
+    alert('Por favor, completa la fecha y descripción');
+    return;
+  }
 
-appState.agenda.citas.push(nuevaCita);
-console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
+  const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+  const nuevaCita = {
+    id: Date.now(),
+    fecha: fecha.split('-').map(n => parseInt(n)),
+    nombre: citaCompleta,
+    etiqueta: etiqueta || null
+  };
+
+  if (!window.appState.agenda) {
+    window.appState.agenda = {};
+  }
+  if (!window.appState.agenda.citas) {
+    window.appState.agenda.citas = [];
+  }
+
+  appState.agenda.citas.push(nuevaCita);
+  console.log('✅ Cita añadida al estado. Total citas:', appState.agenda.citas.length);
 
 cerrarModal('modal-nueva-cita');
 
@@ -962,27 +975,39 @@ async function crearCitaPeriodica() {
     window.appState.agenda.citas = [];
   }
 
-  programarNotificacionesCita(nuevaCita);
+  let fechaActual = new Date(inicio);
+  while (fechaActual <= fin) {
+    const citaCompleta = `${hora}:${minutos} - ${descripcion}`;
+    const nuevaCita = {
+      id: Date.now() + citasCreadas.length,
+      fecha: [fechaActual.getFullYear(), fechaActual.getMonth() + 1, fechaActual.getDate()],
+      nombre: citaCompleta,
+      lugar: lugar || null
+    };
+    
+    appState.agenda.citas.push(nuevaCita);
+    citasCreadas.push(nuevaCita);
+    programarNotificacionesCita(nuevaCita);
 
-  // Calcular siguiente fecha según frecuencia
-  switch (frecuencia) {
-    case 'semanal':
-      fechaActual.setDate(fechaActual.getDate() + 7);
-      break;
-    case 'quincenal':
-      fechaActual.setDate(fechaActual.getDate() + 15);
-      break;
-    case 'mensual':
-      fechaActual.setMonth(fechaActual.getMonth() + 1);
-      break;
-    case 'semestral':
-      fechaActual.setMonth(fechaActual.getMonth() + 6);
-      break;
-    case 'anual':
-      fechaActual.setFullYear(fechaActual.getFullYear() + 1);
-      break;
+    // Calcular siguiente fecha según frecuencia
+    switch (frecuencia) {
+      case 'semanal':
+        fechaActual.setDate(fechaActual.getDate() + 7);
+        break;
+      case 'quincenal':
+        fechaActual.setDate(fechaActual.getDate() + 15);
+        break;
+      case 'mensual':
+        fechaActual.setMonth(fechaActual.getMonth() + 1);
+        break;
+      case 'semestral':
+        fechaActual.setMonth(fechaActual.getMonth() + 6);
+        break;
+      case 'anual':
+        fechaActual.setFullYear(fechaActual.getFullYear() + 1);
+        break;
+    }
   }
-}
 
 cerrarModal('modal-cita-periodica');
 

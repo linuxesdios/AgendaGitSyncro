@@ -1191,6 +1191,14 @@ function crearSalvadoManual() {
   return crearBackupManual();
 }
 
+// Función para mostrar resumen diario (llamada desde app.js)
+function mostrarResumenDiario() {
+  // Esta función se llama automáticamente según configuración
+  if (typeof mostrarResumenDiarioManual === 'function') {
+    mostrarResumenDiarioManual();
+  }
+}
+
 // Función para mostrar dashboard motivacional (botón "Mi Progreso")
 function mostrarDashboardMotivacional() {
   if (!window.supabaseClient) {
