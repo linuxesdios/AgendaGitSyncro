@@ -30,6 +30,51 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     cambiarTab('criticas');
   }, 100);
+
+  // ========== GESTOS SWIPE (DESLIZAR) ==========
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+
+  const tabsOrder = ['criticas', 'citas', 'listas', 'mas'];
+
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    // Umbral mínimo para considerar swipe (50px) y límite vertical (100px) para no interferir con scroll
+    if (Math.abs(diffX) > 50 && Math.abs(diffY) < 100) {
+      const currentTab = document.querySelector('.nav-item.active')?.dataset.tab;
+      if (!currentTab) return;
+
+      const currentIndex = tabsOrder.indexOf(currentTab);
+      if (currentIndex === -1) return;
+
+      if (diffX > 0) {
+        // Swipe Derecha -> Pestaña Anterior (Izquierda)
+        // Ejemplo: De Citas a Críticas
+        const prevIndex = (currentIndex - 1 + tabsOrder.length) % tabsOrder.length;
+        cambiarTab(tabsOrder[prevIndex]);
+      } else {
+        // Swipe Izquierda -> Pestaña Siguiente (Derecha)
+        // Ejemplo: De Críticas a Citas
+        const nextIndex = (currentIndex + 1) % tabsOrder.length;
+        cambiarTab(tabsOrder[nextIndex]);
+      }
+    }
+  }
 });
 
 function cambiarTab(tabName) {
