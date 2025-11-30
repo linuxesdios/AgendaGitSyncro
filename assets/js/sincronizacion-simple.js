@@ -266,59 +266,10 @@ function switchTab(tabName) {
   }
 }
 
-function guardarConfigFuncionales() {
-  const config = {
-    mostrarResumenDiario: document.getElementById('config-resumen-diario')?.checked || false,
-    horaResumen: document.getElementById('config-hora-resumen')?.value || '08:00',
-    salvadoAutomatico: document.getElementById('config-salvado-automatico')?.checked || false,
-    intervaloGuardado: parseInt(document.getElementById('config-intervalo-guardado')?.value || 5)
-  };
-
-  window.configFuncionales = config;
-  guardarEnSupabase();
-  mostrarAlerta('✅ Configuración funcional guardada', 'success');
-}
-
-function cargarConfigFuncionales() {
-  const config = window.configFuncionales || {};
-
-  const resumenDiarioEl = document.getElementById('config-resumen-diario');
-  const horaResumenEl = document.getElementById('config-hora-resumen');
-  const salvadoAutomaticoEl = document.getElementById('config-salvado-automatico');
-  const intervaloGuardadoEl = document.getElementById('config-intervalo-guardado');
-
-  if (resumenDiarioEl) resumenDiarioEl.checked = config.mostrarResumenDiario || false;
-  if (horaResumenEl) horaResumenEl.value = config.horaResumen || '08:00';
-  if (salvadoAutomaticoEl) salvadoAutomaticoEl.checked = config.salvadoAutomatico || false;
-  if (intervaloGuardadoEl) intervaloGuardadoEl.value = config.intervaloGuardado || 5;
-
-  // Mostrar resumen diario automático según configuración
-  setTimeout(() => mostrarResumenDiario(), 500);
-}
-
-function mostrarResumenDiario() {
-  const config = window.configFuncionales || {};
-
-  // Usar la configuración correcta del SELECT config-popup-diario
-  const popupDiario = config.popupDiario || 'nunca';
-
-  if (popupDiario === 'nunca') return;
-
-  if (popupDiario === 'siempre') {
-    mostrarResumenDiarioManual();
-    return;
-  }
-
-  if (popupDiario === 'una_vez') {
-    const hoy = new Date().toDateString();
-    const ultimoPopup = localStorage.getItem('ultimoPopupResumenDiario');
-
-    if (ultimoPopup !== hoy) {
-      localStorage.setItem('ultimoPopupResumenDiario', hoy);
-      mostrarResumenDiarioManual();
-    }
-  }
-}
+// Funciones de configuración funcional movidas a app.js para evitar conflictos
+// guardarConfigFuncionales() -> app.js
+// cargarConfigFuncionales() -> app.js
+// mostrarResumenDiario() -> app.js
 
 function cerrarResumenDiario() {
   const modal = document.getElementById('modal-resumen-diario');
