@@ -486,6 +486,15 @@
         <button onclick="toggleConfigFloating()"
           style="background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 8px;"
           title="Configuración">⚙️</button>
+        <button onclick="mostrarResumenDiarioManual()"
+          style="background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 8px;"
+          title="Resumen del Día">🌅</button>
+        <button onclick="iniciarPomodoro()"
+          style="background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 8px;"
+          title="Pomodoro TDAH">🍅</button>
+        <button onclick="mostrarDashboardMotivacional()"
+          style="background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 8px;"
+          title="Mi Progreso">📊</button>
       </div>
     </div>
 
@@ -505,30 +514,6 @@
       <div id="tab-listas" class="tab-content">
         <div id="listas-personalizadas-movil"></div>
       </div>
-
-      <!-- Tab 4: Más -->
-      <div id="tab-mas" class="tab-content">
-        <div style="padding: 8px;">
-          <div class="task-card" onclick="mostrarResumenDiarioManual()">
-            <div class="task-header">
-              <span class="task-icon">🌅</span>
-              <span class="task-title">Resumen del Día</span>
-            </div>
-          </div>
-          <div class="task-card" onclick="iniciarPomodoro()">
-            <div class="task-header">
-              <span class="task-icon">🍅</span>
-              <span class="task-title">Pomodoro TDAH</span>
-            </div>
-          </div>
-          <div class="task-card" onclick="mostrarDashboardMotivacional()">
-            <div class="task-header">
-              <span class="task-icon">📊</span>
-              <span class="task-title">Mi Progreso</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -546,11 +531,6 @@
       <button class="nav-item" data-tab="listas">
         <span class="nav-icon">📋</span>
         <span class="nav-label">Listas</span>
-        <span class="nav-indicator"></span>
-      </button>
-      <button class="nav-item" data-tab="mas">
-        <span class="nav-icon">⚡</span>
-        <span class="nav-label">Más</span>
         <span class="nav-indicator"></span>
       </button>
     </nav>

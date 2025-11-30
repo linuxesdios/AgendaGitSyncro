@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let touchEndX = 0;
   let touchEndY = 0;
 
-  const tabsOrder = ['criticas', 'citas', 'listas', 'mas'];
+  const tabsOrder = ['criticas', 'citas', 'listas'];
 
   document.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -87,8 +87,8 @@ function cambiarTab(tabName) {
   });
 
   // Actualizar header
-  const icons = { criticas: '🚨', citas: '📅', listas: '📋', mas: '⚡' };
-  const titles = { criticas: 'Tareas Críticas', citas: 'Citas', listas: 'Listas', mas: 'Más' };
+  const icons = { criticas: '🚨', citas: '📅', listas: '📋' };
+  const titles = { criticas: 'Tareas Críticas', citas: 'Citas', listas: 'Listas' };
 
   const iconEl = document.getElementById('current-tab-icon');
   const titleEl = document.getElementById('current-tab-title');
@@ -133,22 +133,25 @@ function renderizarCriticasMovil() {
 
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
+    const añoActual = hoy.getFullYear();
 
     container.innerHTML = activas.map(t => {
       let alertaHtml = '';
       let cardStyle = '';
+      let fechaFormateada = '';
 
       if (t.fecha_fin) {
         const [year, month, day] = t.fecha_fin.split('-').map(Number);
         const fechaTarea = new Date(year, month - 1, day);
         fechaTarea.setHours(0, 0, 0, 0);
+        fechaFormateada = year !== añoActual ? `${day}/${month}/${year}` : `${day}/${month}`;
 
         if (fechaTarea < hoy) {
           cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
-          alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
+          alertaHtml = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:13px;font-weight:bold;">⚠️ PASADA</span>';
         } else if (fechaTarea.getTime() === hoy.getTime()) {
-          cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
-          alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
+          alertaHtml = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold;">⚠️ Hoy</span>';
         }
       }
 
@@ -159,19 +162,17 @@ function renderizarCriticasMovil() {
           <div class="task-content-area">
             <div class="task-title">${t.titulo || 'Sin título'}</div>
             <div class="task-meta">
-              ${t.fecha_fin ? `<span class="task-meta-item">📅 ${t.fecha_fin}</span>` : ''}
+              ${fechaFormateada ? `<span class="task-meta-item">📅 ${fechaFormateada}</span>` : ''}
               ${t.persona ? `<span class="task-meta-item">👤 ${t.persona}</span>` : ''}
               ${t.etiqueta ? `<span class="task-meta-item">🏷️ ${t.etiqueta}</span>` : ''}
             </div>
-            ${alertaHtml}
           </div>
-          <div class="task-buttons">
+          ${alertaHtml}
+          <div style="display: flex; flex-direction: row; gap: 6px;">
             <button class="task-btn btn-edit" onclick="editarTareaCritica('${t.id}')" title="Editar">✏️</button>
             <button class="task-btn btn-delete" onclick="eliminarTareaCritica('${t.id}')" title="Eliminar">🗑️</button>
+            <button class="task-btn btn-postpone" onclick="abrirModalMigrarCritica('${t.id}')" title="Posponer/Delegar" style="background: linear-gradient(135deg, #ff9800, #f57c00);">⏰</button>
           </div>
-        </div>
-        <div class="task-actions">
-          <button class="action-btn btn-postpone" onclick="abrirModalMigrarCritica('${t.id}')" style="width:100%;">Posponer/Delegar</button>
         </div>
       </div>
     `;
@@ -195,9 +196,10 @@ function renderizarCitasMovil() {
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
+  const añoActual = hoy.getFullYear();
 
   container.innerHTML = citas.map(c => {
-    const fechaStr = Array.isArray(c.fecha) ? `${c.fecha[2]}/${c.fecha[1]}/${c.fecha[0]}` : c.fecha;
+    let fechaStr = '';
     let cardStyle = '';
     let alertaHtml = '';
 
@@ -205,6 +207,7 @@ function renderizarCitasMovil() {
       let fechaCita;
       if (Array.isArray(c.fecha)) {
         fechaCita = new Date(c.fecha[0], c.fecha[1] - 1, c.fecha[2]);
+        fechaStr = c.fecha[0] !== añoActual ? `${c.fecha[2]}/${c.fecha[1]}/${c.fecha[0]}` : `${c.fecha[2]}/${c.fecha[1]}`;
       } else if (typeof c.fecha === 'string') {
         if (c.fecha.includes('-')) {
           const [year, month, day] = c.fecha.split('-').map(Number);
@@ -221,10 +224,10 @@ function renderizarCitasMovil() {
         fechaCita.setHours(0, 0, 0, 0);
         if (fechaCita < hoy) {
           cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
-          alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
+          alertaHtml = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:13px;font-weight:bold;">⚠️ PASADA</span>';
         } else if (fechaCita.getTime() === hoy.getTime()) {
-          cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
-          alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
+          alertaHtml = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold;">⚠️ Hoy</span>';
         }
       }
     }
@@ -241,11 +244,12 @@ function renderizarCitasMovil() {
               ${c.lugar ? `<span class="task-meta-item">📍 ${c.lugar}</span>` : ''}
               ${c.etiqueta ? `<span class="task-meta-item">🏷️ ${c.etiqueta}</span>` : ''}
             </div>
-            ${alertaHtml}
           </div>
-          <div class="task-buttons">
+          ${alertaHtml}
+          <div style="display: flex; flex-direction: row; gap: 6px;">
             <button class="task-btn btn-edit" onclick="editarCita('${c.id}')" title="Editar">✏️</button>
             <button class="task-btn btn-delete" onclick="eliminarCita('${c.id}')" title="Eliminar">🗑️</button>
+            <button class="task-btn btn-postpone" onclick="abrirModalMigrarCita('${c.id}')" title="Posponer" style="background: linear-gradient(135deg, #ff9800, #f57c00);">⏰</button>
           </div>
         </div>
       </div>
@@ -325,7 +329,7 @@ function renderizarListasMovil() {
 
   if (listaActiva) {
     const tareas = listaActiva.tareas || [];
-    const tareasPendientes = tareas.filter(t => !t.completada && t.estado !== 'completada').length;
+    const tareasPendientes = tareas.length;
 
     contentHtml = `
             <div class="task-card" style="border-left: 5px solid ${listaActiva.color || '#4ecdc4'}; margin-bottom: 16px; animation: fadeIn 0.3s ease;">
@@ -342,25 +346,57 @@ function renderizarListasMovil() {
     if (tareas.length === 0) {
       contentHtml += `<div style="padding: 20px; text-align: center; color: #999; font-style: italic;">No hay tareas en esta lista</div>`;
     } else {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const añoActual = hoy.getFullYear();
+      
       tareas.forEach((tarea, tIndex) => {
-        const isCompleted = tarea.completada || tarea.estado === 'completada';
-        const textStyle = isCompleted ? 'text-decoration: line-through; color: #999;' : 'color: #333;';
-        const opacity = isCompleted ? '0.6' : '1';
+        const textStyle = 'color: #333;';
+        const opacity = '1';
+        
+        let fechaFormateada = '';
+        let alertaBadge = '';
+        let cardStyle = '';
+        
+        if (tarea.fecha) {
+          let fechaTarea;
+          if (Array.isArray(tarea.fecha)) {
+            const [year, month, day] = tarea.fecha;
+            fechaFormateada = year !== añoActual ? `${day}/${month}/${year}` : `${day}/${month}`;
+            fechaTarea = new Date(year, month - 1, day);
+          } else if (typeof tarea.fecha === 'string') {
+            const [year, month, day] = tarea.fecha.split('-').map(Number);
+            fechaFormateada = year !== añoActual ? `${day}/${month}/${year}` : `${day}/${month}`;
+            fechaTarea = new Date(year, month - 1, day);
+          }
+          
+          if (fechaTarea) {
+            fechaTarea.setHours(0, 0, 0, 0);
+            if (fechaTarea < hoy) {
+              alertaBadge = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:13px;font-weight:bold;">⚠️ PASADA</span>';
+              cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);';
+            } else if (fechaTarea.getTime() === hoy.getTime()) {
+              alertaBadge = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold;">⚠️ Hoy</span>';
+              cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);';
+            }
+          }
+        }
 
         contentHtml += `
-                    <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; opacity: ${opacity};">
+                    <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; opacity: ${opacity}; ${cardStyle}">
+                        <span class="task-icon" style="font-size: 20px;">${listaActiva.emoji || '📋'}</span>
                         <div style="flex: 1; ${textStyle}">
                             ${tarea.texto}
-                            ${tarea.fecha ? `<div style="font-size: 11px; color: #666;">📅 ${tarea.fecha}</div>` : ''}
+                            ${fechaFormateada ? `<div style="font-size: 11px; color: #666;">📅 ${fechaFormateada}</div>` : ''}
                         </div>
                         
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                        ${alertaBadge}
+                        
+                        <div style="display: flex; flex-direction: row; gap: 6px;">
                             <button class="task-btn btn-edit" onclick="editarTareaListaPersonalizada('${listaActiva.id}', ${tIndex})" title="Editar" style="width: 36px; height: 36px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); background: linear-gradient(135deg, #2196F3, #1976D2); color: white; display: flex; align-items: center; justify-content: center;">✏️</button>
                             <button class="task-btn btn-delete" onclick="eliminarTareaListaPersonalizada('${listaActiva.id}', ${tIndex})" title="Eliminar" style="width: 36px; height: 36px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; display: flex; align-items: center; justify-content: center;">🗑️</button>
+                            <button class="task-btn btn-postpone" onclick="abrirModalMigrarListaPersonalizada('${listaActiva.id}', ${tIndex})" title="Posponer/Delegar" style="width: 36px; height: 36px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); background: linear-gradient(135deg, #ff9800, #f57c00); color: white; display: flex; align-items: center; justify-content: center;">⏰</button>
                         </div>
-                    </div>
-                    <div style="padding: 10px 14px; background: rgba(78, 205, 196, 0.05); border-bottom: 1px solid #eee;">
-                        <button class="action-btn btn-postpone" onclick="abrirModalMigrarListaPersonalizada('${listaActiva.id}', ${tIndex})" style="width: 100%; border: none; border-radius: 8px; padding: 8px; font-size: 12px; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #ff9800, #f57c00); color: white;">Posponer/Delegar</button>
                     </div>
                 `;
       });
@@ -943,5 +979,10 @@ function abrirModalMigrarLista(listaId, tareaId) {
 
 function abrirModalMigrarListaPersonalizada(listaId, tareaIndex) {
   window.tareaActualMigrar = { listaId, tareaIndex, tipo: 'lista-personalizada' };
+  abrirModal('modal-migrar');
+}
+
+function abrirModalMigrarCita(id) {
+  window.tareaActualMigrar = { id, tipo: 'cita' };
   abrirModal('modal-migrar');
 }
