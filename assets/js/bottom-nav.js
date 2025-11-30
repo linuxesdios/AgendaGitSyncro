@@ -64,12 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (diffX > 0) {
         // Swipe Derecha -> Pestaña Anterior (Izquierda)
-        // Ejemplo: De Citas a Críticas
         const prevIndex = (currentIndex - 1 + tabsOrder.length) % tabsOrder.length;
         cambiarTab(tabsOrder[prevIndex]);
       } else {
         // Swipe Izquierda -> Pestaña Siguiente (Derecha)
-        // Ejemplo: De Críticas a Citas
         const nextIndex = (currentIndex + 1) % tabsOrder.length;
         cambiarTab(tabsOrder[nextIndex]);
       }
@@ -92,8 +90,11 @@ function cambiarTab(tabName) {
   const icons = { criticas: '🚨', citas: '📅', listas: '📋', mas: '⚡' };
   const titles = { criticas: 'Tareas Críticas', citas: 'Citas', listas: 'Listas', mas: 'Más' };
 
-  document.getElementById('current-tab-icon').textContent = icons[tabName];
-  document.getElementById('current-tab-title').textContent = titles[tabName];
+  const iconEl = document.getElementById('current-tab-icon');
+  const titleEl = document.getElementById('current-tab-title');
+
+  if (iconEl) iconEl.textContent = icons[tabName];
+  if (titleEl) titleEl.textContent = titles[tabName];
 
   renderizarTab(tabName);
 }
@@ -116,6 +117,7 @@ function renderizarTodo() {
   renderizarListasMovil();
 }
 
+// ==================== RENDERIZADO DE CRÍTICAS ====================
 function renderizarCriticasMovil() {
   try {
     const container = document.getElementById('lista-criticas-movil');
@@ -134,7 +136,7 @@ function renderizarCriticasMovil() {
 
     container.innerHTML = activas.map(t => {
       let alertaHtml = '';
-      let cardStyle = ''; // Estilo para la tarjeta completa
+      let cardStyle = '';
 
       if (t.fecha_fin) {
         const [year, month, day] = t.fecha_fin.split('-').map(Number);
@@ -142,11 +144,9 @@ function renderizarCriticasMovil() {
         fechaTarea.setHours(0, 0, 0, 0);
 
         if (fechaTarea < hoy) {
-          // FECHA PASADA - Toda la tarjeta en rojo
           cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
           alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
         } else if (fechaTarea.getTime() === hoy.getTime()) {
-          // PARA HOY - Toda la tarjeta en amarillo
           cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
           alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
         }
@@ -166,32 +166,22 @@ function renderizarCriticasMovil() {
             ${alertaHtml}
           </div>
           <div class="task-buttons">
-            <button class="task-btn btn-edit" data-id="${t.id}" title="Editar">✏️</button>
-            <button class="task-btn btn-delete" data-id="${t.id}" title="Eliminar">🗑️</button>
+            <button class="task-btn btn-edit" onclick="editarTareaCritica('${t.id}')" title="Editar">✏️</button>
+            <button class="task-btn btn-delete" onclick="eliminarTareaCritica('${t.id}')" title="Eliminar">🗑️</button>
           </div>
         </div>
         <div class="task-actions">
-          <button class="action-btn btn-postpone" data-id="${t.id}" style="width:100%;">Posponer/Delegar</button>
+          <button class="action-btn btn-postpone" onclick="abrirModalMigrarCritica('${t.id}')" style="width:100%;">Posponer/Delegar</button>
         </div>
       </div>
     `;
     }).join('');
-
-    // Agregar event listeners
-    container.querySelectorAll('.btn-edit').forEach(btn => {
-      btn.addEventListener('click', () => editarTareaCritica(btn.dataset.id));
-    });
-    container.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => eliminarTareaCritica(btn.dataset.id));
-    });
-    container.querySelectorAll('.btn-postpone').forEach(btn => {
-      btn.addEventListener('click', () => abrirModalMigrarCritica(btn.dataset.id));
-    });
   } catch (error) {
     console.error('❌ ERROR en renderizarCriticas:', error);
   }
 }
 
+// ==================== RENDERIZADO DE CITAS ====================
 function renderizarCitasMovil() {
   const container = document.getElementById('lista-citas-movil');
   if (!container) return;
@@ -230,11 +220,9 @@ function renderizarCitasMovil() {
       if (fechaCita) {
         fechaCita.setHours(0, 0, 0, 0);
         if (fechaCita < hoy) {
-          // FECHA PASADA - Toda la tarjeta en rojo
           cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
           alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
         } else if (fechaCita.getTime() === hoy.getTime()) {
-          // PARA HOY - Toda la tarjeta en amarillo
           cardStyle = 'background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
           alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
         }
@@ -265,105 +253,130 @@ function renderizarCitasMovil() {
   }).join('');
 }
 
+// ==================== RENDERIZADO DE LISTAS (PESTAÑAS) ====================
 function renderizarListasMovil() {
-  const container = document.getElementById('listas-personalizadas-movil');
-  if (!container) return;
+  console.log('📱 RENDERIZANDO LISTAS PARA MÓVIL (MODO PESTAÑAS)');
+  const contenedor = document.getElementById('listas-personalizadas-movil');
 
-  // CORRECCIÓN: Leer de window.tareasData que es donde Supabase guarda las listas ahora
-  const listas = window.tareasData?.listasPersonalizadas || window.configVisual?.listasPersonalizadas || [];
+  if (!contenedor) return;
 
-  console.log('📱 Renderizando listas móvil. Encontradas:', listas.length);
+  const listas = window.tareasData?.listasPersonalizadas || [];
 
   if (listas.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No hay listas personalizadas<br><small>Crea una en Configuración</small></div></div>';
+    contenedor.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-text">No hay listas personalizadas<br><small>Crea una en Configuración</small></div>
+            </div>
+        `;
     return;
   }
 
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  // Inicializar lista activa si no existe o no es válida
+  if (!window.activeListId || !listas.find(l => l.id === window.activeListId)) {
+    window.activeListId = listas[0].id;
+  }
 
-  let html = '';
-  let totalTareas = 0;
-
-  listas.forEach(lista => {
-    const tareas = lista.tareas || [];
-    const activas = tareas.filter(t => !t.completada);
-    totalTareas += activas.length;
-
-    html += `
-      <div style="background:${lista.color || '#667eea'};padding:16px;margin-bottom:12px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);color:white;">
-        <div style="font-size:18px;font-weight:600;margin-bottom:8px;">${lista.emoji || '📝'} ${lista.nombre}</div>
-        <div style="font-size:13px;opacity:0.9;">📊 ${activas.length} tareas activas</div>
-      </div>
+  // 1. Renderizar Pestañas (Scroll Horizontal)
+  let tabsHtml = `
+        <div class="list-tabs-container" style="
+            display: flex; 
+            overflow-x: auto; 
+            padding: 10px 5px; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+            border-bottom: 1px solid #eee;
+        ">
     `;
 
-    activas.forEach(tarea => {
-      let fechaStr = '';
-      let alertaHtml = '';
-      let cardStyle = `margin-left:20px;border-left:4px solid ${lista.color || '#667eea'};`; // Estilo base
+  listas.forEach(lista => {
+    const isActive = lista.id === window.activeListId;
+    const bg = isActive ? (lista.color || '#4ecdc4') : '#f0f0f0';
+    const color = isActive ? '#fff' : '#666';
+    const fontWeight = isActive ? 'bold' : 'normal';
+    const border = isActive ? 'none' : '1px solid #ddd';
 
-      if (tarea.fecha) {
-        let fechaTarea;
-
-        if (Array.isArray(tarea.fecha)) {
-          fechaStr = `${tarea.fecha[2]}/${tarea.fecha[1]}/${tarea.fecha[0]}`;
-          fechaTarea = new Date(tarea.fecha[0], tarea.fecha[1] - 1, tarea.fecha[2]);
-          fechaTarea.setHours(0, 0, 0, 0);
-        } else if (typeof tarea.fecha === 'string') {
-          fechaStr = tarea.fecha;
-          // Intentar parsear diferentes formatos
-          if (tarea.fecha.includes('-')) {
-            const [year, month, day] = tarea.fecha.split('-').map(Number);
-            fechaTarea = new Date(year, month - 1, day);
-          } else if (tarea.fecha.includes('/')) {
-            const parts = tarea.fecha.split('/');
-            if (parts[2]?.length === 4) {
-              fechaTarea = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
-          }
-        }
-
-        if (fechaTarea) {
-          fechaTarea.setHours(0, 0, 0, 0);
-          if (fechaTarea < hoy) {
-            // FECHA PASADA - Toda la tarjeta en rojo
-            cardStyle = 'margin-left:20px;background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 4px solid #f44336;';
-            alertaHtml = '<div style="background:#f44336;color:white;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️⚠️⚠️ Fecha pasada</div>';
-          } else if (fechaTarea.getTime() === hoy.getTime()) {
-            // PARA HOY - Toda la tarjeta en amarillo
-            cardStyle = 'margin-left:20px;background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-left: 4px solid #fbc02d;';
-            alertaHtml = '<div style="background:#fbc02d;color:#000;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;margin-top:8px;">⚠️ Para hoy</div>';
-          }
-        }
-      }
-
-      html += `
-        <div class="task-card" style="${cardStyle}">
-          <div class="task-main">
-            <span class="task-icon">${lista.emoji || '📝'}</span>
-            <div class="task-content-area">
-              <div class="task-title">${tarea.texto || 'Sin título'}</div>
-              <div class="task-meta">
-                ${fechaStr ? `<span class="task-meta-item">📅 ${fechaStr}</span>` : ''}
-                ${tarea.persona ? `<span class="task-meta-item">👤 ${tarea.persona}</span>` : ''}
-                ${tarea.etiqueta ? `<span class="task-meta-item">🏷️ ${tarea.etiqueta}</span>` : ''}
-              </div>
-              ${alertaHtml}
-            </div>
-            <div class="task-buttons">
-              <button class="task-btn btn-edit" onclick="editarTareaLista('${lista.id}', ${tarea.id})" title="Editar">✏️</button>
-              <button class="task-btn btn-delete" onclick="eliminarTareaLista('${lista.id}', ${tarea.id})" title="Eliminar">🗑️</button>
-            </div>
-          </div>
-          <div class="task-actions">
-            <button class="action-btn btn-postpone" onclick="abrirModalMigrarLista('${lista.id}', ${tarea.id})" style="width:100%;">Posponer/Delegar</button>
-          </div>
-        </div>
-      `;
-    });
+    tabsHtml += `
+            <button onclick="cambiarListaActiva('${lista.id}')" 
+                    style="
+                        background: ${bg}; 
+                        color: ${color}; 
+                        border: ${border}; 
+                        padding: 8px 16px; 
+                        border-radius: 20px; 
+                        white-space: nowrap; 
+                        font-weight: ${fontWeight}; 
+                        font-size: 14px; 
+                        box-shadow: ${isActive ? '0 2px 5px rgba(0,0,0,0.2)' : 'none'};
+                        transition: all 0.2s ease;
+                        flex-shrink: 0;
+                    ">
+                ${lista.emoji || '📝'} ${lista.nombre}
+            </button>
+        `;
   });
+  tabsHtml += '</div>';
 
-  container.innerHTML = html;
+  // 2. Renderizar Contenido de la Lista Activa
+  const listaActiva = listas.find(l => l.id === window.activeListId);
+  let contentHtml = '';
+
+  if (listaActiva) {
+    const tareas = listaActiva.tareas || [];
+    const tareasPendientes = tareas.filter(t => !t.completada && t.estado !== 'completada').length;
+
+    contentHtml = `
+            <div class="task-card" style="border-left: 5px solid ${listaActiva.color || '#4ecdc4'}; margin-bottom: 16px; animation: fadeIn 0.3s ease;">
+                <div style="padding: 12px; background: rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">${listaActiva.emoji || '📋'}</span>
+                        <span style="font-weight: bold; color: #333;">${listaActiva.nombre}</span>
+                        <span style="background: ${listaActiva.color || '#4ecdc4'}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">${tareasPendientes}</span>
+                    </div>
+                    <button onclick="abrirModalNuevaTareaLista('${listaActiva.id}')" style="background: none; border: none; font-size: 18px; cursor: pointer;">➕</button>
+                </div>
+                <div style="padding: 0;">`;
+
+    if (tareas.length === 0) {
+      contentHtml += `<div style="padding: 20px; text-align: center; color: #999; font-style: italic;">No hay tareas en esta lista</div>`;
+    } else {
+      tareas.forEach((tarea, tIndex) => {
+        const isCompleted = tarea.completada || tarea.estado === 'completada';
+        const textStyle = isCompleted ? 'text-decoration: line-through; color: #999;' : 'color: #333;';
+        const opacity = isCompleted ? '0.6' : '1';
+
+        contentHtml += `
+                    <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; opacity: ${opacity};">
+                        <input type="checkbox" 
+                               ${isCompleted ? 'checked' : ''} 
+                               onchange="toggleTareaListaPersonalizada('${listaActiva.id}', ${tIndex})"
+                               style="width: 18px; height: 18px; accent-color: ${listaActiva.color};">
+                        
+                        <div style="flex: 1; ${textStyle}" onclick="editarTareaListaPersonalizada('${listaActiva.id}', ${tIndex})">
+                            ${tarea.texto}
+                            ${tarea.fecha ? `<div style="font-size: 11px; color: #666;">📅 ${tarea.fecha}</div>` : ''}
+                        </div>
+                        
+                        <button onclick="eliminarTareaListaPersonalizada('${listaActiva.id}', ${tIndex})" 
+                                style="background: none; border: none; color: #ff6b6b; font-size: 16px;">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+      });
+    }
+    contentHtml += `</div></div>`;
+  }
+
+  contenedor.innerHTML = tabsHtml + contentHtml;
+}
+
+// Función global para cambiar de pestaña
+window.cambiarListaActiva = function (id) {
+  window.activeListId = id;
+  renderizarListasMovil();
 }
 
 // ==================== FUNCIONES AUXILIARES PARA TAREAS CRÍTICAS ====================

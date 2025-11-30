@@ -1842,256 +1842,203 @@
           </div>
           <div>
             <label style="font-size:12px;">Años:</label>
-            <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;"
-              oninput="actualizarPreviewFecha()">
+            <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
           </div>
         </div>
+      </div>
 
-        <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-          <div>
-            <label style="font-size:12px;">Hora:</label>
-            <select id="hora-cita-relativa" style="width:100%;padding:6px;">
-              <option value="08">08</option>
-              <option value="09">09</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-              <option value="13">13</option>
-              <option value="14" selected>14</option>
-              <option value="15">15</option>
-              <option value="16">16</option>
-              <option value="17">17</option>
-              <option value="18">18</option>
-              <option value="19">19</option>
-              <option value="20">20</option>
-              <option value="21">21</option>
-              <option value="22">22</option>
-            </select>
+      <!-- Modal Pomodoro -->
+      <div id="modal-pomodoro" class="modal">
+        <div class="modal-content" style="max-width:400px;text-align:center;">
+          <h4 id="pomodoro-titulo">🍅 Pomodoro TDAH</h4>
+          <div id="pomodoro-estado-inicial">
+            <div style="margin-bottom:20px;">
+              <label style="font-weight:500;margin-bottom:10px;display:block;">¿Qué estás haciendo ahora?</label>
+              <input type="text" id="pomodoro-actividad" placeholder="Estudiar, trabajar, organizar..."
+                style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            </div>
+            <div style="margin-bottom:20px;">
+              <label style="font-weight:500;margin-bottom:10px;display:block;">Duración (minutos):</label>
+              <input type="number" id="pomodoro-duracion" value="25" min="1" max="180"
+                style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            </div>
+            <div class="modal-botones">
+              <button class="btn-primario" onclick="empezarPomodoro()">🚀 Empezar</button>
+              <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cancelar</button>
+            </div>
           </div>
-          <div>
-            <label style="font-size:12px;">Minutos:</label>
-            <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
-              <option value="00" selected>00</option>
-              <option value="05">05</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-              <option value="35">35</option>
-              <option value="40">40</option>
-              <option value="45">45</option>
-              <option value="50">50</option>
-              <option value="55">55</option>
-            </select>
+
+          <div id="pomodoro-en-curso" style="display:none;">
+            <div style="font-size:18px;margin-bottom:15px;color:#2c5aa0;">
+              <strong>Haciendo:</strong> <span id="actividad-actual"></span>
+            </div>
+            <div id="cronometro" style="font-size:48px;font-weight:bold;color:#e74c3c;margin:20px 0;">
+              25:00
+            </div>
+            <div class="modal-botones">
+              <button class="btn-primario" onclick="terminarPomodoro()">✅ Terminar</button>
+              <button class="btn-secundario" onclick="pausarPomodoro()" id="btn-pausar">⏸️ Pausar</button>
+              <button class="btn-secundario" onclick="cancelarPomodoro()">❌ Cancelar</button>
+            </div>
           </div>
-        </div>
 
-        <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir
-          cita</button>
-      </div>
-
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Pomodoro -->
-  <div id="modal-pomodoro" class="modal">
-    <div class="modal-content" style="max-width:400px;text-align:center;">
-      <h4 id="pomodoro-titulo">🍅 Pomodoro TDAH</h4>
-      <div id="pomodoro-estado-inicial">
-        <div style="margin-bottom:20px;">
-          <label style="font-weight:500;margin-bottom:10px;display:block;">¿Qué estás haciendo ahora?</label>
-          <input type="text" id="pomodoro-actividad" placeholder="Estudiar, trabajar, organizar..."
-            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
-        </div>
-        <div style="margin-bottom:20px;">
-          <label style="font-weight:500;margin-bottom:10px;display:block;">Duración (minutos):</label>
-          <input type="number" id="pomodoro-duracion" value="25" min="1" max="180"
-            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="empezarPomodoro()">🚀 Empezar</button>
-          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cancelar</button>
-        </div>
-      </div>
-
-      <div id="pomodoro-en-curso" style="display:none;">
-        <div style="font-size:18px;margin-bottom:15px;color:#2c5aa0;">
-          <strong>Haciendo:</strong> <span id="actividad-actual"></span>
-        </div>
-        <div id="cronometro" style="font-size:48px;font-weight:bold;color:#e74c3c;margin:20px 0;">
-          25:00
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="terminarPomodoro()">✅ Terminar</button>
-          <button class="btn-secundario" onclick="pausarPomodoro()" id="btn-pausar">⏸️ Pausar</button>
-          <button class="btn-secundario" onclick="cancelarPomodoro()">❌ Cancelar</button>
-        </div>
-      </div>
-
-      <div id="pomodoro-completado" style="display:none;">
-        <div style="font-size:64px;margin:20px 0;">🎉</div>
-        <h3 style="color:#27ae60;">¡Pomodoro Completado!</h3>
-        <div style="margin:15px 0;color:#666;">
-          Has trabajado en: <strong id="actividad-completada"></strong>
-        </div>
-        <div class="modal-botones">
-          <button class="btn-primario" onclick="nuevoPomodoro()">🔄 Nuevo Pomodoro</button>
-          <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para Listas Personalizadas -->
-  <div id="modal-listas-personalizadas" class="modal">
-    <div class="modal-content" style="max-width:500px;max-height:90vh;overflow-y:auto;">
-      <h4>📋 Listas Personalizadas</h4>
-      <p style="color:#666;font-size:13px;margin-bottom:15px;">
-        Crea listas adicionales que aparecerán después de "Listas para hacer"
-      </p>
-
-      <div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">
-        <h5 style="margin:0 0 10px 0;">📝 Añade tus listas personalizadas...</h5>
-
-        <div class="form-group">
-          <label>Nombre de la lista:</label>
-          <input type="text" id="nueva-lista-nombre" placeholder="Ej: Médico, Ocio, Trabajo...">
-        </div>
-
-        <div class="form-group">
-          <label>Emoji:</label>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;max-width:100%;">
-            <input type="text" id="nueva-lista-emoji" placeholder="🏥" style="width:60px;text-align:center;">
-            <!-- Salud -->
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🏥')" class="btn-icono"
-              title="Hospital">🏥</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💊')" class="btn-icono"
-              title="Medicina">💊</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🦷')" class="btn-icono"
-              title="Dentista">🦷</button>
-            <!-- Trabajo/Estudio -->
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💼')" class="btn-icono"
-              title="Trabajo">💼</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '📚')" class="btn-icono"
-              title="Estudio">📚</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💻')" class="btn-icono"
-              title="Ordenador">💻</button>
-            <!-- Ocio -->
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🎮')" class="btn-icono"
-              title="Juegos">🎮</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🎨')" class="btn-icono"
-              title="Arte">🎨</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '✈️')" class="btn-icono"
-              title="Viaje">✈️</button>
-            <!-- Casa/Personal -->
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🏠')" class="btn-icono"
-              title="Casa">🏠</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🛒')" class="btn-icono"
-              title="Compras">🛒</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💪')" class="btn-icono"
-              title="Ejercicio">💪</button>
-            <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🐶')" class="btn-icono"
-              title="Mascota">🐶</button>
+          <div id="pomodoro-completado" style="display:none;">
+            <div style="font-size:64px;margin:20px 0;">🎉</div>
+            <h3 style="color:#27ae60;">¡Pomodoro Completado!</h3>
+            <div style="margin:15px 0;color:#666;">
+              Has trabajado en: <strong id="actividad-completada"></strong>
+            </div>
+            <div class="modal-botones">
+              <button class="btn-primario" onclick="nuevoPomodoro()">🔄 Nuevo Pomodoro</button>
+              <button class="btn-secundario" onclick="cerrarModal('modal-pomodoro')">Cerrar</button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label>Color:</label>
-          <input type="color" id="nueva-lista-color" value="#4ecdc4" style="width:100%;height:38px;padding:2px;">
+      <!-- Modal para Listas Personalizadas -->
+      <div id="modal-listas-personalizadas" class="modal">
+        <div class="modal-content" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+          <h4>📋 Listas Personalizadas</h4>
+          <p style="color:#666;font-size:13px;margin-bottom:15px;">
+            Crea listas adicionales que aparecerán después de "Listas para hacer"
+          </p>
+
+          <div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">
+            <h5 style="margin:0 0 10px 0;">📝 Añade tus listas personalizadas...</h5>
+
+            <div class="form-group">
+              <label>Nombre de la lista:</label>
+              <input type="text" id="nueva-lista-nombre" placeholder="Ej: Médico, Ocio, Trabajo...">
+            </div>
+
+            <div class="form-group">
+              <label>Emoji:</label>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;max-width:100%;">
+                <input type="text" id="nueva-lista-emoji" placeholder="🏥" style="width:60px;text-align:center;">
+                <!-- Salud -->
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🏥')" class="btn-icono"
+                  title="Hospital">🏥</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💊')" class="btn-icono"
+                  title="Medicina">💊</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🦷')" class="btn-icono"
+                  title="Dentista">🦷</button>
+                <!-- Trabajo/Estudio -->
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💼')" class="btn-icono"
+                  title="Trabajo">💼</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '📚')" class="btn-icono"
+                  title="Estudio">📚</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💻')" class="btn-icono"
+                  title="Ordenador">💻</button>
+                <!-- Ocio -->
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🎮')" class="btn-icono"
+                  title="Juegos">🎮</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🎨')" class="btn-icono"
+                  title="Arte">🎨</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '✈️')" class="btn-icono"
+                  title="Viaje">✈️</button>
+                <!-- Casa/Personal -->
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🏠')" class="btn-icono"
+                  title="Casa">🏠</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🛒')" class="btn-icono"
+                  title="Compras">🛒</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '💪')" class="btn-icono"
+                  title="Ejercicio">💪</button>
+                <button type="button" onclick="insertarEmojiEnInput('nueva-lista-emoji', '🐶')" class="btn-icono"
+                  title="Mascota">🐶</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Color:</label>
+              <input type="color" id="nueva-lista-color" value="#4ecdc4" style="width:100%;height:38px;padding:2px;">
+            </div>
+
+            <button class="btn-primario" onclick="agregarListaPersonalizadaDesdeModal()"
+              style="width:100%;margin-top:10px;">
+              ✓ Añadir Lista
+            </button>
+          </div>
+
+          <div id="lista-preview-container" style="margin-bottom:20px;">
+            <h5 style="margin:0 0 10px 0;">Listas Actuales:</h5>
+            <div id="listas-personalizadas-modal-lista"
+              style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:4px;padding:5px;"></div>
+          </div>
+
+          <div class="modal-botones">
+            <button class="btn-primario" onclick="guardarYSalirListasPersonalizadas()">✨ Aplicar Configuración
+              Visual</button>
+            <button class="btn-secundario" onclick="cerrarModal('modal-listas-personalizadas')">Cancelar</button>
+          </div>
         </div>
-
-        <button class="btn-primario" onclick="agregarListaPersonalizadaDesdeModal()"
-          style="width:100%;margin-top:10px;">
-          ✓ Añadir Lista
-        </button>
+        <div>
+          <label style="font-size:12px;">Días:</label>
+          <input type="number" id="dias-offset" value="0" min="-365" max="365" style="width:100%;padding:6px;"
+            oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Meses:</label>
+          <input type="number" id="meses-offset" value="0" min="-12" max="12" style="width:100%;padding:6px;"
+            oninput="actualizarPreviewFecha()">
+        </div>
+        <div>
+          <label style="font-size:12px;">Años:</label>
+          <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;"
+            oninput="actualizarPreviewFecha()">
+        </div>
       </div>
 
-      <div id="lista-preview-container" style="margin-bottom:20px;">
-        <h5 style="margin:0 0 10px 0;">Listas Actuales:</h5>
-        <div id="listas-personalizadas-modal-lista"
-          style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:4px;padding:5px;"></div>
+      <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <div>
+          <label style="font-size:12px;">Hora:</label>
+          <select id="hora-cita-relativa" style="width:100%;padding:6px;">
+            <option value="08">08</option>
+            <option value="09">09</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14" selected>14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Minutos:</label>
+          <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
+            <option value="00" selected>00</option>
+            <option value="05">05</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+            <option value="35">35</option>
+            <option value="40">40</option>
+            <option value="45">45</option>
+            <option value="50">50</option>
+            <option value="55">55</option>
+          </select>
+        </div>
       </div>
 
-      <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarYSalirListasPersonalizadas()">✨ Aplicar Configuración
-          Visual</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-listas-personalizadas')">Cancelar</button>
-      </div>
+      <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir
+        cita</button>
     </div>
-    <div>
-      <label style="font-size:12px;">Días:</label>
-      <input type="number" id="dias-offset" value="0" min="-365" max="365" style="width:100%;padding:6px;"
-        oninput="actualizarPreviewFecha()">
-    </div>
-    <div>
-      <label style="font-size:12px;">Meses:</label>
-      <input type="number" id="meses-offset" value="0" min="-12" max="12" style="width:100%;padding:6px;"
-        oninput="actualizarPreviewFecha()">
-    </div>
-    <div>
-      <label style="font-size:12px;">Años:</label>
-      <input type="number" id="anos-offset" value="0" min="-5" max="5" style="width:100%;padding:6px;"
-        oninput="actualizarPreviewFecha()">
-    </div>
-  </div>
 
-  <div id="preview-fecha" class="offset-preview">Fecha resultante: --</div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
-    <div>
-      <label style="font-size:12px;">Hora:</label>
-      <select id="hora-cita-relativa" style="width:100%;padding:6px;">
-        <option value="08">08</option>
-        <option value="09">09</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14" selected>14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-        <option value="19">19</option>
-        <option value="20">20</option>
-        <option value="21">21</option>
-        <option value="22">22</option>
-      </select>
+    <div class="modal-botones">
+      <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
+      <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
     </div>
-    <div>
-      <label style="font-size:12px;">Minutos:</label>
-      <select id="minutos-cita-relativa" style="width:100%;padding:6px;">
-        <option value="00" selected>00</option>
-        <option value="05">05</option>
-        <option value="10">10</option>
-        <option value="15">15</option>
-        <option value="20">20</option>
-        <option value="25">25</option>
-        <option value="30">30</option>
-        <option value="35">35</option>
-        <option value="40">40</option>
-        <option value="45">45</option>
-        <option value="50">50</option>
-        <option value="55">55</option>
-      </select>
-    </div>
-  </div>
-
-  <button onclick="agregarCitaRelativa()" class="boton-agregar" style="width:100%;margin-bottom:10px;">➕ Añadir
-    cita</button>
-  </div>
-
-  <div class="modal-botones">
-    <button class="btn-primario" onclick="guardarCitasRelativas()">Guardar todas</button>
-    <button class="btn-secundario" onclick="cerrarModal('modal-citas-relativas')">Cancelar</button>
-  </div>
   </div>
   </div>
 
