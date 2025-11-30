@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Inicializar bottom nav
+  renderizarBottomNav();
+
   // Escuchar evento de Supabase
   window.addEventListener('supabaseDataLoaded', () => {
     renderizarTodo();
@@ -23,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Timeout de seguridad
   setTimeout(() => {
+    renderizarBottomNav();
     renderizarTodo();
   }, 3000);
 
@@ -37,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let touchEndX = 0;
   let touchEndY = 0;
 
-  const tabsOrder = ['criticas', 'citas', 'listas'];
+  // tabsOrder se genera dinámicamente ahora
 
   document.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -87,14 +91,34 @@ function cambiarTab(tabName) {
   });
 
   // Actualizar header
-  const icons = { criticas: '🚨', citas: '📅', listas: '📋' };
-  const titles = { criticas: 'Tareas Críticas', citas: 'Citas', listas: 'Listas' };
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const listaActual = listas.find(l => l.id === tabName);
+  
+  let icon = '🚨';
+  let title = 'Tareas Críticas';
+  let count = 0;
+  
+  if (tabName === 'criticas') {
+    icon = '🚨';
+    title = 'Tareas Críticas';
+    count = (window.appState?.agenda?.tareas_criticas || []).filter(t => !t.completada).length;
+  } else if (tabName === 'citas') {
+    icon = '📅';
+    title = 'Citas';
+    count = (window.appState?.agenda?.citas || []).length;
+  } else if (listaActual) {
+    icon = listaActual.emoji || '📋';
+    title = listaActual.nombre;
+    count = (listaActual.tareas || []).length;
+  }
 
   const iconEl = document.getElementById('current-tab-icon');
   const titleEl = document.getElementById('current-tab-title');
+  const badgeEl = document.getElementById('current-tab-badge');
 
-  if (iconEl) iconEl.textContent = icons[tabName];
-  if (titleEl) titleEl.textContent = titles[tabName];
+  if (iconEl) iconEl.textContent = icon;
+  if (titleEl) titleEl.textContent = title;
+  if (badgeEl) badgeEl.textContent = count;
 
   renderizarTab(tabName);
 }
@@ -103,9 +127,14 @@ function renderizarTab(tabName) {
   if (!tabName) return;
 
   try {
-    if (tabName === 'criticas') renderizarCriticasMovil();
-    if (tabName === 'citas') renderizarCitasMovil();
-    if (tabName === 'listas') renderizarListasMovil();
+    if (tabName === 'criticas') {
+      renderizarCriticasMovil();
+    } else if (tabName === 'citas') {
+      renderizarCitasMovil();
+    } else {
+      // Es una lista personalizada
+      renderizarListaPersonalizadaMovil(tabName);
+    }
   } catch (error) {
     console.error('❌ Error en renderizarTab:', error);
   }
@@ -114,7 +143,11 @@ function renderizarTab(tabName) {
 function renderizarTodo() {
   renderizarCriticasMovil();
   renderizarCitasMovil();
-  renderizarListasMovil();
+  renderizarBottomNav();
+  
+  // Re-renderizar la tab activa
+  const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
+  if (activeTab) renderizarTab(activeTab);
 }
 
 // ==================== RENDERIZADO DE CRÍTICAS ====================
@@ -985,4 +1018,141 @@ function abrirModalMigrarListaPersonalizada(listaId, tareaIndex) {
 function abrirModalMigrarCita(id) {
   window.tareaActualMigrar = { id, tipo: 'cita' };
   abrirModal('modal-migrar');
+}
+
+// ==================== RENDERIZADO DE LISTA PERSONALIZADA INDIVIDUAL ====================
+function renderizarListaPersonalizadaMovil(listaId) {
+  const container = document.getElementById(`tab-${listaId}`);
+  if (!container) return;
+
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+  
+  if (!lista) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Lista no encontrada</div></div>';
+    return;
+  }
+
+  const tareas = lista.tareas || [];
+
+  if (tareas.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">' + (lista.emoji || '📋') + '</div><div class="empty-text">No hay tareas en esta lista<br><small>Crea una nueva con el botón +</small></div></div>';
+    return;
+  }
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const añoActual = hoy.getFullYear();
+
+  container.innerHTML = tareas.map((tarea, tIndex) => {
+    const textStyle = 'color: #333;';
+    const opacity = '1';
+    
+    let fechaFormateada = '';
+    let alertaBadge = '';
+    let cardStyle = '';
+    
+    if (tarea.fecha) {
+      let fechaTarea;
+      if (Array.isArray(tarea.fecha)) {
+        const [year, month, day] = tarea.fecha;
+        fechaFormateada = year !== añoActual ? `${day}/${month}/${year}` : `${day}/${month}`;
+        fechaTarea = new Date(year, month - 1, day);
+      } else if (typeof tarea.fecha === 'string') {
+        const [year, month, day] = tarea.fecha.split('-').map(Number);
+        fechaFormateada = year !== añoActual ? `${day}/${month}/${year}` : `${day}/${month}`;
+        fechaTarea = new Date(year, month - 1, day);
+      }
+      
+      if (fechaTarea) {
+        fechaTarea.setHours(0, 0, 0, 0);
+        if (fechaTarea < hoy) {
+          alertaBadge = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:13px;font-weight:bold;">⚠️ PASADA</span>';
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);';
+        } else if (fechaTarea.getTime() === hoy.getTime()) {
+          alertaBadge = '<span style="background:#f44336;color:white;padding:4px 8px;border-radius:12px;font-size:10px;font-weight:bold;">⚠️ Hoy</span>';
+          cardStyle = 'background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);';
+        }
+      }
+    }
+
+    return `
+      <div class="task-card" style="${cardStyle}">
+        <div class="task-main">
+          <span class="task-icon">${lista.emoji || '📋'}</span>
+          <div class="task-content-area">
+            <div class="task-title">${tarea.texto}</div>
+            <div class="task-meta">
+              ${fechaFormateada ? `<span class="task-meta-item">📅 ${fechaFormateada}</span>` : ''}
+              ${tarea.persona ? `<span class="task-meta-item">👤 ${tarea.persona}</span>` : ''}
+              ${tarea.etiqueta ? `<span class="task-meta-item">🏷️ ${tarea.etiqueta}</span>` : ''}
+            </div>
+          </div>
+          ${alertaBadge}
+          <div style="display: flex; flex-direction: row; gap: 6px;">
+            <button class="task-btn btn-edit" onclick="editarTareaListaPersonalizada('${lista.id}', ${tIndex})" title="Editar">✏️</button>
+            <button class="task-btn btn-delete" onclick="eliminarTareaListaPersonalizada('${lista.id}', ${tIndex})" title="Eliminar">🗑️</button>
+            <button class="task-btn btn-postpone" onclick="abrirModalMigrarListaPersonalizada('${lista.id}', ${tIndex})" title="Posponer/Delegar" style="background: linear-gradient(135deg, #ff9800, #f57c00);">⏰</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== RENDERIZADO DINÁMICO DEL BOTTOM NAV ====================
+function renderizarBottomNav() {
+  const bottomNav = document.querySelector('.bottom-nav');
+  if (!bottomNav) return;
+
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  
+  let navHtml = `
+    <button class="nav-item active" data-tab="criticas">
+      <span class="nav-icon">🚨</span>
+      <span class="nav-label">Críticas</span>
+      <span class="nav-indicator"></span>
+    </button>
+    <button class="nav-item" data-tab="citas">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Citas</span>
+      <span class="nav-indicator"></span>
+    </button>
+  `;
+
+  listas.forEach(lista => {
+    navHtml += `
+      <button class="nav-item" data-tab="${lista.id}">
+        <span class="nav-icon">${lista.emoji || '📋'}</span>
+        <span class="nav-label">${lista.nombre}</span>
+        <span class="nav-indicator"></span>
+      </button>
+    `;
+  });
+
+  bottomNav.innerHTML = navHtml;
+
+  // Re-asignar eventos
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cambiarTab(btn.dataset.tab);
+    });
+  });
+
+  // Crear tabs dinámicos
+  const mobileContent = document.querySelector('.mobile-content');
+  if (!mobileContent) return;
+
+  // Mantener tabs existentes
+  const existingTabs = ['tab-criticas', 'tab-citas'];
+  
+  // Añadir tabs para listas personalizadas
+  listas.forEach(lista => {
+    if (!document.getElementById(`tab-${lista.id}`)) {
+      const newTab = document.createElement('div');
+      newTab.id = `tab-${lista.id}`;
+      newTab.className = 'tab-content';
+      mobileContent.appendChild(newTab);
+    }
+  });
 }

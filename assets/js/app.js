@@ -3022,6 +3022,11 @@ async function agregarListaPersonalizada() {
       // Re-renderizar configuración PRIMERO
       renderizarListasPersonalizadas();
 
+      // Actualizar bottom navigation
+      if (typeof renderizarBottomNav === 'function') {
+        renderizarBottomNav();
+      }
+
       // Regenerar las secciones principales para incluir la nueva lista
       setTimeout(() => {
         console.log('🔄 Regenerando secciones principales...');
@@ -4262,6 +4267,11 @@ function eliminarListaPersonalizada(listaId) {
   // Re-renderizar el panel de configuración
   if (typeof renderizarListasPersonalizadas === 'function') {
     renderizarListasPersonalizadas();
+  }
+
+  // Actualizar bottom navigation
+  if (typeof renderizarBottomNav === 'function') {
+    renderizarBottomNav();
   }
 
   registrarAccion('Eliminar lista personalizada', lista.nombre);
