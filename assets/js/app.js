@@ -1469,6 +1469,7 @@ function cargarConfigFuncionalesEnFormulario() {
 
   // 🔍 LOG DE DEPURACIÓN: Ver qué se está cargando
   console.log('📥 CARGANDO Config Funcional desde Supabase:', config);
+  console.log('🔍 Llamado desde:', new Error().stack.split('\n')[2]);
   console.log('📋 Detalles:', {
     fechaObligatoria: config.fechaObligatoria,
     confirmacionBorrar: config.confirmacionBorrar,
