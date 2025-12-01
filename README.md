@@ -164,6 +164,8 @@ Ahora que tienes Supabase configurado, vamos a conectar la aplicación:
 
 ## 6. Verificar conexión
 
+[![Mira el video](https://img.youtube.com/vi/O3i5Zb5G4EU/0.jpg)](https://www.youtube.com/watch?v=O3i5Zb5G4EU)
+
 Es importante verificar que todo funciona correctamente:
 
 1. **Probar conexión:**
