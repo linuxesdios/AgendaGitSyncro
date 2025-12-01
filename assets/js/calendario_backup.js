@@ -1,10 +1,10 @@
-﻿// ========== GESTIÓN DEL CALENDARIO ==========
+﻿// ========== GESTIÃ“N DEL CALENDARIO ==========
 
 // ========== FUNCIONES HELPER PARA FECHAS ==========
 function fechaArrayToString(fechaArray) {
   if (!Array.isArray(fechaArray) || fechaArray.length !== 3) return '';
-  const [ano, mes, dia] = fechaArray;
-  return `${ano}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+  const [aÃ±o, mes, dia] = fechaArray;
+  return `${aÃ±o}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
 }
 
 function fechaStringToArray(fechaString) {
@@ -16,7 +16,7 @@ function compararFechaConString(fechaArray, fechaString) {
   return fechaArrayToString(fechaArray) === fechaString;
 }
 
-// ========== INICIALIZACIÓN DEL CALENDARIO ==========
+// ========== INICIALIZACIÃ“N DEL CALENDARIO ==========
 function initializeCalendar() {
   const prevMonthBtn = document.getElementById('prevMonth');
   const nextMonthBtn = document.getElementById('nextMonth');
@@ -40,12 +40,12 @@ function renderCalendar() {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
 
-  // Obtener configuración de qué mostrar en el calendario
+  // Obtener configuraciÃ³n de quÃ© mostrar en el calendario
   const config = window.configVisual || {};
   const mostrarCitas = config.calendarioMostrarCitas !== false;
   const mostrarTareas = config.calendarioMostrarTareas !== false;
 
-  console.log('📅 renderCalendar:', { mostrarCitas, mostrarTareas });
+  console.log('ðŸ“… renderCalendar:', { mostrarCitas, mostrarTareas });
 
   grid.innerHTML = '';
   const monthYearEl = document.getElementById('monthYear');
@@ -58,34 +58,34 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // Crear exactamente 42 celdas (6 semanas x 7 días)
+  // Crear exactamente 42 celdas (6 semanas x 7 dÃ­as)
   for (let i = 0; i < 42; i++) {
     const cell = document.createElement('div');
     cell.className = 'calendar-day';
 
-    // Calcular qué día corresponde a esta celda (empezando en lunes)
+    // Calcular quÃ© dÃ­a corresponde a esta celda (empezando en lunes)
     const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // Convertir domingo=0 a lunes=0
     const dayOffset = i - firstDayOfWeek;
     const dayNumber = dayOffset + 1;
 
     if (dayOffset >= 0 && dayOffset < lastDay.getDate()) {
-      // Día del mes actual
+      // DÃ­a del mes actual
       const dayNum = document.createElement('div');
       dayNum.className = 'day-num';
       dayNum.textContent = dayNumber;
       cell.appendChild(dayNum);
 
-      // Crear fecha correcta usando el ano, mes y día específicos
+      // Crear fecha correcta usando el aÃ±o, mes y dÃ­a especÃ­ficos
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
 
       // Verificar si es hoy
       const hoy = new Date().toISOString().slice(0, 10);
       const esHoy = dateStr === hoy;
 
-      // Recopilar eventos de este día según configuración
+      // Recopilar eventos de este dÃ­a segÃºn configuraciÃ³n
       let eventos = [];
 
-      // Anadir citas si están habilitadas
+      // AÃ±adir citas si estÃ¡n habilitadas
       if (mostrarCitas) {
         const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
         citas.forEach(cita => {
@@ -97,7 +97,7 @@ function renderCalendar() {
         });
       }
 
-      // Anadir tareas si están habilitadas
+      // AÃ±adir tareas si estÃ¡n habilitadas
       if (mostrarTareas) {
         // Tareas normales
         const tareas = (appState.agenda.tareas || []).filter(tarea => {
@@ -113,7 +113,7 @@ function renderCalendar() {
           });
         });
 
-        // Tareas críticas
+        // Tareas crÃ­ticas
         const tareasCriticas = (appState.agenda.tareas_criticas || []).filter(tarea => {
           if (!tarea.fecha_fin) return false;
           return tarea.fecha_fin === dateStr;
@@ -172,7 +172,7 @@ function renderCalendar() {
         eventsDiv.className = 'day-events';
 
         eventos.slice(0, 3).forEach(evento => {
-          if (!evento || !evento.nombre) return; // Validación para evitar errores
+          if (!evento || !evento.nombre) return; // ValidaciÃ³n para evitar errores
 
           const eventDiv = document.createElement('div');
           eventDiv.className = 'day-event';
@@ -183,21 +183,21 @@ function renderCalendar() {
           eventDiv.style.padding = '1px 3px';
           eventDiv.style.borderRadius = '2px';
 
-          // Extraer solo la descripción después de la hora para citas
+          // Extraer solo la descripciÃ³n despuÃ©s de la hora para citas
           const nombre = evento.nombre || '';
           let descripcion = nombre;
           if (evento.tipo === 'cita' && nombre.includes(' - ')) {
             descripcion = nombre.split(' - ')[1];
           }
 
-          // Anadir icono según el tipo
-          let icono = '✅';
+          // AÃ±adir icono segÃºn el tipo
+          let icono = 'âœ…';
           if (evento.tipo === 'cita') {
-            icono = '📅';
+            icono = 'ðŸ“…';
           } else if (evento.tipo === 'critica') {
-            icono = '🚨';
+            icono = 'ðŸš¨';
           } else if (evento.tipo === 'personalizada') {
-            icono = '📋';
+            icono = 'ðŸ“‹';
           }
           const textoCorto = descripcion.length > 8 ? descripcion.substring(0, 8) + '...' : descripcion;
           eventDiv.textContent = `${icono} ${textoCorto}`;
@@ -207,7 +207,7 @@ function renderCalendar() {
         if (eventos.length > 3) {
           const moreDiv = document.createElement('div');
           moreDiv.className = 'day-event';
-          moreDiv.textContent = `+${eventos.length - 3} más`;
+          moreDiv.textContent = `+${eventos.length - 3} mÃ¡s`;
           moreDiv.style.fontStyle = 'italic';
           eventsDiv.appendChild(moreDiv);
         }
@@ -222,7 +222,7 @@ function renderCalendar() {
 
       cell.dataset.date = dateStr;
     } else {
-      // Celda vacía (días de otros meses)
+      // Celda vacÃ­a (dÃ­as de otros meses)
       cell.style.opacity = '0.3';
     }
 
@@ -231,28 +231,28 @@ function renderCalendar() {
 }
 
 function showAppointments(date) {
-  console.log('🔍 showAppointments llamado para fecha:', date);
-  console.log('📊 Total citas en appState:', appState.agenda.citas.length);
+  console.log('ðŸ” showAppointments llamado para fecha:', date);
+  console.log('ðŸ“Š Total citas en appState:', appState.agenda.citas.length);
 
   const appointments = appState.agenda.citas.filter(cita => cita && compararFechaConString(cita.fecha, date));
-  console.log('🎯 Citas encontradas para', date, ':', appointments.length);
+  console.log('ðŸŽ¯ Citas encontradas para', date, ':', appointments.length);
 
   const list = document.getElementById('appointmentsList');
   if (!list) {
-    console.warn('⚠️ No se encontró el elemento appointmentsList');
+    console.warn('âš ï¸ No se encontrÃ³ el elemento appointmentsList');
     return;
   }
 
   list.innerHTML = '';
 
   if (appointments.length === 0) {
-    list.innerHTML = '<div style="color:#777;padding:6px">No hay citas para este día</div>';
+    list.innerHTML = '<div style="color:#777;padding:6px">No hay citas para este dÃ­a</div>';
     return;
   }
 
   appointments.forEach(cita => {
     if (!cita || !cita.nombre) {
-      console.warn('⚠️ Cita inválida encontrada:', cita);
+      console.warn('âš ï¸ Cita invÃ¡lida encontrada:', cita);
       return;
     }
 
@@ -260,12 +260,12 @@ function showAppointments(date) {
     appt.className = 'cita-item';
     appt.innerHTML = `
       <span>${cita.nombre}</span>
-      <button onclick="deleteCita('${date}', '${cita.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
+      <button onclick="deleteCita('${date}', '${cita.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">ðŸ—‘ï¸</button>
     `;
     list.appendChild(appt);
   });
 
-  console.log('✅ showAppointments completado, elementos agregados:', appointments.length);
+  console.log('âœ… showAppointments completado, elementos agregados:', appointments.length);
 }
 
 function renderAllAppointmentsList() {
@@ -289,19 +289,19 @@ function renderAllAppointmentsList() {
     div.style.fontSize = '12px';
     div.style.cursor = 'pointer';
 
-    // Obtener día de la semana
+    // Obtener dÃ­a de la semana
     const fecha = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b'];
     const diaSemana = diasSemana[fecha.getDay()];
 
     let descripcionCita = c.nombre;
     if (c.lugar) {
-      descripcionCita += ` <br><small style="color:#666;">📍 ${c.lugar}</small>`;
+      descripcionCita += ` <br><small style="color:#666;">ðŸ“ ${c.lugar}</small>`;
     }
 
     div.innerHTML = `
       <span>${diaSemana}, ${fechaArrayToString(c.fecha)}<br><small>${descripcionCita}</small></span>
-      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
+      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">ðŸ—‘ï¸</button>
     `;
     div.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') {
@@ -318,7 +318,7 @@ function renderAppointmentsList() {
   const list = document.getElementById('appointmentsList');
   if (!list) return;
 
-  // Si hay una fecha seleccionada, mostrar solo las citas de ese día
+  // Si hay una fecha seleccionada, mostrar solo las citas de ese dÃ­a
   if (appState.calendar.selectedDate) {
     showAppointments(appState.calendar.selectedDate);
     return;
@@ -339,12 +339,12 @@ async function confirmarCita() {
   const descripcion = document.getElementById('cita-descripcion').value.trim();
 
   if (!descripcion) {
-    alert('Por favor, ingresa una descripción');
+    alert('Por favor, ingresa una descripciÃ³n');
     return;
   }
 
   if (!window.supabaseClient && window.currentSyncMethod === 'supabase') {
-    alert('❌ La sincronización no está disponible. No se puede crear la cita.');
+    alert('âŒ La sincronizaciÃ³n no estÃ¡ disponible. No se puede crear la cita.');
     return;
   }
 
@@ -356,7 +356,7 @@ async function confirmarCita() {
     etiqueta: null
   };
 
-  console.log('💾 Creando cita directamente en la nube:', nuevaCita);
+  console.log('ðŸ’¾ Creando cita directamente en la nube:', nuevaCita);
 
   try {
     // Limpiar modal primero
@@ -365,7 +365,7 @@ async function confirmarCita() {
     document.getElementById('minuto-select').value = '00';
     cerrarModal('modal-hora');
 
-    mostrarAlerta('🔄 Creando cita...', 'info');
+    mostrarAlerta('ðŸ”„ Creando cita...', 'info');
 
     // Agregar nueva cita al estado local
     appState.agenda.citas.push(nuevaCita);
@@ -375,9 +375,9 @@ async function confirmarCita() {
       await guardarJSON(false);
     }
 
-    console.log('✅ Cita guardada correctamente');
+    console.log('âœ… Cita guardada correctamente');
 
-    // Registrar acción
+    // Registrar acciÃ³n
     if (typeof registrarAccion === 'function') {
       registrarAccion('Crear cita', citaCompleta);
     }
@@ -392,22 +392,22 @@ async function confirmarCita() {
       renderCalendarioIntegrado();
     }
 
-    mostrarAlerta('✅ Cita creada correctamente', 'success');
+    mostrarAlerta('âœ… Cita creada correctamente', 'success');
 
   } catch (error) {
-    console.error('❌ Error creando cita:', error);
-    mostrarAlerta(`❌ Error: ${error.message}`, 'error');
+    console.error('âŒ Error creando cita:', error);
+    mostrarAlerta(`âŒ Error: ${error.message}`, 'error');
   }
 }
 
 async function deleteCita(fecha, nombre) {
   if (!nombre) {
-    console.warn('⚠️ deleteCita: nombre vacío');
+    console.warn('âš ï¸ deleteCita: nombre vacÃ­o');
     return;
   }
 
-  console.log('🗑️ Intentando eliminar cita:', { fecha, nombre });
-  console.log('📊 Total citas antes de eliminar:', appState.agenda.citas.length);
+  console.log('ðŸ—‘ï¸ Intentando eliminar cita:', { fecha, nombre });
+  console.log('ðŸ“Š Total citas antes de eliminar:', appState.agenda.citas.length);
 
   const nombreDecodificado = nombre.replace(/&#39;/g, "'");
 
@@ -419,14 +419,14 @@ async function deleteCita(fecha, nombre) {
 
   if (index > -1) {
     const cita = appState.agenda.citas[index];
-    console.log('🎯 Cita encontrada para eliminar:', cita, 'en índice:', index);
+    console.log('ðŸŽ¯ Cita encontrada para eliminar:', cita, 'en Ã­ndice:', index);
 
-    // Verificar configuración de confirmación
+    // Verificar configuraciÃ³n de confirmaciÃ³n
     const configFuncionales = window.configFuncionales || {};
     const necesitaConfirmacion = configFuncionales.confirmacionBorrar !== false;
 
     const eliminarCita = () => {
-      console.log('💥 Ejecutando eliminación de cita...');
+      console.log('ðŸ’¥ Ejecutando eliminaciÃ³n de cita...');
 
       if (typeof moverAHistorial === 'function') {
         moverAHistorial(cita, 'cita');
@@ -452,21 +452,21 @@ async function deleteCita(fecha, nombre) {
         renderCalendarioIntegrado();
       }
 
-      mostrarAlerta('🗑️ Cita eliminada', 'info');
+      mostrarAlerta('ðŸ—‘ï¸ Cita eliminada', 'info');
     };
 
     if (necesitaConfirmacion && typeof mostrarCuentaRegresiva === 'function') {
       mostrarCuentaRegresiva(eliminarCita);
     } else if (necesitaConfirmacion) {
-      if (confirm('¿Eliminar esta cita?')) {
+      if (confirm('Â¿Eliminar esta cita?')) {
         eliminarCita();
       }
     } else {
       eliminarCita();
     }
   } else {
-    console.error('❌ No se encontró la cita para eliminar');
-    console.log('📋 Todas las citas disponibles:', appState.agenda.citas);
+    console.error('âŒ No se encontrÃ³ la cita para eliminar');
+    console.log('ðŸ“‹ Todas las citas disponibles:', appState.agenda.citas);
   }
 }
 
@@ -500,20 +500,20 @@ function renderCitasPanel() {
   const panel = document.getElementById('citas-panel');
   if (!panel) return;
 
-  console.log('🔄 Renderizando panel de citas. Total:', appState.agenda.citas.length);
+  console.log('ðŸ”„ Renderizando panel de citas. Total:', appState.agenda.citas.length);
 
   panel.innerHTML = '';
 
-  // Actualizar calendario integrado si está visible
+  // Actualizar calendario integrado si estÃ¡ visible
   const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
 
   if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-    console.log('🔄 Calendario integrado visible, actualizando...');
+    console.log('ðŸ”„ Calendario integrado visible, actualizando...');
     if (typeof renderCalendarioIntegrado === 'function') {
       setTimeout(() => renderCalendarioIntegrado(), 50);
     }
   } else {
-    console.log('⚠️ Calendario integrado NO visible o no encontrado');
+    console.log('âš ï¸ Calendario integrado NO visible o no encontrado');
   }
 
   if (!appState.agenda.citas || appState.agenda.citas.length === 0) {
@@ -521,13 +521,13 @@ function renderCitasPanel() {
     return;
   }
 
-  // Verificar configuración de mostrar todo
+  // Verificar configuraciÃ³n de mostrar todo
   const configOpciones = window.configOpciones || {};
   const mostrarTodoConfig = configOpciones.mostrarTodo || false;
 
   let citasFiltradas = appState.agenda.citas.slice();
 
-  // Filtrar por próximas 30 días si no se muestran todas y no está configurado mostrar todo
+  // Filtrar por prÃ³ximas 30 dÃ­as si no se muestran todas y no estÃ¡ configurado mostrar todo
   if (!mostrarTodasLasCitas && !mostrarTodoConfig) {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
@@ -545,7 +545,7 @@ function renderCitasPanel() {
   }
 
   if (citasFiltradas.length === 0) {
-    const mensaje = (mostrarTodasLasCitas || mostrarTodoConfig) ? 'No hay citas' : 'No hay citas en los próximos 30 días';
+    const mensaje = (mostrarTodasLasCitas || mostrarTodoConfig) ? 'No hay citas' : 'No hay citas en los prÃ³ximos 30 dÃ­as';
     panel.innerHTML = `<div style="color:#777;padding:10px;text-align:center;">${mensaje}</div>`;
     return;
   }
@@ -558,9 +558,9 @@ function renderCitasPanel() {
     div.style.fontSize = '16px';
     div.style.cursor = 'pointer';
 
-    // Obtener día de la semana
+    // Obtener dÃ­a de la semana
     const fecha = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
-    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado'];
     const diaSemana = diasSemana[fecha.getDay()];
 
     // Verificar si la cita es hoy o pasada
@@ -575,15 +575,15 @@ function renderCitasPanel() {
 
     let alertaHtml = '';
     if (esPasada) {
-      alertaHtml = '<span class="alerta-urgente" title="¡Cita pasada!">⚠️⚠️⚠️ Fecha pasada</span>';
+      alertaHtml = '<span class="alerta-urgente" title="Â¡Cita pasada!">âš ï¸âš ï¸âš ï¸ Fecha pasada</span>';
     } else if (esHoy) {
-      alertaHtml = '<span class="alerta-urgente" title="¡Cita hoy!">⚠️ Cita hoy</span>';
+      alertaHtml = '<span class="alerta-urgente" title="Â¡Cita hoy!">âš ï¸ Cita hoy</span>';
     }
 
-    // Extraer hora y descripción
-    const partes = (c.nombre && c.nombre.includes(' - ')) ? c.nombre.split(' - ') : ['', c.nombre || 'Sin descripción'];
+    // Extraer hora y descripciÃ³n
+    const partes = (c.nombre && c.nombre.includes(' - ')) ? c.nombre.split(' - ') : ['', c.nombre || 'Sin descripciÃ³n'];
     const hora = partes[0] || '';
-    const descripcion = partes[1] || c.nombre || 'Sin descripción';
+    const descripcion = partes[1] || c.nombre || 'Sin descripciÃ³n';
 
     // Formatear fecha
     const fechaObj = new Date(fechaArrayToString(c.fecha) + 'T00:00:00');
@@ -592,7 +592,7 @@ function renderCitasPanel() {
 
     let contenidoCita = `<span style="font-size:16px;font-weight:bold;color:#2d5a27;display:block;line-height:1.3;">${descripcion}</span>`;
     if (c.lugar) {
-      contenidoCita += ` <span style="font-size:13px;color:#666;font-style:italic;display:block;">📍 ${c.lugar}</span>`;
+      contenidoCita += ` <span style="font-size:13px;color:#666;font-style:italic;display:block;">ðŸ“ ${c.lugar}</span>`;
     }
     contenidoCita += ` <span style="font-size:14px;color:#2d5a27;display:block;margin-top:2px;">${fechaFormateada} ${hora}</span>`;
     if (c.etiqueta) {
@@ -605,7 +605,7 @@ function renderCitasPanel() {
     div.innerHTML = `
       <span style="${(esHoy || esPasada) ? 'color: #d32f2f; font-weight: bold;' : ''}">${contenidoCita}</span>
       ${alertaHtml}
-      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
+      <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">ðŸ—‘ï¸</button>
     `;
 
     div.addEventListener('click', (e) => {
@@ -644,10 +644,10 @@ async function guardarNuevaCita() {
   const minutos = document.getElementById('nueva-cita-minutos').value;
   const etiqueta = document.getElementById('nueva-cita-etiqueta').value;
 
-  console.log('📅 Guardando nueva cita:', { fecha, descripcion, hora, minutos });
+  console.log('ðŸ“… Guardando nueva cita:', { fecha, descripcion, hora, minutos });
 
   if (!fecha || !descripcion) {
-    alert('Por favor, completa la fecha y descripción');
+    alert('Por favor, completa la fecha y descripciÃ³n');
     return;
   }
 
@@ -667,7 +667,7 @@ async function guardarNuevaCita() {
   }
 
   appState.agenda.citas.push(nuevaCita);
-  console.log('✅ Cita anadida al estado. Total citas:', appState.agenda.citas.length);
+  console.log('âœ… Cita aÃ±adida al estado. Total citas:', appState.agenda.citas.length);
 
 cerrarModal('modal-nueva-cita');
 
@@ -685,12 +685,12 @@ if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
   renderCalendarioIntegrado();
 }
 
-mostrarAlerta('📅 Cita anadida', 'success');
+mostrarAlerta('ðŸ“… Cita aÃ±adida', 'success');
 
 // Programar notificaciones para esta nueva cita
 programarNotificacionesCita(nuevaCita);
 
-mostrarAlerta('📅 Cita anadida correctamente', 'success');
+mostrarAlerta('ðŸ“… Cita aÃ±adida correctamente', 'success');
 }
 
 function abrirCalendario() {
@@ -701,7 +701,7 @@ function abrirCalendario() {
 function abrirCalendarioTareas() {
   abrirModal('modal-calendar-tareas');
 
-  // Inicializar navegación del calendario de tareas
+  // Inicializar navegaciÃ³n del calendario de tareas
   const prevBtn = document.getElementById('prevMonthTareas');
   const nextBtn = document.getElementById('nextMonthTareas');
 
@@ -728,7 +728,7 @@ function renderCalendarTareas() {
   const grid = document.getElementById('calendarGridTareas');
   if (!grid) return;
 
-  // Obtener configuración de qué mostrar en el calendario
+  // Obtener configuraciÃ³n de quÃ© mostrar en el calendario
   const config = window.configVisual || {};
   const mostrarCitas = config.calendarioMostrarCitas !== false;
   const mostrarTareas = config.calendarioMostrarTareas !== false;
@@ -760,10 +760,10 @@ function renderCalendarTareas() {
 
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
 
-      // Recopilar eventos de este día según configuración
+      // Recopilar eventos de este dÃ­a segÃºn configuraciÃ³n
       const eventosDelDia = [];
 
-      // Anadir citas si están habilitadas
+      // AÃ±adir citas si estÃ¡n habilitadas
       if (mostrarCitas) {
         const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
         citas.forEach(cita => {
@@ -776,14 +776,14 @@ function renderCalendarTareas() {
             texto: descripcion,
             tipo: 'cita',
             color: '#4a90e2',
-            icono: '📅'
+            icono: 'ðŸ“…'
           });
         });
       }
 
-      // Anadir tareas si están habilitadas
+      // AÃ±adir tareas si estÃ¡n habilitadas
       if (mostrarTareas) {
-        // Tareas críticas
+        // Tareas crÃ­ticas
         if (appState.agenda.tareas_criticas) {
           appState.agenda.tareas_criticas.forEach(t => {
             if (t && (t.fecha_fin === dateStr || t.fecha_migrar === dateStr)) {
@@ -791,7 +791,7 @@ function renderCalendarTareas() {
                 texto: t.titulo,
                 tipo: 'critica',
                 color: '#e74c3c',
-                icono: '🚨'
+                icono: 'ðŸš¨'
               });
             }
           });
@@ -805,14 +805,14 @@ function renderCalendarTareas() {
                 texto: t.texto,
                 tipo: 'normal',
                 color: '#2ecc71',
-                icono: '✅'
+                icono: 'âœ…'
               });
             }
           });
         }
       }
 
-      // Tareas de listas personalizadas (solo si las tareas están habilitadas)
+      // Tareas de listas personalizadas (solo si las tareas estÃ¡n habilitadas)
       if (mostrarTareas) {
         const listasPersonalizadas = config.listasPersonalizadas || [];
         listasPersonalizadas.forEach(lista => {
@@ -823,7 +823,7 @@ function renderCalendarTareas() {
                   texto: t.texto,
                   tipo: 'personalizada',
                   color: '#9b59b6',
-                  icono: '📋',
+                  icono: 'ðŸ“‹',
                   lista: lista.nombre
                 });
               }
@@ -873,7 +873,7 @@ function renderAllTasksList() {
   // Recopilar TODAS las tareas con fecha
   const todasLasTareas = [];
 
-  // Tareas críticas
+  // Tareas crÃ­ticas
   if (appState.agenda.tareas_criticas) {
     appState.agenda.tareas_criticas.forEach(t => {
       if (t) {
@@ -924,10 +924,10 @@ function renderAllTasksList() {
     div.style.fontSize = '12px';
 
     const fechaObj = new Date(tarea.fecha + 'T00:00:00');
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b'];
     const diaSemana = diasSemana[fechaObj.getDay()];
 
-    const etiquetaTipo = tarea.tipo === 'critica' ? '🔴' : (tarea.tipo === 'personalizada' ? '📋' : '📝');
+    const etiquetaTipo = tarea.tipo === 'critica' ? 'ðŸ”´' : (tarea.tipo === 'personalizada' ? 'ðŸ“‹' : 'ðŸ“');
     div.innerHTML = `
       <span>${etiquetaTipo} ${diaSemana}, ${tarea.fecha}<br><small>${tarea.texto}</small></span>
     `;
@@ -936,7 +936,7 @@ function renderAllTasksList() {
   });
 }
 
-// ========== CITAS PERIÓDICAS ==========
+// ========== CITAS PERIÃ“DICAS ==========
 function abrirModalCitaPeriodica() {
   const hoy = new Date().toISOString().slice(0, 10);
   document.getElementById('periodica-fecha-inicio').value = hoy;
@@ -997,7 +997,7 @@ async function crearCitaPeriodica() {
     citasCreadas.push(nuevaCita);
     programarNotificacionesCita(nuevaCita);
 
-    // Calcular siguiente fecha según frecuencia
+    // Calcular siguiente fecha segÃºn frecuencia
     switch (frecuencia) {
       case 'semanal':
         fechaActual.setDate(fechaActual.getDate() + 7);
@@ -1027,7 +1027,7 @@ if (typeof guardarJSON === 'function') {
 renderCalendar();
 renderAllAppointmentsList();
 renderCitasPanel();
-mostrarAlerta(`📅 ${citasCreadas.length} citas periódicas creadas`, 'success');
+mostrarAlerta(`ðŸ“… ${citasCreadas.length} citas periÃ³dicas creadas`, 'success');
 }
 
 // ========== CITAS RELATIVAS ==========
@@ -1078,7 +1078,7 @@ function agregarCitaRelativa() {
   const minutos = document.getElementById('minutos-cita-relativa').value;
 
   if (!descripcion || !fechaBase) {
-    alert('Por favor, completa la descripción y fecha base');
+    alert('Por favor, completa la descripciÃ³n y fecha base');
     return;
   }
 
@@ -1099,7 +1099,7 @@ function agregarCitaRelativa() {
   div.innerHTML = `
     <span class="fecha-calculada">${fechaResultante}</span>
     <span class="descripcion">${citaCompleta}</span>
-    <button class="btn-borrar-tarea" onclick="eliminarCitaRelativa(${citasRelativasTemp.length - 1})" title="Eliminar cita">🗑️</button>
+    <button class="btn-borrar-tarea" onclick="eliminarCitaRelativa(${citasRelativasTemp.length - 1})" title="Eliminar cita">ðŸ—‘ï¸</button>
   `;
   lista.appendChild(div);
 
@@ -1123,7 +1123,7 @@ function eliminarCitaRelativa(index) {
     div.innerHTML = `
       <span class="fecha-calculada">${cita.fecha}</span>
       <span class="descripcion">${cita.nombre}</span>
-      <button class="btn-borrar-tarea" onclick="eliminarCitaRelativa(${i})" title="Eliminar cita">🗑️</button>
+      <button class="btn-borrar-tarea" onclick="eliminarCitaRelativa(${i})" title="Eliminar cita">ðŸ—‘ï¸</button>
     `;
     lista.appendChild(div);
   });
@@ -1168,11 +1168,11 @@ async function guardarCitasRelativas() {
   renderCalendar();
   renderAllAppointmentsList();
   renderCitasPanel();
-  mostrarAlerta(`📅 ${citasRelativasTemp.length} citas guardadas`, 'success');
+  mostrarAlerta(`ðŸ“… ${citasRelativasTemp.length} citas guardadas`, 'success');
   citasRelativasTemp = [];
 }
 
-// ========== PROGRAMACIÓN DE NOTIFICACIONES ==========
+// ========== PROGRAMACIÃ“N DE NOTIFICACIONES ==========
 let citasNotificadas = new Set();
 
 function verificarNotificacionesCitas() {
@@ -1196,18 +1196,18 @@ function verificarNotificacionesCitas() {
     const hora = cita.nombre.split(' - ')[0] || '';
     const citaId = `${fechaArrayToString(cita.fecha)}-${cita.nombre}`;
 
-    // 1 día antes (entre 23h 50min y 24h 10min)
+    // 1 dÃ­a antes (entre 23h 50min y 24h 10min)
     if (config.notif1Dia) {
       const unDia = 24 * 60 * 60 * 1000;
       if (tiempoHastaCita >= unDia - 10 * 60 * 1000 && tiempoHastaCita <= unDia + 10 * 60 * 1000) {
         const notifId = `${citaId}-1dia`;
         if (!citasNotificadas.has(notifId)) {
-          new Notification('🔔 Recordatorio: Cita manana', {
-            body: `${descripcion}\nManana a las ${hora}`,
-            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>'
+          new Notification('ðŸ”” Recordatorio: Cita maÃ±ana', {
+            body: `${descripcion}\nMaÃ±ana a las ${hora}`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">ðŸ“…</text></svg>'
           });
           citasNotificadas.add(notifId);
-          console.log('🔔 Notificación enviada: 1 día antes');
+          console.log('ðŸ”” NotificaciÃ³n enviada: 1 dÃ­a antes');
         }
       }
     }
@@ -1218,12 +1218,12 @@ function verificarNotificacionesCitas() {
       if (tiempoHastaCita >= dosHoras - 10 * 60 * 1000 && tiempoHastaCita <= dosHoras + 10 * 60 * 1000) {
         const notifId = `${citaId}-2horas`;
         if (!citasNotificadas.has(notifId)) {
-          new Notification('⏰ Recordatorio: Cita en 2 horas', {
+          new Notification('â° Recordatorio: Cita en 2 horas', {
             body: `${descripcion}\nHoy a las ${hora}`,
-            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⏰</text></svg>'
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">â°</text></svg>'
           });
           citasNotificadas.add(notifId);
-          console.log('🔔 Notificación enviada: 2 horas antes');
+          console.log('ðŸ”” NotificaciÃ³n enviada: 2 horas antes');
         }
       }
     }
@@ -1234,28 +1234,28 @@ function verificarNotificacionesCitas() {
       if (tiempoHastaCita >= treintaMin - 5 * 60 * 1000 && tiempoHastaCita <= treintaMin + 5 * 60 * 1000) {
         const notifId = `${citaId}-30min`;
         if (!citasNotificadas.has(notifId)) {
-          new Notification('🚨 ¡Cita en 30 minutos!', {
+          new Notification('ðŸš¨ Â¡Cita en 30 minutos!', {
             body: `${descripcion}\nA las ${hora}`,
-            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚨</text></svg>',
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">ðŸš¨</text></svg>',
             requireInteraction: true
           });
           citasNotificadas.add(notifId);
-          console.log('🔔 Notificación enviada: 30 minutos antes');
+          console.log('ðŸ”” NotificaciÃ³n enviada: 30 minutos antes');
         }
       }
     }
   });
 }
 
-// Iniciar verificación periódica cada minuto
+// Iniciar verificaciÃ³n periÃ³dica cada minuto
 setInterval(verificarNotificacionesCitas, 60000);
 
 // Verificar inmediatamente al cargar
 setTimeout(verificarNotificacionesCitas, 3000);
 
 function programarNotificacionesCita(cita) {
-  // Esta función ya no es necesaria pero la mantenemos por compatibilidad
-  console.log('📅 Cita registrada para notificaciones periódicas');
+  // Esta funciÃ³n ya no es necesaria pero la mantenemos por compatibilidad
+  console.log('ðŸ“… Cita registrada para notificaciones periÃ³dicas');
 }
 
 // Hacer funciones disponibles globalmente
@@ -1290,11 +1290,11 @@ window.verificarNotificacionesCitas = verificarNotificacionesCitas;
 // ========== EDITOR DE CITAS ==========
 function abrirEditorCita(fecha, nombre) {
   if (!nombre) {
-    console.warn('⚠️ abrirEditorCita: nombre vacío');
+    console.warn('âš ï¸ abrirEditorCita: nombre vacÃ­o');
     return;
   }
 
-  console.log('✏️ Abriendo editor para cita:', { fecha, nombre });
+  console.log('âœï¸ Abriendo editor para cita:', { fecha, nombre });
 
   // Buscar la cita en el array para obtener el lugar actual
   const citaEncontrada = appState.agenda.citas.find(c =>
@@ -1306,11 +1306,11 @@ function abrirEditorCita(fecha, nombre) {
   modal.className = 'modal';
   modal.id = 'modal-editor-cita';
 
-  // Extraer hora y descripción de forma más robusta
+  // Extraer hora y descripciÃ³n de forma mÃ¡s robusta
   const nombreSafe = nombre || '';
   const partes = nombreSafe.includes(' - ') ? nombreSafe.split(' - ') : ['14:00', nombreSafe];
   const hora = partes[0] || '14:00';
-  const descripcion = partes[1] || nombreSafe || 'Sin descripción';
+  const descripcion = partes[1] || nombreSafe || 'Sin descripciÃ³n';
 
   // Validar formato de hora
   const horaPartes = hora.includes(':') ? hora.split(':') : ['14', '00'];
@@ -1319,17 +1319,17 @@ function abrirEditorCita(fecha, nombre) {
 
   modal.innerHTML = `
     <div class="modal-content">
-      <h4>✏️ Editar Cita</h4>
+      <h4>âœï¸ Editar Cita</h4>
       <div class="form-group">
         <label>Fecha:</label>
         <input type="date" id="editor-cita-fecha" value="${fecha}">
       </div>
       <div class="form-group">
-        <label>Descripción:</label>
+        <label>DescripciÃ³n:</label>
         <input type="text" id="editor-cita-desc" value="${escapeHtml(descripcion)}">
       </div>
       <div class="form-group">
-        <label>📍 Lugar (opcional):</label>
+        <label>ðŸ“ Lugar (opcional):</label>
         <input type="text" id="editor-cita-lugar" value="${escapeHtml(lugarActual)}" placeholder="Ej: Hospital, Oficina, Casa...">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
@@ -1353,9 +1353,9 @@ function abrirEditorCita(fecha, nombre) {
         </div>
       </div>
       <div class="modal-botones">
-        <button class="btn-primario" onclick="guardarEdicionCita('${fecha}', '${escapeHtml(nombre)}')">💾 Guardar</button>
-        <button class="btn-secundario" onclick="cerrarModal('modal-editor-cita')">❌ Cancelar</button>
-        <button class="btn-eliminar" onclick="confirmarEliminarCitaDesdeEditor('${fecha}', '${escapeHtml(nombre)}')" style="background:#f44336;color:white;margin-left:10px;">🗑️ Eliminar</button>
+        <button class="btn-primario" onclick="guardarEdicionCita('${fecha}', '${escapeHtml(nombre)}')">ðŸ’¾ Guardar</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-editor-cita')">âŒ Cancelar</button>
+        <button class="btn-eliminar" onclick="confirmarEliminarCitaDesdeEditor('${fecha}', '${escapeHtml(nombre)}')" style="background:#f44336;color:white;margin-left:10px;">ðŸ—‘ï¸ Eliminar</button>
       </div>
     </div>
   `;
@@ -1365,7 +1365,7 @@ function abrirEditorCita(fecha, nombre) {
 }
 
 function guardarEdicionCita(fechaOriginal, nombreOriginal) {
-  console.log('💾 Guardando edición de cita:', { fechaOriginal, nombreOriginal });
+  console.log('ðŸ’¾ Guardando ediciÃ³n de cita:', { fechaOriginal, nombreOriginal });
 
   const nuevaFecha = document.getElementById('editor-cita-fecha').value;
   const nuevaDesc = document.getElementById('editor-cita-desc').value.trim();
@@ -1374,14 +1374,14 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
   const nuevosMinutos = document.getElementById('editor-cita-minutos').value;
 
   if (!nuevaFecha || !nuevaDesc) {
-    alert('La fecha y descripción son obligatorias');
+    alert('La fecha y descripciÃ³n son obligatorias');
     return;
   }
 
-  console.log('📝 Nuevos datos:', { nuevaFecha, nuevaDesc, nuevaHora, nuevosMinutos });
+  console.log('ðŸ“ Nuevos datos:', { nuevaFecha, nuevaDesc, nuevaHora, nuevosMinutos });
 
   const index = appState.agenda.citas.findIndex(c => c && compararFechaConString(c.fecha, fechaOriginal) && c.nombre === nombreOriginal);
-  console.log('🔍 Índice encontrado:', index);
+  console.log('ðŸ” Ãndice encontrado:', index);
 
   if (index > -1) {
     const citaAnterior = { ...appState.agenda.citas[index] };
@@ -1395,11 +1395,11 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
       etiqueta: appState.agenda.citas[index].etiqueta || null
     };
 
-    console.log('🔄 Cita actualizada:', { anterior: citaAnterior, nueva: appState.agenda.citas[index] });
+    console.log('ðŸ”„ Cita actualizada:', { anterior: citaAnterior, nueva: appState.agenda.citas[index] });
 
-    // Registrar la acción
+    // Registrar la acciÃ³n
     if (typeof registrarAccion === 'function') {
-      registrarAccion('Editar cita', `${fechaOriginal} → ${nuevaFecha}: ${nuevoNombre}`);
+      registrarAccion('Editar cita', `${fechaOriginal} â†’ ${nuevaFecha}: ${nuevoNombre}`);
     }
 
     cerrarModal('modal-editor-cita');
@@ -1419,16 +1419,16 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
       renderCalendarioIntegrado();
     }
 
-    mostrarAlerta('✅ Cita actualizada', 'success');
+    mostrarAlerta('âœ… Cita actualizada', 'success');
   } else {
-    console.error('❌ No se encontró la cita para editar');
-    mostrarAlerta('❌ Error: No se encontró la cita para actualizar', 'error');
+    console.error('âŒ No se encontrÃ³ la cita para editar');
+    mostrarAlerta('âŒ Error: No se encontrÃ³ la cita para actualizar', 'error');
   }
 }
 
-// Nueva función para eliminar desde el editor
+// Nueva funciÃ³n para eliminar desde el editor
 function confirmarEliminarCitaDesdeEditor(fecha, nombre) {
-  if (confirm('¿Estás seguro de que quieres eliminar esta cita?')) {
+  if (confirm('Â¿EstÃ¡s seguro de que quieres eliminar esta cita?')) {
     cerrarModal('modal-editor-cita');
     deleteCita(fecha, nombre);
   }
@@ -1438,14 +1438,14 @@ window.abrirEditorCita = abrirEditorCita;
 window.guardarEdicionCita = guardarEdicionCita;
 window.confirmarEliminarCitaDesdeEditor = confirmarEliminarCitaDesdeEditor;
 
-// ========== CALENDARIO INTEGRADO EN LA PÁGINA ==========
+// ========== CALENDARIO INTEGRADO EN LA PÃGINA ==========
 let calendarioIntegradoState = {
   currentDate: new Date(),
   selectedDate: null
 };
 
 function initializeCalendarioIntegrado() {
-  console.log('🚀 Inicializando calendario integrado...');
+  console.log('ðŸš€ Inicializando calendario integrado...');
 
   const prevBtn = document.getElementById('prevMonthIntegrado');
   const nextBtn = document.getElementById('nextMonthIntegrado');
@@ -1456,7 +1456,7 @@ function initializeCalendarioIntegrado() {
       renderCalendarioIntegrado();
     });
     prevBtn.setAttribute('data-initialized', 'true');
-    console.log('✅ Botón anterior inicializado');
+    console.log('âœ… BotÃ³n anterior inicializado');
   }
 
   if (nextBtn && !nextBtn.hasAttribute('data-initialized')) {
@@ -1465,27 +1465,27 @@ function initializeCalendarioIntegrado() {
       renderCalendarioIntegrado();
     });
     nextBtn.setAttribute('data-initialized', 'true');
-    console.log('✅ Botón siguiente inicializado');
+    console.log('âœ… BotÃ³n siguiente inicializado');
   }
 
   renderCalendarioIntegrado();
-  console.log('✅ Calendario integrado inicializado');
+  console.log('âœ… Calendario integrado inicializado');
 }
 
 function renderCalendarioIntegrado() {
   const grid = document.getElementById('calendarGridIntegrado');
   if (!grid) {
-    console.warn('⚠️ No se encontró el grid del calendario integrado');
+    console.warn('âš ï¸ No se encontrÃ³ el grid del calendario integrado');
     return;
   }
 
-  // Obtener configuración de qué mostrar en el calendario
+  // Obtener configuraciÃ³n de quÃ© mostrar en el calendario
   const config = window.configVisual || {};
   const mostrarCitas = config.calendarioMostrarCitas !== false;
   const mostrarTareas = config.calendarioMostrarTareas !== false;
 
-  console.log('📅 renderCalendarioIntegrado:', { mostrarCitas, mostrarTareas });
-  console.log('🔄 Renderizando calendario integrado. Citas:', appState.agenda.citas.length, 'Tareas:', (appState.agenda.tareas || []).length);
+  console.log('ðŸ“… renderCalendarioIntegrado:', { mostrarCitas, mostrarTareas });
+  console.log('ðŸ”„ Renderizando calendario integrado. Citas:', appState.agenda.citas.length, 'Tareas:', (appState.agenda.tareas || []).length);
 
 
   grid.innerHTML = '';
@@ -1518,10 +1518,10 @@ function renderCalendarioIntegrado() {
       const hoy = new Date().toISOString().slice(0, 10);
       const esHoy = dateStr === hoy;
 
-      // Recopilar eventos de este día según configuración
+      // Recopilar eventos de este dÃ­a segÃºn configuraciÃ³n
       let eventos = [];
 
-      // Anadir citas si están habilitadas
+      // AÃ±adir citas si estÃ¡n habilitadas
       if (mostrarCitas) {
         const citas = appState.agenda.citas.filter(cita => compararFechaConString(cita.fecha, dateStr));
         citas.forEach(cita => {
@@ -1533,7 +1533,7 @@ function renderCalendarioIntegrado() {
         });
       }
 
-      // Anadir tareas si están habilitadas
+      // AÃ±adir tareas si estÃ¡n habilitadas
       if (mostrarTareas) {
         // Tareas normales
         const tareas = (appState.agenda.tareas || []).filter(tarea => {
@@ -1549,7 +1549,7 @@ function renderCalendarioIntegrado() {
           });
         });
 
-        // Tareas críticas
+        // Tareas crÃ­ticas
         const tareasCriticas = (appState.agenda.tareas_criticas || []).filter(tarea => {
           if (!tarea.fecha_fin) return false;
           return tarea.fecha_fin === dateStr;
@@ -1611,20 +1611,20 @@ function renderCalendarioIntegrado() {
           const eventDiv = document.createElement('div');
           eventDiv.style.cssText = `background:${evento.color};color:white;padding:2px;margin:2px 0;border-radius:3px;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;`;
 
-          // Extraer descripción según el tipo
+          // Extraer descripciÃ³n segÃºn el tipo
           let descripcion = evento.nombre || '';
           if (evento.tipo === 'cita' && descripcion.includes(' - ')) {
             descripcion = descripcion.split(' - ')[1];
           }
 
-          // Anadir icono según el tipo
-          let icono = '✅';
+          // AÃ±adir icono segÃºn el tipo
+          let icono = 'âœ…';
           if (evento.tipo === 'cita') {
-            icono = '📅';
+            icono = 'ðŸ“…';
           } else if (evento.tipo === 'critica') {
-            icono = '🚨';
+            icono = 'ðŸš¨';
           } else if (evento.tipo === 'personalizada') {
-            icono = '📋';
+            icono = 'ðŸ“‹';
           }
           eventDiv.textContent = `${icono} ${descripcion}`;
 
@@ -1633,7 +1633,7 @@ function renderCalendarioIntegrado() {
             if (evento.tipo === 'cita' && evento.nombre) {
               abrirEditorCita(fechaArrayToString(evento.fecha), evento.nombre);
             }
-            // TODO: Anadir edición de tareas si es necesario
+            // TODO: AÃ±adir ediciÃ³n de tareas si es necesario
           };
           cell.appendChild(eventDiv);
         });
@@ -1641,7 +1641,7 @@ function renderCalendarioIntegrado() {
         if (eventos.length > 2) {
           const moreDiv = document.createElement('div');
           moreDiv.style.cssText = 'font-size:9px;color:#666;font-style:italic;margin-top:2px;';
-          moreDiv.textContent = `+${eventos.length - 2} más`;
+          moreDiv.textContent = `+${eventos.length - 2} mÃ¡s`;
           cell.appendChild(moreDiv);
         }
       }
@@ -1683,7 +1683,7 @@ window.showAppointmentsIntegrado = showAppointmentsIntegrado;
 window.toggleCalendarioCitas = toggleCalendarioCitas;
 
 
-// ========== MODAL DE EVENTOS DEL DÍA ==========
+// ========== MODAL DE EVENTOS DEL DÃA ==========
 function mostrarEventosDelDia(fecha, eventos) {
   const modal = document.createElement('div');
   modal.className = 'modal';
@@ -1691,28 +1691,28 @@ function mostrarEventosDelDia(fecha, eventos) {
   modal.style.display = 'flex';
   
   const fechaObj = new Date(fecha + 'T00:00:00');
-  const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const diasSemana = ['Domingo', 'Lunes', 'Martes', 'MiÃ©rcoles', 'Jueves', 'Viernes', 'SÃ¡bado'];
   const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const fechaFormateada = `${diasSemana[fechaObj.getDay()]}, ${fechaObj.getDate()} de ${meses[fechaObj.getMonth()]}`;
   
   let contenidoEventos = '';
   if (eventos.length === 0) {
-    contenidoEventos = '<p style="text-align:center;color:#999;padding:20px;">No hay eventos para este día</p>';
+    contenidoEventos = '<p style="text-align:center;color:#999;padding:20px;">No hay eventos para este dÃ­a</p>';
   } else {
     eventos.forEach(evento => {
-      let icono = '✅';
-      let titulo = evento.nombre || 'Sin título';
+      let icono = 'âœ…';
+      let titulo = evento.nombre || 'Sin tÃ­tulo';
       
       if (evento.tipo === 'cita') {
-        icono = '📅';
+        icono = 'ðŸ“…';
         if (titulo.includes(' - ')) {
           const partes = titulo.split(' - ');
           titulo = `${partes[0]} - <strong>${partes[1]}</strong>`;
         }
       } else if (evento.tipo === 'critica') {
-        icono = '🚨';
+        icono = 'ðŸš¨';
       } else if (evento.tipo === 'personalizada') {
-        icono = '📋';
+        icono = 'ðŸ“‹';
       }
       
       contenidoEventos += `
@@ -1724,9 +1724,9 @@ function mostrarEventosDelDia(fecha, eventos) {
   }
   
   modal.innerHTML = `
-    <div class="modal-content" style="max-width:500px;width:90%;">
-      <h4>📅 ${fechaFormateada}</h4>
-      <div style="max-height:${eventos.length === 0 ? 150 : Math.min(80 + (eventos.length * 60), 400)}px;overflow-y:auto;">
+    <div class="modal-content" style="max-width:500px;">
+      <h4>ðŸ“… ${fechaFormateada}</h4>
+      <div style="max-height:400px;overflow-y:auto;">
         ${contenidoEventos}
       </div>
       <div class="modal-botones">
@@ -1745,4 +1745,3 @@ function mostrarEventosDelDia(fecha, eventos) {
 }
 
 window.mostrarEventosDelDia = mostrarEventosDelDia;
-

@@ -1,0 +1,44 @@
+modal.innerHTML = `
+    <div class="modal-content">
+      <h4>ƒo?‹÷? Editar Cita</h4>
+      <div class="form-group">
+        <label>Fecha:</label>
+        <input type="date" id="editor-cita-fecha" value="${fecha}">
+      </div>
+      <div class="form-group">
+        <label>DescripciÇün:</label>
+        <input type="text" id="editor-cita-desc" value="${escapeHtml(descripcion)}">
+      </div>
+      <div class="form-group">
+        <label>ÐY"? Lugar (opcional):</label>
+        <input type="text" id="editor-cita-lugar" value="${escapeHtml(lugarActual)}" placeholder="Ej: Hospital, Oficina, Casa...">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">
+        <div>
+          <label>Hora:</label>
+          <select id="editor-cita-hora">
+            ${Array.from({ length: 15 }, (_, i) => {
+    const h = String(i + 8);
+    return `<option value="${h}" ${h === horas ? 'selected' : ''}>${h}</option>`;
+  }).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Minutos:</label>
+          <select id="editor-cita-minutos">
+            ${Array.from({ length: 12 }, (_, i) => {
+    const m = String(i * 5).padStart(2, '0');
+    return `<option value="${m}" ${m === minutos ? 'selected' : ''}>${m}</option>`;
+  }).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="modal-botones">
+        <button class="btn-primario" onclick="guardarEdicionCita('${fecha}', '${escapeHtml(nombre)}')">ÐY'ó Guardar</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-editor-cita')">ƒ?O Cancelar</button>
+        <button class="btn-eliminar" onclick="confirmarEliminarCitaDesdeEditor('${fecha}', '${escapeHtml(nombre)}')" style="background:#f44336;color:white;margin-left:10px;">ÐY-'‹÷? Eliminar</button>
+      </div>
+    </div>
+  `;
+
+  
