@@ -94,6 +94,54 @@ Ahora necesitas crear la estructura de la base de datos donde se guardará toda 
 Copia y pega exactamente este código SQL en el editor:
 
 ```sql
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 📊 SCRIPT DE INICIALIZACIÓN DE BASE DE DATOS - AGENDA PERSONAL
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Este script crea la estructura de base de datos completa para tu agenda
+-- e incluye datos de ejemplo para que veas cómo funciona el sistema.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- PASO 1: Crear la tabla principal
+-- ─────────────────────────────────────────────────────────────────────────
+-- Esta tabla usará JSONB (JSON binario) para máxima flexibilidad.
+-- Todos los datos se guardan en formato JSON dentro de la columna 'data'.
+
+CREATE TABLE agenda_data (
+  id text PRIMARY KEY,              -- Identificador único (ej: 'tareas', 'citas', 'personas')
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,  -- Datos en formato JSON (flexible)
+  last_updated timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL  -- Fecha de última actualización
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- PASO 2: Optimización de rendimiento
+-- ─────────────────────────────────────────────────────────────────────────
+-- Creamos un índice para que las búsquedas por fecha sean más rápidas
+
+CREATE INDEX idx_agenda_data_last_updated ON agenda_data(last_updated);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- PASO 3: Configurar seguridad (RLS - Row Level Security)
+-- ─────────────────────────────────────────────────────────────────────────
+-- Esto permite controlar quién puede leer/escribir datos
+
+ALTER TABLE agenda_data ENABLE ROW LEVEL SECURITY;
+
+-- Política de acceso: Permite lectura y escritura anónima
+-- ⚠️ IMPORTANTE: Para uso personal está bien. En producción considera usar autenticación.
+CREATE POLICY "Permitir acceso completo anónimo" 
+ON agenda_data 
+FOR ALL 
+USING (true) 
+WITH CHECK (true);
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- PASO 4: INSERTAR DATOS DE EJEMPLO
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Estos datos te ayudarán a entender cómo funciona la agenda.
+-- Puedes modificarlos o eliminarlos después desde la aplicación.
+-- ═══════════════════════════════════════════════════════════════════════════
+
 -- Crear la tabla principal para almacenar todos los datos de la agenda
 CREATE TABLE agenda_data (
   id text PRIMARY KEY,
@@ -130,6 +178,21 @@ INSERT INTO agenda_data (id, data) VALUES
   ('log', '{"acciones": []}'::jsonb),
   ('salvados', '{}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ✅ ¡COMPLETADO!
+-- ═══════════════════════════════════════════════════════════════════════════
+-- Tu base de datos está lista con:
+--   ✓ 3 tareas críticas de ejemplo
+--   ✓ 2 listas personalizadas (Compras y Proyectos)
+--   ✓ 2 citas de ejemplo
+--   ✓ 3 contactos de ejemplo
+--   ✓ 3 etiquetas predefinidas
+--   ✓ Mensaje de bienvenida en notas
+--
+-- Ahora puedes conectar tu aplicación y empezar a usar la agenda.
+-- Los datos de ejemplo te ayudarán a entender cómo funciona todo.
+-- ═══════════════════════════════════════════════════════════════════════════
 ```
 
 ### 4.3 Ejecutar el Script
