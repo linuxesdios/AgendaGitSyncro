@@ -4568,8 +4568,18 @@ window.toggleSubtareaListaPersonalizada = toggleSubtareaListaPersonalizada;
 // ========== MODAL DE LISTAS PERSONALIZADAS (NUEVO) ==========
 
 function abrirModalListaPersonalizada() {
+  console.log('🔧 abrirModalListaPersonalizada() llamado');
+  const modalElement = document.getElementById('modal-listas-personalizadas');
+  console.log('📋 Modal element:', modalElement);
+  if (!modalElement) {
+    console.error('❌ Modal "modal-listas-personalizadas" no encontrado en el DOM');
+    alert('Error: El modal de listas personalizadas no está disponible en esta página.');
+    return;
+  }
+  console.log('✅ Modal encontrado, abriendo...');
   abrirModal('modal-listas-personalizadas');
   renderizarListasEnModalPersonalizado();
+  console.log('✅ Modal abierto y listas renderizadas');
 }
 
 function insertarEmojiEnInput(inputId, emoji) {
@@ -4719,7 +4729,7 @@ window.renderizarListasEnModalPersonalizado = renderizarListasEnModalPersonaliza
 // ========== STUBS PARA FUNCIONES QUE SE CARGAN DESPUÉS ==========
 // Estas funciones se sobrescribirán cuando sincronizacion-simple.js se cargue
 if (!window.mostrarDashboardMotivacional) {
-  window.mostrarDashboardMotivacional = function() {
+  window.mostrarDashboardMotivacional = function () {
     console.log('⏳ Esperando a que se cargue sincronizacion-simple.js...');
     setTimeout(() => {
       if (typeof window.mostrarDashboardMotivacional === 'function') {
@@ -4730,7 +4740,7 @@ if (!window.mostrarDashboardMotivacional) {
 }
 
 if (!window.mostrarResumenDiarioManual) {
-  window.mostrarResumenDiarioManual = function() {
+  window.mostrarResumenDiarioManual = function () {
     console.log('⏳ Esperando a que se cargue sincronizacion-simple.js...');
     setTimeout(() => {
       if (typeof window.mostrarResumenDiarioManual === 'function') {

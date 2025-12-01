@@ -453,6 +453,9 @@ async function supabasePull() {
     }
 
     // Luego renderizar contenido
+    if (typeof window.renderizar === 'function') {
+      window.renderizar();
+    }
     if (typeof window.renderizarPanelCitas === 'function') {
       window.renderizarPanelCitas();
     }
@@ -461,9 +464,6 @@ async function supabasePull() {
     }
     if (typeof window.renderizarCriticas === 'function') {
       window.renderizarCriticas();
-    }
-    if (typeof window.renderizar === 'function') {
-      window.renderizar();
     }
 
     // IMPORTANTE: Renderizar listas personalizadas DESPUÉS de actualizar tareasData
