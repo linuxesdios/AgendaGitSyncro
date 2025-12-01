@@ -12,6 +12,7 @@ Esta guía te explicará paso a paso cómo configurar Supabase como base de dato
 6. [Verificar conexión](#6-verificar-conexión)
 
 ---
+[![Mira el video](https://img.youtube.com/vi/2oo-bkpt6Lw/0.jpg)](https://www.youtube.com/watch?v=2oo-bkpt6Lw)
 
 ## 1. Crear cuenta en Supabase
 
