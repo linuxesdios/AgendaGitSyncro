@@ -468,7 +468,7 @@ function completarTareaCritica(id) {
 }
 
 function eliminarTareaCritica(id) {
-  console.log('📤 SUPABASE: Eliminando tarea crítica');
+
   window.appState.agenda.tareas_criticas = window.appState.agenda.tareas_criticas.filter(t => t.id !== id);
   guardarJSON();
   renderizarCriticasMovil();
@@ -584,7 +584,6 @@ function guardarEdicionCriticaMovil(id) {
     tarea.fecha_fin = fecha || null;
     tarea.etiqueta = etiqueta || null;
 
-    console.log('📤 SUPABASE: Editando tarea crítica');
     guardarJSON();
     renderizarCriticasMovil();
 
@@ -603,7 +602,7 @@ function abrirModalMigrarCritica(id) {
 // ==================== FUNCIONES AUXILIARES PARA CITAS ====================
 
 function eliminarCita(id) {
-  console.log('📤 SUPABASE: Eliminando cita');
+
   window.appState.agenda.citas = window.appState.agenda.citas.filter(c => c.id != id);
   guardarJSON();
   renderizarCitasMovil();
@@ -807,7 +806,6 @@ function guardarEdicionCitaMovil(id) {
     // Guardar hora en formato HH:MM
     cita.hora = `${hora}:${minutos}`;
 
-    console.log('📤 SUPABASE: Editando cita');
     guardarJSON();
     renderizarCitasMovil();
 
@@ -840,7 +838,6 @@ function eliminarTareaLista(listaId, tareaId) {
   const lista = window.tareasData.listasPersonalizadas.find(l => l.id === listaId);
   if (!lista) return;
 
-  console.log('📤 SUPABASE: Eliminando tarea de lista');
   lista.tareas = lista.tareas.filter(t => t.id != tareaId);
   guardarJSON();
   renderizarListasMovil();
@@ -1001,7 +998,6 @@ function guardarEdicionListaMovil(listaId, tareaId) {
     tarea.persona = persona || null;
     tarea.etiqueta = etiqueta || null;
 
-    console.log('📤 SUPABASE: Editando tarea de lista');
     guardarJSON();
     renderizarListasMovil();
 

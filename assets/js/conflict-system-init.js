@@ -6,8 +6,6 @@
 (function () {
     'use strict';
 
-    console.log('🔧 Inicializando sistema de detección de conflictos...');
-
     // Inyectar modal de conflictos en el DOM
     function inyectarModalConflictos() {
         const modalHTML = `
@@ -56,7 +54,7 @@
 
         // Insertar modal antes del cierre del body
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        console.log('✅ Modal de conflictos inyectado');
+
     }
 
     // Cargar scripts de conflictos
@@ -71,7 +69,7 @@
             script.src = src;
             script.async = false; // Cargar en orden
             script.onload = () => {
-                console.log(`✅ Cargado: ${src}`);
+
             };
             script.onerror = () => {
                 console.error(`❌ Error cargando: ${src}`);

@@ -24,11 +24,10 @@ function obtenerListasPersonalizadas() {
   listas.forEach((lista, idx) => {
     const totalTareas = lista.tareas?.length || 0;
     const tareasConSubtareas = lista.tareas?.filter(t => t.subtareas && t.subtareas.length > 0).length || 0;
-    console.log(`  📋 Lista ${idx} "${lista.nombre}": ${totalTareas} tareas, ${tareasConSubtareas} con subtareas`);
 
     lista.tareas?.forEach((tarea, tidx) => {
       if (tarea.subtareas && tarea.subtareas.length > 0) {
-        console.log(`    ✓ Tarea ${tidx} "${tarea.texto}": ${tarea.subtareas.length} subtareas`);
+
       }
     });
   });
@@ -117,7 +116,6 @@ function cerrarModalConectividad() {
 }
 
 function procesarJSON(data) {
-  console.log('🔄 procesarJSON cargando datos:', data);
 
   // Preservar listas personalizadas existentes si no vienen en el JSON
   const listasPersonalizadasActuales = appState.agenda?.tareasData?.listasPersonalizadas || [];
@@ -161,14 +159,13 @@ function procesarJSON(data) {
 }
 
 async function cargarConfiguracionesModal() {
-  console.log('📋 Cargando modal de configuración...');
 
   // Actualizar datos desde Supabase antes de cargar la interfaz
   if (window.currentSyncMethod === 'supabase' && typeof window.supabasePull === 'function') {
-    console.log('🔄 Actualizando datos desde Supabase...');
+
     try {
       await window.supabasePull();
-      console.log('✅ Datos actualizados desde Supabase');
+
     } catch (error) {
       console.warn('⚠️ Error actualizando desde Supabase:', error);
     }
@@ -205,7 +202,6 @@ async function cargarConfiguracionesModal() {
   actualizarFiltrosPersonas();
   actualizarFiltrosEtiquetas();
 
-  console.log('✅ Modal de configuración cargado completamente');
 }
 
 function cambiarFraseMotivacional() {
@@ -277,7 +273,7 @@ function cerrarResumenDiario() {
 }
 
 function verHistorial() {
-  console.log('📜 Ver historial');
+
 }
 
 function hacerCopia() {
@@ -285,11 +281,11 @@ function hacerCopia() {
 }
 
 function abrirHistoricoTareas() {
-  console.log('📊 Abrir histórico de tareas');
+
 }
 
 function abrirGraficos() {
-  console.log('📈 Abrir gráficos');
+
 }
 
 function restaurarBackup() {
@@ -784,7 +780,6 @@ function cargarListaPersonas() {
 
 // Nueva función para sincronizar personas desde todas las fuentes
 function sincronizarPersonasDesdeTodasLasFuentes() {
-  console.log('🔄 Sincronizando personas desde todas las fuentes...');
 
   // Inicializar estructuras si no existen
   if (!window.tareasData) window.tareasData = {};
@@ -805,7 +800,6 @@ function sincronizarPersonasDesdeTodasLasFuentes() {
   window.tareasData.personas = personasArray;
   window.personasAsignadas = [...personasArray];
 
-  console.log('👥 Personas sincronizadas:', personasArray);
 }
 
 function agregarPersona() {
@@ -837,7 +831,7 @@ function agregarPersona() {
   }
 
   // Guardar inmediatamente en Supabase
-  console.log('👥 Guardando nueva persona en Supabase:', nombre);
+
   guardarEnSupabase();
 
   mostrarAlerta(`✅ Persona "${nombre}" agregada y guardada`, 'success');
@@ -856,7 +850,6 @@ async function guardarConfigOpciones() {
     botonesBorrar: document.getElementById('config-botones-borrar')?.checked || false
   };
 
-  console.log('💾 Guardando configuración de opciones:', config);
   window.configOpciones = config;
 
   // Intentar guardar en Supabase si está configurado
@@ -868,7 +861,6 @@ async function guardarConfigOpciones() {
 }
 
 async function guardarConfigEnNube() {
-  console.log('💾 Guardando configuración en la nube');
 
   // Intentar guardar en Supabase
   if (typeof guardarConfigEnSupabase === 'function') {
@@ -879,7 +871,6 @@ async function guardarConfigEnNube() {
 }
 
 async function probarConexionNube() {
-  console.log('🔍 Probando conexión con la nube');
 
   // Verificar si Supabase está configurado (usando variables globales de supabase-sync.js)
   // Como no podemos acceder fácilmente a las variables privadas de otro módulo,
@@ -955,61 +946,58 @@ function actualizarFiltrosEtiquetas() {
 }
 
 function aplicarVisibilidadSecciones() {
-  console.log('🔧 Aplicando visibilidad de secciones');
 
   const config = window.configVisual || {};
-  console.log('📋 Configuración actual:', config);
 
   // Panel de Notas
   const seccionNotas = document.getElementById('seccion-notas');
   if (seccionNotas) {
     seccionNotas.style.display = config.mostrarNotas ? 'block' : 'none';
-    console.log('📝 Panel de Notas:', config.mostrarNotas ? 'visible' : 'oculto');
+
   }
 
   // Panel de Sentimientos
   const seccionSentimientos = document.getElementById('seccion-sentimientos');
   if (seccionSentimientos) {
     seccionSentimientos.style.display = config.mostrarSentimientos ? 'block' : 'none';
-    console.log('😊 Panel de Sentimientos:', config.mostrarSentimientos ? 'visible' : 'oculto');
+
   }
 
   // Panel de Contraseñas
   const seccionContrasenas = document.getElementById('seccion-contrasenas');
   if (seccionContrasenas) {
     seccionContrasenas.style.display = config.mostrarContrasenas ? 'block' : 'none';
-    console.log('🔐 Panel de Contraseñas:', config.mostrarContrasenas ? 'visible' : 'oculto');
+
   }
 
   // Botón Pomodoro
   const btnPomodoro = document.getElementById('btn-pomodoro');
   if (btnPomodoro) {
     btnPomodoro.style.display = config.mostrarPomodoro ? 'inline-block' : 'none';
-    console.log('🍅 Botón Pomodoro:', config.mostrarPomodoro ? 'visible' : 'oculto');
+
   }
 
   // Botón Progreso
   const btnProgreso = document.getElementById('btn-progreso');
   if (btnProgreso) {
     btnProgreso.style.display = config.mostrarProgreso ? 'inline-block' : 'none';
-    console.log('📊 Botón Progreso:', config.mostrarProgreso ? 'visible' : 'oculto');
+
   }
 
   // Botón Resumen
   const btnResumen = document.getElementById('btn-resumen');
   if (btnResumen) {
     btnResumen.style.display = config.mostrarResumen ? 'inline-block' : 'none';
-    console.log('🌅 Botón Resumen:', config.mostrarResumen ? 'visible' : 'oculto');
+
   }
 
   // Botón Tarea Universal
   const btnTareaUniversal = document.getElementById('btn-tarea-crear');
   if (btnTareaUniversal) {
     btnTareaUniversal.style.display = config.mostrarTareaUniversal ? 'inline-block' : 'none';
-    console.log('📝 Botón Tarea Universal:', config.mostrarTareaUniversal ? 'visible' : 'oculto');
+
   }
 
-  console.log('✅ Visibilidad de secciones aplicada correctamente');
 }
 
 function aplicarConfiguracionSincronizada() {
@@ -1076,7 +1064,6 @@ window.cerrarModalConectividad = cerrarModalConectividad;
 
 // ========== GUARDAR ETIQUETAS ==========
 async function guardarEtiquetas() {
-  console.log('🏷️ Guardando etiquetas en Supabase...');
 
   // Las etiquetas están en window.etiquetasData
   const etiquetas = window.etiquetasData || {
@@ -1089,7 +1076,7 @@ async function guardarEtiquetas() {
     if (typeof supabasePush === 'function') {
       await supabasePush();
       mostrarAlerta('✅ Etiquetas guardadas correctamente', 'success');
-      console.log('✅ Etiquetas guardadas:', etiquetas);
+
     } else {
       console.warn('⚠️ supabasePush no disponible');
       mostrarAlerta('⚠️ No se pudo guardar - Supabase no disponible', 'error');
@@ -1106,10 +1093,10 @@ function sincronizarEstructurasEtiquetas() {
   if (window.etiquetasData && !window.tareasData?.etiquetas) {
     if (!window.tareasData) window.tareasData = {};
     window.tareasData.etiquetas = window.etiquetasData;
-    console.log('✅ Sincronizado etiquetas: etiquetasData → tareasData.etiquetas');
+
   } else if (window.tareasData?.etiquetas && !window.etiquetasData) {
     window.etiquetasData = window.tareasData.etiquetas;
-    console.log('✅ Sincronizado etiquetas: tareasData.etiquetas → etiquetasData');
+
   }
 
   // Si ninguna existe, inicializar ambas
@@ -1118,14 +1105,14 @@ function sincronizarEstructurasEtiquetas() {
     window.etiquetasData = estructuraInicial;
     if (!window.tareasData) window.tareasData = {};
     window.tareasData.etiquetas = estructuraInicial;
-    console.log('✅ Estructuras de etiquetas inicializadas');
+
   }
 }
 
 // Función para limpiar etiquetas duplicadas
 function limpiarEtiquetasDuplicadas() {
   if (!window.etiquetasData) {
-    console.log('❌ No hay etiquetasData para limpiar');
+
     return { eliminados: 0 };
   }
 
@@ -1168,7 +1155,7 @@ function limpiarEtiquetasDuplicadas() {
   }
 
   if (eliminados > 0) {
-    console.log(`✅ Limpieza completada: ${eliminados} etiquetas duplicadas eliminadas`);
+
     guardarEnSupabase();
 
     // Re-renderizar listas para reflejar cambios
@@ -1179,7 +1166,7 @@ function limpiarEtiquetasDuplicadas() {
 
     mostrarAlerta(`🧹 Eliminadas ${eliminados} etiquetas duplicadas`, 'success');
   } else {
-    console.log('✅ No se encontraron etiquetas duplicadas');
+
     mostrarAlerta('✅ No se encontraron etiquetas duplicadas', 'info');
   }
 

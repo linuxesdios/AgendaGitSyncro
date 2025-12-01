@@ -3,16 +3,13 @@
   const esMobile = window.location.pathname.includes('agendaphone.html');
   
   if (esMobile) {
-    // Esperar a que el DOM esté listo
+    // Ocultar pestañas de Visual y Funcional
     const ocultarTabs = () => {
-      // Ocultar pestañas de Visual y Funcional
-      const tabsAOcultar = ['.config-tab[onclick*="visual"]', '.config-tab[onclick*="funcionales"]'];
-      tabsAOcultar.forEach(selector => {
+      ['.config-tab[onclick*="visual"]', '.config-tab[onclick*="funcionales"]'].forEach(selector => {
         const btn = document.querySelector(selector);
         if (btn) btn.style.display = 'none';
       });
       
-      // Ocultar contenido de esas pestañas
       ['#tab-visual', '#tab-funcionales'].forEach(id => {
         const tab = document.querySelector(id);
         if (tab) tab.style.display = 'none';
@@ -25,23 +22,22 @@
       ocultarTabs();
     }
     
-    // Interceptar apertura del modal para forzar carga de pestaña activa
+    // Interceptar apertura del modal
     const originalToggle = window.toggleConfigFloating;
+    
     window.toggleConfigFloating = function() {
       if (originalToggle) originalToggle();
       
-      // Esperar a que el modal esté visible
       setTimeout(() => {
         const modal = document.getElementById('modal-config');
-        if (modal && modal.style.display === 'flex') {
-          // Forzar clic en la pestaña activa para cargar su contenido
-          const tabActiva = document.querySelector('.config-tab.active');
-          if (tabActiva) {
-            console.log('🔄 Forzando carga de pestaña activa');
-            tabActiva.click();
+        
+        if (modal && (modal.style.display === 'flex' || modal.style.display === 'block')) {
+          // Forzar carga de la pestaña activa llamando a switchTab directamente
+          if (typeof switchTab === 'function') {
+            switchTab('supabase');
           }
         }
-      }, 150);
+      }, 200);
     };
   }
 })();

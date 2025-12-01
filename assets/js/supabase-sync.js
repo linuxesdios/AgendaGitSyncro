@@ -1,12 +1,12 @@
-﻿// ========== SUPABASE SYNC ==========
-// Sistema de sincronización en la nube sin límites de peticiones
+// ========== SUPABASE SYNC ==========
+// Sistema de sincronizaci�n en la nube sin l�mites de peticiones
 
-// ========== CONFIGURACIÓN GLOBAL ==========
+// ========== CONFIGURACI�N GLOBAL ==========
 window.supabaseClient = null;
 window.currentSyncMethod = localStorage.getItem('syncMethod') || 'supabase';
 window.supabaseRealtimeChannel = null;
 
-// ========== CONFIGURACIÓN DE SUPABASE ==========
+// ========== CONFIGURACI�N DE SUPABASE ==========
 function getSupabaseConfig() {
   return {
     url: localStorage.getItem('supabase_url') || '',
@@ -21,12 +21,12 @@ function saveSupabaseConfig(url, key, serviceKey = '') {
   if (serviceKey) {
     localStorage.setItem('supabase_service_key', serviceKey);
   }
-  console.log('⚡ Configuración de Supabase guardada');
+
 }
 
-// ========== INICIALIZACIÓN DE SUPABASE ==========
+// ========== INICIALIZACI�N DE SUPABASE ==========
 async function initSupabase() {
-  // Si ya está inicializado, no reinicializar
+  // Si ya est� inicializado, no reinicializar
   if (window.supabaseClient) {
     return true;
   }
@@ -34,19 +34,19 @@ async function initSupabase() {
   const config = getSupabaseConfig();
 
   if (!config.url || !config.key) {
-    console.warn('⚠️ Configuración de Supabase incompleta');
+    console.warn('?? Configuraci�n de Supabase incompleta');
     return false;
   }
 
   try {
-    // Usar la librería Supabase cargada desde CDN
+    // Usar la librer�a Supabase cargada desde CDN
     const { createClient } = supabase;
     window.supabaseClient = createClient(config.url, config.key);
 
-    console.log('⚡ Supabase inicializado correctamente (nueva instancia)');
+    console.log('? Supabase inicializado correctamente (nueva instancia)');
     return true;
   } catch (error) {
-    console.error('❌ Error inicializando Supabase:', error);
+    console.error('? Error inicializando Supabase:', error);
     return false;
   }
 }
@@ -58,7 +58,7 @@ function guardarConfigSupabase() {
   const serviceKeyElement = document.getElementById('supabase-service-key');
 
   if (!urlElement || !keyElement) {
-    alert('⚠️ Error: Formulario de Supabase no encontrado');
+    alert('?? Error: Formulario de Supabase no encontrado');
     return;
   }
 
@@ -67,13 +67,13 @@ function guardarConfigSupabase() {
   const serviceKey = serviceKeyElement ? serviceKeyElement.value : '';
 
   if (!url || !key) {
-    alert('⚠️ URL y Anon Key son obligatorios');
+    alert('?? URL y Anon Key son obligatorios');
     return;
   }
 
   saveSupabaseConfig(url, key, serviceKey);
-  console.log('✅ Configuración de Supabase guardada');
-  showSupabaseStatus('✅ Configuración guardada correctamente', 'success');
+
+  showSupabaseStatus('? Configuraci�n guardada correctamente', 'success');
 }
 
 // ========== FUNCIONES DE INTERFAZ AUXILIARES ==========
@@ -85,31 +85,31 @@ function toggleSupabaseKeyVisibility() {
 
   if (keyInput.type === 'password') {
     keyInput.type = 'text';
-    toggleButton.textContent = '🙈';
-    toggleButton.title = 'Ocultar contraseña';
+    toggleButton.textContent = '??';
+    toggleButton.title = 'Ocultar contrase�a';
 
     setTimeout(() => {
       if (keyInput.type === 'text') {
         keyInput.type = 'password';
-        toggleButton.textContent = '👁️';
-        toggleButton.title = 'Mostrar contraseña';
+        toggleButton.textContent = '???';
+        toggleButton.title = 'Mostrar contrase�a';
       }
     }, 3000);
   } else {
     keyInput.type = 'password';
-    toggleButton.textContent = '👁️';
-    toggleButton.title = 'Mostrar contraseña';
+    toggleButton.textContent = '???';
+    toggleButton.title = 'Mostrar contrase�a';
   }
 }
 
 async function probarConexionSupabase() {
-  showSupabaseStatus('🔄 Probando conexión...', 'info');
+  showSupabaseStatus('?? Probando conexi�n...', 'info');
 
   const connected = await initSupabase();
 
   if (connected) {
     try {
-      // Probar conexión básica primero
+      // Probar conexi�n b�sica primero
       const { data, error } = await window.supabaseClient
         .from('agenda_data')
         .select('*')
@@ -118,38 +118,38 @@ async function probarConexionSupabase() {
       if (error) {
         // Si error es porque la tabla no existe (primera vez)
         if (error.code === 'PGRST116' || error.message.includes('does not exist') || error.message.includes('schema cache')) {
-          showSupabaseStatus('🆕 Primera vez detectada - Las tablas no existen todavía', 'info');
+          showSupabaseStatus('?? Primera vez detectada - Las tablas no existen todav�a', 'info');
 
-          // Preguntar automáticamente si quiere crear las tablas
+          // Preguntar autom�ticamente si quiere crear las tablas
           const shouldCreate = confirm(
-            '🆕 ¡Primera vez usando Supabase!\n\n' +
-            'Las tablas de la base de datos no existen todavía.\n' +
-            '¿Quieres que las cree automáticamente?\n\n' +
-            '✅ Sí - Crear tablas y configurar todo\n' +
-            '❌ No - Solo verificar conexión'
+            '?? �Primera vez usando Supabase!\n\n' +
+            'Las tablas de la base de datos no existen todav�a.\n' +
+            '�Quieres que las cree autom�ticamente?\n\n' +
+            '? S� - Crear tablas y configurar todo\n' +
+            '? No - Solo verificar conexi�n'
           );
 
           if (shouldCreate) {
-            showSupabaseStatus('🛠️ Creando tablas automáticamente...', 'info');
+            showSupabaseStatus('??? Creando tablas autom�ticamente...', 'info');
             await crearTablasSupabase();
           } else {
-            showSupabaseStatus('✅ Conexión básica exitosa - Click "🛠️ Crear Tablas" cuando estés listo', 'success');
+            showSupabaseStatus('? Conexi�n b�sica exitosa - Click "??? Crear Tablas" cuando est�s listo', 'success');
           }
-          return true; // Conexión exitosa aunque las tablas no existan
+          return true; // Conexi�n exitosa aunque las tablas no existan
         } else {
           throw error;
         }
       } else {
-        showSupabaseStatus('✅ Conexión exitosa - Las tablas ya existen y funcionan', 'success');
-        return true; // Conexión exitosa
+        showSupabaseStatus('? Conexi�n exitosa - Las tablas ya existen y funcionan', 'success');
+        return true; // Conexi�n exitosa
       }
     } catch (error) {
-      console.error('❌ Error probando conexión:', error);
-      showSupabaseStatus('❌ Error de conexión: ' + error.message, 'error');
-      return false; // Error de conexión
+      console.error('? Error probando conexi�n:', error);
+      showSupabaseStatus('? Error de conexi�n: ' + error.message, 'error');
+      return false; // Error de conexi�n
     }
   } else {
-    showSupabaseStatus('❌ No se pudo inicializar Supabase - Verifica URL y Anon Key', 'error');
+    showSupabaseStatus('? No se pudo inicializar Supabase - Verifica URL y Anon Key', 'error');
     return false; // No se pudo inicializar
   }
 }
@@ -157,15 +157,15 @@ async function probarConexionSupabase() {
 async function crearTablasSupabase() {
   const connected = await initSupabase();
   if (!connected) {
-    showSupabaseStatus('❌ Primero configura Supabase', 'error');
+    showSupabaseStatus('? Primero configura Supabase', 'error');
     return;
   }
 
-  showSupabaseStatus('🛠️ Creando estructura de datos...', 'info');
+  showSupabaseStatus('??? Creando estructura de datos...', 'info');
 
   try {
-    // Approach más simple: crear registros directamente
-    // Supabase creará la tabla automáticamente con el primer insert si usamos el SQL editor
+    // Approach m�s simple: crear registros directamente
+    // Supabase crear� la tabla autom�ticamente con el primer insert si usamos el SQL editor
 
     // Datos iniciales para todas las colecciones
     const initialData = [
@@ -217,14 +217,14 @@ async function crearTablasSupabase() {
         id: 'etiquetas',
         data: {
           tareas: [
-            { nombre: 'trabajo', simbolo: '💼', color: '#3498db' },
-            { nombre: 'ocio', simbolo: '🎮', color: '#9b59b6' },
-            { nombre: 'médicos', simbolo: '🏥', color: '#e74c3c' }
+            { nombre: 'trabajo', simbolo: '??', color: '#3498db' },
+            { nombre: 'ocio', simbolo: '??', color: '#9b59b6' },
+            { nombre: 'm�dicos', simbolo: '??', color: '#e74c3c' }
           ],
           citas: [
-            { nombre: 'trabajo', simbolo: '💼', color: '#3498db' },
-            { nombre: 'ocio', simbolo: '🎮', color: '#9b59b6' },
-            { nombre: 'médicos', simbolo: '🏥', color: '#e74c3c' }
+            { nombre: 'trabajo', simbolo: '??', color: '#3498db' },
+            { nombre: 'ocio', simbolo: '??', color: '#9b59b6' },
+            { nombre: 'm�dicos', simbolo: '??', color: '#e74c3c' }
           ]
         }
       },
@@ -246,31 +246,31 @@ async function crearTablasSupabase() {
           .upsert(record, { onConflict: 'id' });
 
         if (error && !error.message.includes('does not exist')) {
-          console.warn(`⚠️ Error insertando ${record.id}:`, error);
+          console.warn(`?? Error insertando ${record.id}:`, error);
         }
       } catch (itemError) {
-        console.warn(`⚠️ Error con ${record.id}:`, itemError);
+        console.warn(`?? Error con ${record.id}:`, itemError);
       }
     }
 
-    // Verificar que al menos uno se insertó correctamente
+    // Verificar que al menos uno se insert� correctamente
     const { data: testData, error: testError } = await window.supabaseClient
       .from('agenda_data')
       .select('id')
       .limit(1);
 
     if (testError) {
-      // Si aún hay error, mostrar instrucciones para crear tabla manualmente
+      // Si a�n hay error, mostrar instrucciones para crear tabla manualmente
       showSupabaseStatus(
-        '⚠️ No se puede crear automáticamente. Crea la tabla manualmente: Ve al SQL Editor de Supabase y ejecuta: CREATE TABLE agenda_data (id text PRIMARY KEY, data jsonb, last_updated timestamp DEFAULT now());',
+        '?? No se puede crear autom�ticamente. Crea la tabla manualmente: Ve al SQL Editor de Supabase y ejecuta: CREATE TABLE agenda_data (id text PRIMARY KEY, data jsonb, last_updated timestamp DEFAULT now());',
         'error'
       );
 
-      // También mostrar el popup con instrucciones
+      // Tambi�n mostrar el popup con instrucciones
       alert(
-        '🛠️ INSTRUCCIONES PARA CREAR TABLA MANUALMENTE:\n\n' +
+        '??? INSTRUCCIONES PARA CREAR TABLA MANUALMENTE:\n\n' +
         '1. Ve a tu dashboard de Supabase\n' +
-        '2. Click en "SQL Editor" en el menú izquierdo\n' +
+        '2. Click en "SQL Editor" en el men� izquierdo\n' +
         '3. Copia y pega este comando:\n\n' +
         'CREATE TABLE agenda_data (\n' +
         '  id text PRIMARY KEY,\n' +
@@ -278,21 +278,21 @@ async function crearTablasSupabase() {
         '  last_updated timestamp DEFAULT now()\n' +
         ');\n\n' +
         '4. Click "Run"\n' +
-        '5. Vuelve aquí y prueba la conexión de nuevo'
+        '5. Vuelve aqu� y prueba la conexi�n de nuevo'
       );
     } else {
-      showSupabaseStatus('✅ ¡Estructura creada! Supabase está listo para usar', 'success');
+      showSupabaseStatus('? �Estructura creada! Supabase est� listo para usar', 'success');
     }
   } catch (error) {
-    console.error('❌ Error creando estructura:', error);
+    console.error('? Error creando estructura:', error);
 
     // Instrucciones claras para el usuario
-    showSupabaseStatus('⚠️ Crear manualmente - Ver instrucciones en popup', 'error');
+    showSupabaseStatus('?? Crear manualmente - Ver instrucciones en popup', 'error');
 
     alert(
-      '🛠️ CREAR TABLA MANUALMENTE:\n\n' +
-      '1. Ve a supabase.com → tu proyecto\n' +
-      '2. Click "SQL Editor" (menú izquierdo)\n' +
+      '??? CREAR TABLA MANUALMENTE:\n\n' +
+      '1. Ve a supabase.com ? tu proyecto\n' +
+      '2. Click "SQL Editor" (men� izquierdo)\n' +
       '3. Nueva query y pega:\n\n' +
       'CREATE TABLE agenda_data (\n' +
       '  id text PRIMARY KEY,\n' +
@@ -300,25 +300,24 @@ async function crearTablasSupabase() {
       '  last_updated timestamp DEFAULT now()\n' +
       ');\n\n' +
       '4. Click "Run"\n' +
-      '5. Vuelve aquí y haz click "Probar" de nuevo'
+      '5. Vuelve aqu� y haz click "Probar" de nuevo'
     );
   }
 }
 
-// ========== FUNCIONES DE SINCRONIZACIÓN ==========
+// ========== FUNCIONES DE SINCRONIZACI�N ==========
 
-// Función para sincronizar datos desde la nube
+// Funci�n para sincronizar datos desde la nube
 async function supabasePull() {
   if (window.currentSyncMethod !== 'supabase') return;
 
   const connected = await initSupabase();
   if (!connected) {
-    console.warn('⚠️ Supabase no está configurado');
+    console.warn('?? Supabase no est� configurado');
     return;
   }
 
   try {
-    console.log('📥 SUPABASE PULL: Recibiendo datos de la nube...');
 
     const collections = [
       'tareas', 'citas', 'config', 'notas', 'sentimientos',
@@ -334,7 +333,7 @@ async function supabasePull() {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.warn(`⚠️ Error cargando ${collection}:`, error);
+        console.warn(`?? Error cargando ${collection}:`, error);
         return { collection, data: null };
       }
 
@@ -347,8 +346,7 @@ async function supabasePull() {
     results.forEach(({ collection, data }) => {
       switch (collection) {
         case 'tareas':
-          console.log('📦 CARGANDO TAREAS desde Supabase:', data);
-          
+
           // Inicializar tareasData si no existe
           if (!window.tareasData) window.tareasData = {};
           
@@ -365,14 +363,12 @@ async function supabasePull() {
           window.appState.agenda.tareas_criticas = data.tareas_criticas || [];
           window.appState.agenda.tareas = data.tareas || [];
           window.appState.agenda.listasPersonalizadas = data.listasPersonalizadas || [];
-          
-          console.log('  ✅ Tareas críticas cargadas:', data.tareas_criticas?.length || 0);
-          console.log('  ✅ Tareas normales cargadas:', data.tareas?.length || 0);
-          console.log('  ✅ Listas personalizadas cargadas:', data.listasPersonalizadas?.length || 0);
-          
+
+
+
           if (data.listasPersonalizadas) {
             data.listasPersonalizadas.forEach((lista, idx) => {
-              console.log(`    📋 Lista ${idx}: "${lista.nombre}" con ${lista.tareas?.length || 0} tareas`);
+
             });
           }
           break;
@@ -385,7 +381,7 @@ async function supabasePull() {
         case 'config':
           if (data.visual) {
             window.configVisual = { ...window.configVisual, ...data.visual };
-            // Actualizar título de la pestaña
+            // Actualizar t�tulo de la pesta�a
             if (data.visual.titulo) {
               document.title = data.visual.titulo;
             }
@@ -434,8 +430,6 @@ async function supabasePull() {
       }
     });
 
-    console.log('✅ SUPABASE PULL: Datos recibidos correctamente');
-
     if (typeof window.sincronizarEstructurasEtiquetas === 'function') {
       window.sincronizarEstructurasEtiquetas();
     }
@@ -466,19 +460,18 @@ async function supabasePull() {
       window.renderizarCriticas();
     }
 
-    // IMPORTANTE: Renderizar listas personalizadas DESPUÉS de actualizar tareasData
-    console.log('🔄 Verificando tareasData antes de renderizar:', window.tareasData?.listasPersonalizadas?.length || 0);
-    
+    // IMPORTANTE: Renderizar listas personalizadas DESPU�S de actualizar tareasData
+
     // Regenerar secciones HTML primero
     if (typeof window.regenerarSeccionesListasPersonalizadas === 'function') {
       setTimeout(() => {
-        console.log('🏗️ Regenerando secciones HTML...');
+
         window.regenerarSeccionesListasPersonalizadas();
         
         // Luego renderizar el contenido
         if (typeof window.renderizarTodasLasListasPersonalizadas === 'function') {
           setTimeout(() => {
-            console.log('🎨 Renderizando contenido de listas con datos:', window.tareasData?.listasPersonalizadas?.length || 0);
+
             window.renderizarTodasLasListasPersonalizadas();
           }, 100);
         }
@@ -491,25 +484,24 @@ async function supabasePull() {
 
     return true;
   } catch (error) {
-    console.error('❌ Error en PULL:', error);
+    console.error('? Error en PULL:', error);
     return false;
   }
 }
 
-// Función para guardar datos en la nube (CON DETECCIÓN DE CONFLICTOS)
+// Funci�n para guardar datos en la nube (CON DETECCI�N DE CONFLICTOS)
 async function supabasePush(isAutomatic = false, skipPullBefore = false, skipConflictCheck = false) {
   if (window.currentSyncMethod !== 'supabase') return;
 
   const connected = await initSupabase();
   if (!connected) {
-    console.warn('⚠️ Supabase no está configurado');
+    console.warn('?? Supabase no est� configurado');
     return;
   }
 
-  // ========== DETECCIÓN DE CONFLICTOS ==========
+  // ========== DETECCI�N DE CONFLICTOS ==========
   if (!skipConflictCheck && typeof getDeviceId === 'function' && typeof showConflictModal === 'function') {
     try {
-      console.log('🔍 Verificando deviceId para conflictos...');
 
       // Obtener metadata actual de Supabase
       const { data: metadataRecord, error: metadataError } = await window.supabaseClient
@@ -521,12 +513,9 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
       const currentDeviceId = getDeviceId();
       const remoteDeviceId = metadataRecord?.data?._deviceId;
 
-      console.log(`  📱 Device actual: ${currentDeviceId}`);
-      console.log(`  ☁️  Device remoto: ${remoteDeviceId || 'ninguno'}`);
 
       // Si hay un deviceId remoto y es diferente al actual, mostrar modal
       if (remoteDeviceId && remoteDeviceId !== currentDeviceId) {
-        console.log('⚠️ ¡CONFLICTO! Último guardado fue desde otro dispositivo');
 
         // Obtener datos remotos actuales para comparar
         const { data: remoteTareas } = await window.supabaseClient.from('agenda_data').select('data').eq('id', 'tareas').single();
@@ -553,43 +542,40 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
           sentimientos: window.appState.sentimientos || ''
         };
 
-        // Mostrar modal y esperar decisión del usuario
+        // Mostrar modal y esperar decisi�n del usuario
         const resolution = await showConflictModal(localData, remoteData);
 
-        console.log(`  👤 Usuario eligió: ${resolution}`);
-
         if (resolution === 'cancel') {
-          console.log('❌ Push cancelado por el usuario');
+
           return false;
         } else if (resolution === 'remote') {
-          console.log('📥 Usando versión del servidor, descartando cambios locales');
-          // Hacer pull para obtener la versión remota
+
+          // Hacer pull para obtener la versi�n remota
           await supabasePull();
           return true; // No guardar, solo actualizar local
         }
         // Si resolution === 'local', continuar guardando
-        console.log('📤 Usando versión local, sobrescribiendo servidor');
+
       }
     } catch (conflictError) {
-      console.warn('⚠️ Error verificando conflictos:', conflictError);
+      console.warn('?? Error verificando conflictos:', conflictError);
       // Continuar con el guardado normal si hay error
     }
   }
 
   // ========== PULL ANTES DE PUSH (Opcional) ==========
   if (!skipPullBefore && skipConflictCheck) {
-    // Solo hacer pull si no se hizo verificación de conflictos
-    console.log('📥 Pull automático antes de guardar...');
+    // Solo hacer pull si no se hizo verificaci�n de conflictos
+
     try {
       await supabasePull();
-      console.log('✅ Pull completado, procediendo a guardar');
+
     } catch (error) {
-      console.warn('⚠️ Error en Pull antes de Push:', error);
+      console.warn('?? Error en Pull antes de Push:', error);
     }
   }
 
   try {
-    console.log(`📤 SUPABASE PUSH: Enviando datos a la nube...`);
 
     // Obtener metadata del dispositivo
     let deviceMetadata = {};
@@ -668,7 +654,7 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
         .upsert({ id, data }, { onConflict: 'id' });
 
       if (result.error) {
-        console.error(`  ❌ Error guardando ${id}:`, result.error);
+        console.error(`  ? Error guardando ${id}:`, result.error);
       }
       return result;
     });
@@ -677,13 +663,11 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
 
     const errors = results.filter(r => r.error);
     if (errors.length > 0) {
-      console.error('❌ Errores al guardar:', errors);
+      console.error('? Errores al guardar:', errors);
       return false;
     }
 
-    console.log(`✅ SUPABASE PUSH: Datos enviados correctamente`);
-
-    // Disparar evento para que la interfaz móvil se actualice
+    // Disparar evento para que la interfaz m�vil se actualice
     const evento = new CustomEvent('supabaseDataSaved', {
       detail: { timestamp: Date.now(), isAutomatic }
     });
@@ -691,14 +675,13 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
 
     return true;
   } catch (error) {
-    console.error('❌ Error en PUSH:', error);
+    console.error('? Error en PUSH:', error);
     return false;
   }
 }
 
-// ========== FUNCIONES DE CAMBIO DE MÉTODO ==========
+// ========== FUNCIONES DE CAMBIO DE M�TODO ==========
 function cambiarMetodoSync(metodo) {
-  console.log(`🔄 Cambiando método de sync a: ${metodo}`);
 
   window.currentSyncMethod = metodo;
   localStorage.setItem('syncMethod', metodo);
@@ -707,12 +690,12 @@ function cambiarMetodoSync(metodo) {
   // Actualizar interfaz
   actualizarInterfazMetodo(metodo);
 
-  // Verificar que el método seleccionado funcione
+  // Verificar que el m�todo seleccionado funcione
   setTimeout(() => {
     verificarMetodoSync(metodo);
   }, 1000);
 
-  console.log(`✅ Método guardado en localStorage: ${localStorage.getItem('syncMethod')}`);
+  console.log(`? M�todo guardado en localStorage: ${localStorage.getItem('syncMethod')}`);
 }
 
 function actualizarInterfazMetodo(metodo) {
@@ -720,23 +703,22 @@ function actualizarInterfazMetodo(metodo) {
   const realtimeStatus = document.getElementById('realtime-status');
 
   if (statusCurrent && realtimeStatus) {
-    statusCurrent.textContent = '⚡ Usando Supabase';
-    realtimeStatus.textContent = '✅ Activado';
+    statusCurrent.textContent = '? Usando Supabase';
+    realtimeStatus.textContent = '? Activado';
     if (metodo === 'supabase') {
       startSupabaseRealtime();
     }
   }
 
-  // Asegurar que el radio button esté marcado correctamente
+  // Asegurar que el radio button est� marcado correctamente
   const radioButton = document.querySelector(`input[name="sync-method"][value="${metodo}"]`);
   if (radioButton) {
     radioButton.checked = true;
   }
 }
 
-// ========== VERIFICACIÓN DE CONEXIÓN ==========
+// ========== VERIFICACI�N DE CONEXI�N ==========
 async function verificarMetodoSync(metodo) {
-  console.log(`🔍 Verificando conexión...`);
 
   let funcionaConexion = false;
 
@@ -750,29 +732,29 @@ async function verificarMetodoSync(metodo) {
       funcionaConexion = !error;
     }
   } catch (error) {
-    console.warn(`⚠️ Error verificando conexión:`, error);
+    console.warn(`?? Error verificando conexi�n:`, error);
     funcionaConexion = false;
   }
 
   if (!funcionaConexion) {
-    console.warn(`⚠️ No hay conexión disponible`);
-    actualizarEstadoSincronizacion(`❌ Sin conexión - Configurar Supabase`);
+    console.warn(`?? No hay conexi�n disponible`);
+    actualizarEstadoSincronizacion(`? Sin conexi�n - Configurar Supabase`);
     if (typeof showSupabaseStatus === 'function') {
-      showSupabaseStatus('❌ Sin conexión - Verifica configuración de Supabase', 'error');
+      showSupabaseStatus('? Sin conexi�n - Verifica configuraci�n de Supabase', 'error');
     }
   } else {
-    console.log(`✅ Conexión funcionando correctamente`);
-    actualizarEstadoSincronizacion(`✅ Conectado con Supabase`);
+
+    actualizarEstadoSincronizacion(`? Conectado con Supabase`);
   }
 }
 
-// Función legacy para compatibilidad
+// Funci�n legacy para compatibilidad
 async function intentarFallback(metodoFallido) {
-  console.log(`⚠️ Sistema de sincronización no disponible`);
-  actualizarEstadoSincronizacion(`❌ Sin conexión - Configurar Supabase`);
+
+  actualizarEstadoSincronizacion(`? Sin conexi�n - Configurar Supabase`);
 
   if (typeof showSupabaseStatus === 'function') {
-    showSupabaseStatus('❌ Sin conexión - Verifica configuración de Supabase', 'error');
+    showSupabaseStatus('? Sin conexi�n - Verifica configuraci�n de Supabase', 'error');
   }
 }
 
@@ -800,16 +782,15 @@ async function startSupabaseRealtime() {
           table: 'agenda_data'
         },
         (payload) => {
-          console.log('🔄 Cambio real-time detectado:', payload);
-          // Actualizar datos automáticamente
+
+          // Actualizar datos autom�ticamente
           setTimeout(() => supabasePull(), 100);
         }
       )
       .subscribe();
 
-    console.log('✅ Real-time de Supabase activado');
   } catch (error) {
-    console.error('❌ Error activando real-time:', error);
+    console.error('? Error activando real-time:', error);
   }
 }
 
@@ -817,7 +798,7 @@ function stopSupabaseRealtime() {
   if (window.supabaseRealtimeChannel) {
     window.supabaseClient.removeChannel(window.supabaseRealtimeChannel);
     window.supabaseRealtimeChannel = null;
-    console.log('🔇 Real-time de Supabase desactivado');
+
   }
 }
 
@@ -836,7 +817,7 @@ function showSupabaseStatus(message, type) {
   statusDiv.style.color = colors[type] || '#333';
   statusDiv.textContent = message;
 
-  // Auto-ocultar después de 5 segundos si es éxito
+  // Auto-ocultar despu�s de 5 segundos si es �xito
   if (type === 'success') {
     setTimeout(() => {
       statusDiv.style.display = 'none';
@@ -844,9 +825,9 @@ function showSupabaseStatus(message, type) {
   }
 }
 
-// ========== INTEGRACIÓN CON EL SISTEMA EXISTENTE ==========
+// ========== INTEGRACI�N CON EL SISTEMA EXISTENTE ==========
 
-// Funciones globales de sincronización
+// Funciones globales de sincronizaci�n
 window.guardarJSON = async function (isAutomatic = false) {
   return await supabasePush(isAutomatic);
 };
@@ -855,7 +836,7 @@ window.extendsClassPull = async function () {
   return await supabasePull();
 };
 
-// ========== CARGAR CONFIGURACIÓN EN FORMULARIOS ==========
+// ========== CARGAR CONFIGURACI�N EN FORMULARIOS ==========
 function cargarConfigSupabaseEnFormulario() {
   const config = getSupabaseConfig();
   const urlField = document.getElementById('supabase-url');
@@ -870,26 +851,25 @@ function cargarConfigSupabaseEnFormulario() {
   detectarPrimeraVezSupabase();
 }
 
-// Bandera para evitar mostrar el popup múltiples veces
+// Bandera para evitar mostrar el popup m�ltiples veces
 let ayudaSupabaseMostrada = false;
 
 function detectarPrimeraVezSupabase() {
   const config = getSupabaseConfig();
 
-  // Si no tiene configuración de Supabase (URL o Key), mostrar ayuda SIEMPRE
+  // Si no tiene configuraci�n de Supabase (URL o Key), mostrar ayuda SIEMPRE
   if (!config.url || !config.key) {
-    // ✅ PREVENIR DUPLICADOS: Solo mostrar una vez por sesión
+    // ? PREVENIR DUPLICADOS: Solo mostrar una vez por sesi�n
     if (ayudaSupabaseMostrada) {
-      console.log('🔔 Ayuda ya mostrada en esta sesión, omitiendo...');
+
       return;
     }
 
-    console.log('🔔 Supabase no configurado - Mostrando ayuda en 2 segundos...');
     ayudaSupabaseMostrada = true; // Marcar como mostrada
 
-    // Mostrar ayuda después de un delay mayor para que cargue la interfaz
+    // Mostrar ayuda despu�s de un delay mayor para que cargue la interfaz
     setTimeout(() => {
-      console.log('🔔 Ejecutando mostrarAyudaPrimeraVez()');
+      console.log('?? Ejecutando mostrarAyudaPrimeraVez()');
       mostrarAyudaPrimeraVez();
     }, 2000); // Aumentado de 500ms a 2000ms
   }
@@ -898,14 +878,14 @@ function detectarPrimeraVezSupabase() {
 
 function mostrarAyudaPrimeraVez() {
   const shouldShow = confirm(
-    '🎉 ¡Bienvenido a la sincronización en la nube!\n\n' +
-    'Características de Supabase:\n' +
-    '✅ Peticiones ilimitadas\n' +
-    '✅ Real-time automático\n' +
-    '✅ Rápido y con buen dashboard\n\n' +
-    '¿Quieres una guía rápida de 2 minutos para configurarlo?\n\n' +
+    '?? �Bienvenido a la sincronizaci�n en la nube!\n\n' +
+    'Caracter�sticas de Supabase:\n' +
+    '? Peticiones ilimitadas\n' +
+    '? Real-time autom�tico\n' +
+    '? R�pido y con buen dashboard\n\n' +
+    '�Quieres una gu�a r�pida de 2 minutos para configurarlo?\n\n' +
     'Click "Aceptar" para ver los pasos\n' +
-    'Click "Cancelar" para configurar después'
+    'Click "Cancelar" para configurar despu�s'
   );
 
   if (shouldShow) {
@@ -915,18 +895,18 @@ function mostrarAyudaPrimeraVez() {
 
 function mostrarGuiaRapidaSupabase() {
   alert(
-    '🚀 GUÍA RÁPIDA SUPABASE (2 minutos):\n\n' +
-    '1️⃣ Ve a supabase.com → "Start your project"\n' +
-    '2️⃣ Registrarte (GitHub recomendado)\n' +
-    '3️⃣ "New project":\n' +
-    '   • Name: agenda-pablo\n' +
-    '   • Password: (genera una segura)\n' +
-    '   • Region: (la más cercana)\n' +
-    '4️⃣ Espera ~2 min que se cree\n' +
-    '5️⃣ Settings → API → Copia URL y anon key\n' +
-    '6️⃣ Vuelve aquí y pega los datos\n' +
-    '7️⃣ Click "Probar" (te preguntará si crear tablas)\n\n' +
-    '¡Y listo! Real-time sin límites 🎉'
+    '?? GU�A R�PIDA SUPABASE (2 minutos):\n\n' +
+    '1?? Ve a supabase.com ? "Start your project"\n' +
+    '2?? Registrarte (GitHub recomendado)\n' +
+    '3?? "New project":\n' +
+    '   � Name: agenda-pablo\n' +
+    '   � Password: (genera una segura)\n' +
+    '   � Region: (la m�s cercana)\n' +
+    '4?? Espera ~2 min que se cree\n' +
+    '5?? Settings ? API ? Copia URL y anon key\n' +
+    '6?? Vuelve aqu� y pega los datos\n' +
+    '7?? Click "Probar" (te preguntar� si crear tablas)\n\n' +
+    '�Y listo! Real-time sin l�mites ??'
   );
 }
 
@@ -935,15 +915,14 @@ function mostrarEstadoSincronizacion() {
 
   if (window.currentSyncMethod === 'supabase' && configSupabase.url) {
     showSupabaseStatus(
-      '✅ Usando Supabase - Sin límites de peticiones, real-time activado',
+      '? Usando Supabase - Sin l�mites de peticiones, real-time activado',
       'success'
     );
   }
 }
 
-// ========== INICIALIZACIÓN ==========
+// ========== INICIALIZACI�N ==========
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🚀 Inicializando sistema de sincronización...');
 
   // Asegurar que las variables globales existan
   if (!window.appState) {
@@ -971,7 +950,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const configSupabase = getSupabaseConfig();
   if (configSupabase.url && configSupabase.key && !window.supabaseClient) {
     await initSupabase();
-    console.log('⚡ Supabase inicializado - Cargando datos...');
 
     try {
       await supabasePull();
@@ -988,7 +966,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await verificarBackupDiario();
 
     } catch (error) {
-      console.warn('⚠️ Error al cargar datos:', error);
+      console.warn('?? Error al cargar datos:', error);
     }
   } else {
     detectarPrimeraVezSupabase();
@@ -1014,25 +992,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Actualizar interfaz
     actualizarInterfazMetodo(savedMethod);
 
-    // Verificar que el método funcione
+    // Verificar que el m�todo funcione
     setTimeout(() => {
       verificarMetodoSync(savedMethod);
 
-      // Mostrar estado de conexión
+      // Mostrar estado de conexi�n
       setTimeout(() => {
         mostrarEstadoSincronizacion();
       }, 3000);
     }, 2000);
   }, 500);
 
-  console.log('⚡ Sistema de sincronización inicializado');
-
-  // ========== SINCRONIZACIÓN PERIÓDICA CADA MINUTO ==========
+  // ========== SINCRONIZACI�N PERI�DICA CADA MINUTO ==========
   iniciarSincronizacionPeriodica();
 });
 
 // ========== PERSISTENCIA ADICIONAL ==========
-// Guardar método cada vez que cambie
+// Guardar m�todo cada vez que cambie
 window.addEventListener('beforeunload', () => {
   if (window.currentSyncMethod) {
     localStorage.setItem('syncMethod', window.currentSyncMethod);
@@ -1049,13 +1025,13 @@ window.supabasePull = supabasePull;
 window.supabasePush = supabasePush;
 window.guardarEnSupabaseWrapper = guardarEnSupabaseWrapper;
 
-// Función alias para guardar configuración (llamada desde app.js)
+// Funci�n alias para guardar configuraci�n (llamada desde app.js)
 function guardarConfigEnSupabase() {
-  console.log('💾 guardarConfigEnSupabase() - Guardando configuración...');
+  console.log('?? guardarConfigEnSupabase() - Guardando configuraci�n...');
   return supabasePush();
 }
 
-// Función wrapper para guardar en Supabase (llamada desde sincronizacion-simple.js)
+// Funci�n wrapper para guardar en Supabase (llamada desde sincronizacion-simple.js)
 function guardarEnSupabaseWrapper() {
   // Sincronizar personas antes de guardar
   if (window.tareasData && window.tareasData.personas) {
@@ -1065,35 +1041,32 @@ function guardarEnSupabaseWrapper() {
   return supabasePush();
 }
 
-// Función para asegurar que la configuración esté cargada desde Supabase
+// Funci�n para asegurar que la configuraci�n est� cargada desde Supabase
 async function asegurarConfiguracionCargada() {
-  console.log('⏳ Asegurando que configuración esté cargada desde Supabase...');
 
   const maxIntentos = 5;
   const delayMs = 300;
 
   for (let i = 0; i < maxIntentos; i++) {
-    // Verificar si ya tenemos configuración cargada
+    // Verificar si ya tenemos configuraci�n cargada
     if (window.configVisual && Object.keys(window.configVisual).length > 0) {
-      console.log(`✅ Configuración encontrada en intento ${i + 1}:`, window.configVisual);
+
       return true;
     }
 
-    console.log(`⏳ Intento ${i + 1}/${maxIntentos}: Configuración no cargada, esperando...`);
-
-    // Si no está cargada y tenemos Supabase configurado, intentar Pull
+    // Si no est� cargada y tenemos Supabase configurado, intentar Pull
     if (window.supabaseClient) {
       try {
-        console.log('📥 Intentando Pull desde Supabase...');
+
         await supabasePull();
 
-        // Verificar de nuevo si se cargó
+        // Verificar de nuevo si se carg�
         if (window.configVisual && Object.keys(window.configVisual).length > 0) {
-          console.log('✅ Configuración cargada exitosamente después de Pull');
+
           return true;
         }
       } catch (error) {
-        console.warn(`⚠️ Error en Pull intento ${i + 1}:`, error);
+        console.warn(`?? Error en Pull intento ${i + 1}:`, error);
       }
     }
 
@@ -1103,8 +1076,8 @@ async function asegurarConfiguracionCargada() {
     }
   }
 
-  // Si después de todos los intentos no hay configuración, usar valores por defecto
-  console.warn('⚠️ No se pudo cargar configuración desde Supabase, usando valores por defecto');
+  // Si despu�s de todos los intentos no hay configuraci�n, usar valores por defecto
+  console.warn('?? No se pudo cargar configuraci�n desde Supabase, usando valores por defecto');
   if (!window.configVisual) {
     window.configVisual = {
       tema: 'verde',
@@ -1120,19 +1093,19 @@ async function asegurarConfiguracionCargada() {
   return false;
 }
 
-// ========== SISTEMA DE BACKUPS AUTOMÁTICOS ==========
+// ========== SISTEMA DE BACKUPS AUTOM�TICOS ==========
 
 // Generar nombre de backup con fecha y hora
 function generarNombreBackup() {
   const ahora = new Date();
-  const año = ahora.getFullYear();
+  const a�o = ahora.getFullYear();
   const mes = String(ahora.getMonth() + 1).padStart(2, '0');
   const dia = String(ahora.getDate()).padStart(2, '0');
   const hora = String(ahora.getHours()).padStart(2, '0');
   const minuto = String(ahora.getMinutes()).padStart(2, '0');
   const segundo = String(ahora.getSeconds()).padStart(2, '0');
 
-  return `backup_${año}-${mes}-${dia}_${hora}-${minuto}-${segundo}`;
+  return `backup_${a�o}-${mes}-${dia}_${hora}-${minuto}-${segundo}`;
 }
 
 // Guardar backup completo en Supabase
@@ -1140,15 +1113,14 @@ async function guardarBackupAutomatico(esManual = false) {
   const connected = await initSupabase();
   if (!connected) {
     if (esManual) {
-      alert('❌ Error: No hay conexión con Supabase.\n\nConfigura Supabase primero.');
+      alert('? Error: No hay conexi�n con Supabase.\n\nConfigura Supabase primero.');
     }
-    console.warn('⚠️ No se puede crear backup: Supabase no configurado');
+    console.warn('?? No se puede crear backup: Supabase no configurado');
     return false;
   }
 
   try {
-    const logPrefix = esManual ? '💾 BACKUP MANUAL' : '🔄 BACKUP AUTOMÁTICO';
-    console.log(`${logPrefix}: Creando backup...`);
+    const logPrefix = esManual ? '?? BACKUP MANUAL' : '?? BACKUP AUTOM�TICO';
 
     const collections = [
       'tareas', 'citas', 'config', 'notas', 'sentimientos',
@@ -1193,9 +1165,9 @@ async function guardarBackupAutomatico(esManual = false) {
       if (insertError.code === 'PGRST116' || insertError.message.includes('does not exist')) {
         if (esManual) {
           const shouldCreate = confirm(
-            '⚠️ Tabla de Backups No Existe\n\n' +
+            '?? Tabla de Backups No Existe\n\n' +
             'La tabla "agenda_backups" no existe en tu base de datos.\n\n' +
-            '¿Quieres crear la tabla automáticamente?'
+            '�Quieres crear la tabla autom�ticamente?'
           );
 
           if (shouldCreate) {
@@ -1209,10 +1181,8 @@ async function guardarBackupAutomatico(esManual = false) {
       throw insertError;
     }
 
-    console.log(`✅ ${logPrefix} creado: ${backupId}`);
-
     if (esManual) {
-      alert(`✅ Backup Creado\n\n${backupId}\n\nTodos los datos han sido respaldados correctamente.`);
+      alert(`? Backup Creado\n\n${backupId}\n\nTodos los datos han sido respaldados correctamente.`);
       if (typeof cargarListaBackups === 'function') {
         cargarListaBackups();
       }
@@ -1220,9 +1190,9 @@ async function guardarBackupAutomatico(esManual = false) {
 
     return true;
   } catch (error) {
-    console.error('❌ Error creando backup:', error);
+    console.error('? Error creando backup:', error);
     if (esManual) {
-      alert('❌ Error al crear backup:\n\n' + error.message);
+      alert('? Error al crear backup:\n\n' + error.message);
     }
     return false;
   }
@@ -1232,11 +1202,9 @@ async function guardarBackupAutomatico(esManual = false) {
 async function crearTablaBackups() {
   const connected = await initSupabase();
   if (!connected) {
-    alert('❌ Error: No hay conexión con Supabase.');
+    alert('? Error: No hay conexi�n con Supabase.');
     return;
   }
-
-  console.log('🛠️ Intentando crear tabla agenda_backups...');
 
   // Intentar crear tabla usando SQL directo
   try {
@@ -1254,12 +1222,11 @@ async function crearTablaBackups() {
       throw error;
     }
 
-    console.log('✅ Tabla agenda_backups creada exitosamente');
-    alert('✅ Tabla de Backups Creada\n\nLa tabla se ha creado correctamente. Ahora puedes crear backups.');
+    alert('? Tabla de Backups Creada\n\nLa tabla se ha creado correctamente. Ahora puedes crear backups.');
     return true;
 
   } catch (error) {
-    console.warn('⚠️ No se pudo crear automáticamente:', error);
+    console.warn('?? No se pudo crear autom�ticamente:', error);
 
     // Mostrar instrucciones manuales
     const sqlQuery = `CREATE TABLE agenda_backups (
@@ -1268,37 +1235,37 @@ async function crearTablaBackups() {
   data jsonb
 );`;
 
-    // Crear un modal más visual con el SQL
+    // Crear un modal m�s visual con el SQL
     const shouldCopy = confirm(
-      '🛠️ CREAR TABLA DE BACKUPS MANUALMENTE:\n\n' +
-      '1. Ve a supabase.com → tu proyecto\n' +
-      '2. Click "SQL Editor" (menú izquierdo)\n' +
+      '??? CREAR TABLA DE BACKUPS MANUALMENTE:\n\n' +
+      '1. Ve a supabase.com ? tu proyecto\n' +
+      '2. Click "SQL Editor" (men� izquierdo)\n' +
       '3. Click "New query"\n' +
-      '4. Pega el código SQL (se copiará al portapapeles)\n' +
+      '4. Pega el c�digo SQL (se copiar� al portapapeles)\n' +
       '5. Click "Run"\n' +
-      '6. Vuelve aquí y crea tu backup\n\n' +
-      '¿Quieres copiar el código SQL al portapapeles?'
+      '6. Vuelve aqu� y crea tu backup\n\n' +
+      '�Quieres copiar el c�digo SQL al portapapeles?'
     );
 
     if (shouldCopy) {
       try {
         await navigator.clipboard.writeText(sqlQuery);
-        alert('✅ SQL Copiado al Portapapeles\n\nAhora ve a Supabase SQL Editor y pégalo.');
+        alert('? SQL Copiado al Portapapeles\n\nAhora ve a Supabase SQL Editor y p�galo.');
       } catch (err) {
         // Si falla el portapapeles, mostrar el SQL en un alert
         alert(
-          '📋 CÓDIGO SQL:\n\n' +
+          '?? C�DIGO SQL:\n\n' +
           sqlQuery +
           '\n\n' +
-          'Copia este código y ejecútalo en el SQL Editor de Supabase.'
+          'Copia este c�digo y ejec�talo en el SQL Editor de Supabase.'
         );
       }
     } else {
       alert(
-        '📋 CÓDIGO SQL:\n\n' +
+        '?? C�DIGO SQL:\n\n' +
         sqlQuery +
         '\n\n' +
-        'Copia este código y ejecútalo en el SQL Editor de Supabase.'
+        'Copia este c�digo y ejec�talo en el SQL Editor de Supabase.'
       );
     }
 
@@ -1310,7 +1277,7 @@ async function crearTablaBackups() {
 async function cargarListaBackups() {
   const connected = await initSupabase();
   if (!connected) {
-    console.warn('⚠️ No se puede cargar lista de backups: Supabase no configurado');
+    console.warn('?? No se puede cargar lista de backups: Supabase no configurado');
     return;
   }
 
@@ -1318,7 +1285,7 @@ async function cargarListaBackups() {
   if (!container) return;
 
   try {
-    // Obtener todos los backups ordenados por fecha (más recientes primero)
+    // Obtener todos los backups ordenados por fecha (m�s recientes primero)
     const { data: backups, error } = await window.supabaseClient
       .from('agenda_backups')
       .select('id, created_at')
@@ -1328,10 +1295,10 @@ async function cargarListaBackups() {
       if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
         container.innerHTML = `
           <div style="text-align:center;padding:40px;">
-            <div style="font-size:48px;margin-bottom:10px;">⚠️</div>
-            <div style="color:#666;margin-bottom:15px;">La tabla de backups no existe todavía</div>
+            <div style="font-size:48px;margin-bottom:10px;">??</div>
+            <div style="color:#666;margin-bottom:15px;">La tabla de backups no existe todav�a</div>
             <button onclick="crearTablaBackups()" class="btn-primario" style="padding:10px 20px;background:#11998e;color:white;border:none;border-radius:6px;cursor:pointer;">
-              🛠️ Crear Tabla de Backups
+              ??? Crear Tabla de Backups
             </button>
           </div>
         `;
@@ -1343,9 +1310,9 @@ async function cargarListaBackups() {
     if (!backups || backups.length === 0) {
       container.innerHTML = `
         <div style="text-align:center;color:#666;padding:40px;font-style:italic;">
-          <div style="font-size:48px;margin-bottom:10px;">📦</div>
+          <div style="font-size:48px;margin-bottom:10px;">??</div>
           <div>No hay backups disponibles</div>
-          <div style="font-size:12px;margin-top:10px;">Crea tu primer backup haciendo click en "💾 Crear Backup Ahora"</div>
+          <div style="font-size:12px;margin-top:10px;">Crea tu primer backup haciendo click en "?? Crear Backup Ahora"</div>
         </div>
       `;
       return;
@@ -1364,7 +1331,7 @@ async function cargarListaBackups() {
         second: '2-digit'
       });
 
-      // Calcular días desde creación
+      // Calcular d�as desde creaci�n
       const ahora = new Date();
       const diasDesdeCreacion = Math.floor((ahora - fecha) / (1000 * 60 * 60 * 24));
       const colorAntiguedad = diasDesdeCreacion > 7 ? '#e74c3c' : diasDesdeCreacion > 3 ? '#f39c12' : '#27ae60';
@@ -1372,18 +1339,18 @@ async function cargarListaBackups() {
       html += `
         <div style="background:white;padding:12px;border-radius:6px;margin-bottom:10px;border-left:4px solid ${colorAntiguedad};display:flex;justify-content:space-between;align-items:center;">
           <div style="flex:1;">
-            <div style="font-weight:bold;color:#2d3748;margin-bottom:4px;">📦 ${backup.id}</div>
+            <div style="font-weight:bold;color:#2d3748;margin-bottom:4px;">?? ${backup.id}</div>
             <div style="font-size:12px;color:#666;">
-              📅 ${fechaFormateada}
-              ${diasDesdeCreacion > 0 ? `<span style="margin-left:10px;color:${colorAntiguedad};">• ${diasDesdeCreacion} día${diasDesdeCreacion !== 1 ? 's' : ''}</span>` : '<span style="margin-left:10px;color:#27ae60;">• Hoy</span>'}
+              ?? ${fechaFormateada}
+              ${diasDesdeCreacion > 0 ? `<span style="margin-left:10px;color:${colorAntiguedad};">� ${diasDesdeCreacion} d�a${diasDesdeCreacion !== 1 ? 's' : ''}</span>` : '<span style="margin-left:10px;color:#27ae60;">� Hoy</span>'}
             </div>
           </div>
           <div style="display:flex;gap:8px;">
             <button onclick="restaurarBackupDesdeSupabase('${backup.id}')" class="btn-secundario" style="padding:6px 12px;background:#3498db;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">
-              ♻️ Restaurar
+              ?? Restaurar
             </button>
             <button onclick="eliminarBackup('${backup.id}')" class="btn-secundario" style="padding:6px 12px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;">
-              🗑️
+              ???
             </button>
           </div>
         </div>
@@ -1391,13 +1358,12 @@ async function cargarListaBackups() {
     });
 
     container.innerHTML = html;
-    console.log(`✅ Lista de backups cargada: ${backups.length} disponibles`);
 
   } catch (error) {
-    console.error('❌ Error cargando lista de backups:', error);
+    console.error('? Error cargando lista de backups:', error);
     container.innerHTML = `
       <div style="text-align:center;color:#e74c3c;padding:40px;">
-        <div style="font-size:48px;margin-bottom:10px;">❌</div>
+        <div style="font-size:48px;margin-bottom:10px;">?</div>
         <div>Error al cargar backups</div>
         <div style="font-size:12px;margin-top:10px;">${error.message}</div>
       </div>
@@ -1408,25 +1374,24 @@ async function cargarListaBackups() {
 // Restaurar backup desde Supabase
 async function restaurarBackupDesdeSupabase(backupId) {
   const confirmacion = confirm(
-    `⚠️ RESTAURAR BACKUP\n\n` +
+    `?? RESTAURAR BACKUP\n\n` +
     `Backup: ${backupId}\n\n` +
-    `Esto reemplazará TODOS tus datos actuales con los del backup.\n\n` +
-    `¿Estás seguro de que quieres continuar?`
+    `Esto reemplazar� TODOS tus datos actuales con los del backup.\n\n` +
+    `�Est�s seguro de que quieres continuar?`
   );
 
   if (!confirmacion) {
-    console.log('❌ Restauración cancelada por el usuario');
+
     return;
   }
 
   const connected = await initSupabase();
   if (!connected) {
-    alert('❌ Error: No hay conexión con Supabase.');
+    alert('? Error: No hay conexi�n con Supabase.');
     return;
   }
 
   try {
-    console.log(`♻️ Restaurando backup: ${backupId}`);
 
     // Obtener datos del backup
     const { data: backup, error } = await window.supabaseClient
@@ -1440,12 +1405,10 @@ async function restaurarBackupDesdeSupabase(backupId) {
     }
 
     if (!backup || !backup.data) {
-      throw new Error('El backup está vacío o corrupto');
+      throw new Error('El backup est� vac�o o corrupto');
     }
 
-    console.log('📥 Datos del backup obtenidos, restaurando...');
-
-    // Restaurar cada colección
+    // Restaurar cada colecci�n
     const collections = Object.keys(backup.data);
     let restaurados = 0;
 
@@ -1459,25 +1422,23 @@ async function restaurarBackupDesdeSupabase(backupId) {
           }, { onConflict: 'id' });
 
         if (upsertError) {
-          console.warn(`⚠️ Error restaurando ${collection}:`, upsertError);
+          console.warn(`?? Error restaurando ${collection}:`, upsertError);
         } else {
-          console.log(`  ✅ ${collection} restaurado`);
+
           restaurados++;
         }
       } catch (err) {
-        console.warn(`⚠️ Error con ${collection}:`, err);
+        console.warn(`?? Error con ${collection}:`, err);
       }
     }
 
-    console.log(`✅ Backup restaurado: ${restaurados}/${collections.length} colecciones`);
-
     alert(
-      `✅ Backup Restaurado\n\n` +
+      `? Backup Restaurado\n\n` +
       `Se han restaurado ${restaurados} colecciones.\n\n` +
-      `La página se recargará para aplicar los cambios.`
+      `La p�gina se recargar� para aplicar los cambios.`
     );
 
-    // Recargar datos y página
+    // Recargar datos y p�gina
     setTimeout(async () => {
       await supabasePull();
       setTimeout(() => {
@@ -1486,24 +1447,24 @@ async function restaurarBackupDesdeSupabase(backupId) {
     }, 1000);
 
   } catch (error) {
-    console.error('❌ Error restaurando backup:', error);
-    alert('❌ Error al restaurar backup:\n\n' + error.message);
+    console.error('? Error restaurando backup:', error);
+    alert('? Error al restaurar backup:\n\n' + error.message);
   }
 }
 
-// Eliminar backup específico
+// Eliminar backup espec�fico
 async function eliminarBackup(backupId) {
   const confirmacion = confirm(
-    `🗑️ ELIMINAR BACKUP\n\n` +
+    `??? ELIMINAR BACKUP\n\n` +
     `Backup: ${backupId}\n\n` +
-    `¿Estás seguro de que quieres eliminar este backup?`
+    `�Est�s seguro de que quieres eliminar este backup?`
   );
 
   if (!confirmacion) return;
 
   const connected = await initSupabase();
   if (!connected) {
-    alert('❌ Error: No hay conexión con Supabase.');
+    alert('? Error: No hay conexi�n con Supabase.');
     return;
   }
 
@@ -1515,32 +1476,31 @@ async function eliminarBackup(backupId) {
 
     if (error) throw error;
 
-    console.log(`✅ Backup eliminado: ${backupId}`);
-    alert(`✅ Backup eliminado correctamente`);
+    alert(`? Backup eliminado correctamente`);
 
     // Actualizar lista
     cargarListaBackups();
 
   } catch (error) {
-    console.error('❌ Error eliminando backup:', error);
-    alert('❌ Error al eliminar backup:\n\n' + error.message);
+    console.error('? Error eliminando backup:', error);
+    alert('? Error al eliminar backup:\n\n' + error.message);
   }
 }
 
-// Limpiar backups antiguos (más de 10 días)
+// Limpiar backups antiguos (m�s de 10 d�as)
 async function limpiarBackupsAntiguos(esAutomatico = false) {
   const connected = await initSupabase();
   if (!connected) {
     if (!esAutomatico) {
-      alert('❌ Error: No hay conexión con Supabase.');
+      alert('? Error: No hay conexi�n con Supabase.');
     }
     return;
   }
 
   try {
-    console.log('🧹 Limpiando backups antiguos (>10 días)...');
+    console.log('?? Limpiando backups antiguos (>10 d�as)...');
 
-    // Calcular fecha límite (hace 10 días)
+    // Calcular fecha l�mite (hace 10 d�as)
     const fechaLimite = new Date();
     fechaLimite.setDate(fechaLimite.getDate() - 10);
     const fechaLimiteISO = fechaLimite.toISOString();
@@ -1554,16 +1514,16 @@ async function limpiarBackupsAntiguos(esAutomatico = false) {
     if (selectError) {
       // Si la tabla no existe, no hacer nada
       if (selectError.code === 'PGRST116' || selectError.message.includes('does not exist')) {
-        console.log('⚠️ Tabla de backups no existe todavía');
+
         return;
       }
       throw selectError;
     }
 
     if (!backupsAntiguos || backupsAntiguos.length === 0) {
-      console.log('✅ No hay backups antiguos para eliminar');
+
       if (!esAutomatico) {
-        alert('✅ No hay backups antiguos\n\nTodos los backups son recientes (menos de 10 días).');
+        alert('? No hay backups antiguos\n\nTodos los backups son recientes (menos de 10 d�as).');
       }
       return;
     }
@@ -1576,27 +1536,27 @@ async function limpiarBackupsAntiguos(esAutomatico = false) {
 
     if (deleteError) throw deleteError;
 
-    console.log(`✅ ${backupsAntiguos.length} backup(s) antiguo(s) eliminado(s)`);
+    console.log(`? ${backupsAntiguos.length} backup(s) antiguo(s) eliminado(s)`);
 
     if (!esAutomatico) {
-      alert(`✅ Limpieza Completada\n\n${backupsAntiguos.length} backup(s) antiguo(s) eliminado(s).`);
+      alert(`? Limpieza Completada\n\n${backupsAntiguos.length} backup(s) antiguo(s) eliminado(s).`);
       // Actualizar lista
       cargarListaBackups();
     }
 
   } catch (error) {
-    console.error('❌ Error limpiando backups antiguos:', error);
+    console.error('? Error limpiando backups antiguos:', error);
     if (!esAutomatico) {
-      alert('❌ Error al limpiar backups:\n\n' + error.message);
+      alert('? Error al limpiar backups:\n\n' + error.message);
     }
   }
 }
 
-// Verificar y crear backup diario automático
+// Verificar y crear backup diario autom�tico
 async function verificarBackupDiario() {
   const connected = await initSupabase();
   if (!connected) {
-    console.log('⚠️ Backup diario omitido: Supabase no configurado');
+
     return;
   }
 
@@ -1604,24 +1564,23 @@ async function verificarBackupDiario() {
     const hoy = new Date();
     const fechaHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-    // Verificar último backup en localStorage
+    // Verificar �ltimo backup en localStorage
     const ultimoBackup = localStorage.getItem('ultimoBackupDiario');
 
     if (ultimoBackup === fechaHoy) {
-      console.log('✅ Ya existe backup diario para hoy');
+
       return;
     }
 
-    console.log('🔄 Creando backup diario automático...');
     const exito = await guardarBackupAutomatico(false);
 
     if (exito) {
       localStorage.setItem('ultimoBackupDiario', fechaHoy);
-      console.log('✅ Backup diario creado automáticamente');
+
     }
 
   } catch (error) {
-    console.error('❌ Error en backup diario automático:', error);
+    console.error('? Error en backup diario autom�tico:', error);
   }
 }
 
@@ -1630,36 +1589,35 @@ async function verificarBackupDiario() {
 // Borrar todos los datos locales (localStorage)
 async function borrarDatosLocales() {
   const confirmacion1 = confirm(
-    '⚠️ ADVERTENCIA: Borrar Datos Locales\n\n' +
-    'Esto eliminará TODOS los datos guardados en tu navegador:\n' +
-    '• Tareas y citas\n' +
-    '• Notas y sentimientos\n' +
-    '• Contraseñas guardadas\n' +
-    '• Configuración visual\n' +
-    '• Historial\n\n' +
-    'Los datos en la nube (Supabase) NO se verán afectados.\n\n' +
-    '¿Estás seguro de que quieres continuar?'
+    '?? ADVERTENCIA: Borrar Datos Locales\n\n' +
+    'Esto eliminar� TODOS los datos guardados en tu navegador:\n' +
+    '� Tareas y citas\n' +
+    '� Notas y sentimientos\n' +
+    '� Contrase�as guardadas\n' +
+    '� Configuraci�n visual\n' +
+    '� Historial\n\n' +
+    'Los datos en la nube (Supabase) NO se ver�n afectados.\n\n' +
+    '�Est�s seguro de que quieres continuar?'
   );
 
   if (!confirmacion1) {
-    console.log('❌ Borrado de datos locales cancelado por el usuario (1ra confirmación)');
+    console.log('? Borrado de datos locales cancelado por el usuario (1ra confirmaci�n)');
     return;
   }
 
   const confirmacion2 = confirm(
-    '🚨 ÚLTIMA CONFIRMACIÓN\n\n' +
-    'Esta acción NO se puede deshacer.\n\n' +
-    'Todos tus datos locales serán eliminados permanentemente.\n\n' +
-    '¿Confirmas que quieres BORRAR TODOS LOS DATOS LOCALES?'
+    '?? �LTIMA CONFIRMACI�N\n\n' +
+    'Esta acci�n NO se puede deshacer.\n\n' +
+    'Todos tus datos locales ser�n eliminados permanentemente.\n\n' +
+    '�Confirmas que quieres BORRAR TODOS LOS DATOS LOCALES?'
   );
 
   if (!confirmacion2) {
-    console.log('❌ Borrado de datos locales cancelado por el usuario (2da confirmación)');
+    console.log('? Borrado de datos locales cancelado por el usuario (2da confirmaci�n)');
     return;
   }
 
   try {
-    console.log('🗑️ Iniciando borrado de datos locales...');
 
     // Borrar todas las claves relacionadas con la agenda
     const keysToRemove = [
@@ -1680,7 +1638,7 @@ async function borrarDatosLocales() {
 
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
-      console.log(`  ✅ Eliminado: ${key}`);
+
     });
 
     // Reiniciar variables globales
@@ -1703,22 +1661,20 @@ async function borrarDatosLocales() {
     window.etiquetasData = { tareas: [], citas: [] };
     window.logAcciones = [];
 
-    console.log('✅ Datos locales eliminados completamente');
-
     alert(
-      '✅ Datos Locales Borrados\n\n' +
+      '? Datos Locales Borrados\n\n' +
       'Todos los datos locales han sido eliminados.\n\n' +
-      'La página se recargará para aplicar los cambios.'
+      'La p�gina se recargar� para aplicar los cambios.'
     );
 
-    // Recargar la página para aplicar cambios
+    // Recargar la p�gina para aplicar cambios
     setTimeout(() => {
       window.location.reload();
     }, 1000);
 
   } catch (error) {
-    console.error('❌ Error borrando datos locales:', error);
-    alert('❌ Error al borrar datos locales: ' + error.message);
+    console.error('? Error borrando datos locales:', error);
+    alert('? Error al borrar datos locales: ' + error.message);
   }
 }
 
@@ -1726,65 +1682,62 @@ async function borrarDatosLocales() {
 async function borrarDatosNube() {
   const connected = await initSupabase();
   if (!connected) {
-    alert('❌ Error: No hay conexión con Supabase.\n\nConfigura Supabase primero.');
+    alert('? Error: No hay conexi�n con Supabase.\n\nConfigura Supabase primero.');
     return;
   }
 
   const confirmacion1 = confirm(
-    '⚠️ ADVERTENCIA: Borrar Datos en la Nube\n\n' +
-    'Esto eliminará TODOS los datos de tu cuenta de Supabase:\n' +
-    '• Tareas y citas\n' +
-    '• Notas y sentimientos\n' +
-    '• Contraseñas guardadas\n' +
-    '• Configuración visual\n' +
-    '• Historial\n\n' +
-    'Los datos locales en tu navegador NO se verán afectados.\n\n' +
-    '¿Estás seguro de que quieres continuar?'
+    '?? ADVERTENCIA: Borrar Datos en la Nube\n\n' +
+    'Esto eliminar� TODOS los datos de tu cuenta de Supabase:\n' +
+    '� Tareas y citas\n' +
+    '� Notas y sentimientos\n' +
+    '� Contrase�as guardadas\n' +
+    '� Configuraci�n visual\n' +
+    '� Historial\n\n' +
+    'Los datos locales en tu navegador NO se ver�n afectados.\n\n' +
+    '�Est�s seguro de que quieres continuar?'
   );
 
   if (!confirmacion1) {
-    console.log('❌ Borrado de datos en nube cancelado por el usuario (1ra confirmación)');
+    console.log('? Borrado de datos en nube cancelado por el usuario (1ra confirmaci�n)');
     return;
   }
 
   const confirmacion2 = confirm(
-    '🚨 ÚLTIMA CONFIRMACIÓN\n\n' +
-    'Esta acción NO se puede deshacer.\n\n' +
-    'Todos tus datos en Supabase serán eliminados permanentemente.\n\n' +
-    '¿Confirmas que quieres BORRAR TODOS LOS DATOS EN LA NUBE?'
+    '?? �LTIMA CONFIRMACI�N\n\n' +
+    'Esta acci�n NO se puede deshacer.\n\n' +
+    'Todos tus datos en Supabase ser�n eliminados permanentemente.\n\n' +
+    '�Confirmas que quieres BORRAR TODOS LOS DATOS EN LA NUBE?'
   );
 
   if (!confirmacion2) {
-    console.log('❌ Borrado de datos en nube cancelado por el usuario (2da confirmación)');
+    console.log('? Borrado de datos en nube cancelado por el usuario (2da confirmaci�n)');
     return;
   }
 
   try {
-    console.log('🗑️ Iniciando borrado de datos en la nube...');
 
     // Eliminar todas las filas de la tabla agenda_data
     const { error } = await window.supabaseClient
       .from('agenda_data')
       .delete()
-      .neq('id', 'IMPOSIBLE_VALOR_PARA_BORRAR_TODO'); // Truco: condición siempre verdadera para borrar todo
+      .neq('id', 'IMPOSIBLE_VALOR_PARA_BORRAR_TODO'); // Truco: condici�n siempre verdadera para borrar todo
 
     if (error) {
-      console.error('❌ Error borrando datos en nube:', error);
-      alert('❌ Error al borrar datos en la nube:\n\n' + error.message);
+      console.error('? Error borrando datos en nube:', error);
+      alert('? Error al borrar datos en la nube:\n\n' + error.message);
       return;
     }
 
-    console.log('✅ Datos en la nube eliminados completamente');
-
     alert(
-      '✅ Datos en la Nube Borrados\n\n' +
+      '? Datos en la Nube Borrados\n\n' +
       'Todos los datos en Supabase han sido eliminados.\n\n' +
       'Tus datos locales permanecen intactos.'
     );
 
   } catch (error) {
-    console.error('❌ Error borrando datos en nube:', error);
-    alert('❌ Error al borrar datos en la nube: ' + error.message);
+    console.error('? Error borrando datos en nube:', error);
+    alert('? Error al borrar datos en la nube: ' + error.message);
   }
 }
 
@@ -1805,57 +1758,55 @@ window.eliminarBackup = eliminarBackup;
 window.limpiarBackupsAntiguos = limpiarBackupsAntiguos;
 window.crearTablaBackups = crearTablaBackups;
 
-// ========== SINCRONIZACIÓN PERIÓDICA ==========
+// ========== SINCRONIZACI�N PERI�DICA ==========
 let intervaloSincronizacion = null;
 let ultimoTimestampVerificado = null;
 
-// Iniciar sincronización periódica (cada minuto)
+// Iniciar sincronizaci�n peri�dica (cada minuto)
 function iniciarSincronizacionPeriodica() {
   // Limpiar intervalo previo si existe
   if (intervaloSincronizacion) {
     clearInterval(intervaloSincronizacion);
   }
 
-  console.log('🔄 Iniciando sincronización periódica (cada 60 segundos)...');
+  console.log('?? Iniciando sincronizaci�n peri�dica (cada 60 segundos)...');
 
   // Verificar cambios cada minuto
   intervaloSincronizacion = window.intervaloSincronizacion = setInterval(async () => {
     if (window.currentSyncMethod !== 'supabase') {
-      console.log('⏭️ Sincronización periódica omitida: método no es Supabase');
+
       return;
     }
 
     const connected = await initSupabase();
     if (!connected) {
-      console.log('⏭️ Sincronización periódica omitida: Supabase no conectado');
+
       return;
     }
 
     try {
-      console.log('🔍 Verificando cambios en Supabase...');
 
       // Verificar si hay cambios comparando last_updated
       const hayCambios = await verificarCambiosEnSupabase();
 
       if (hayCambios) {
-        console.log('📥 Cambios detectados, descargando datos...');
+
         await supabasePull();
-        console.log('✅ Sincronización periódica completada');
+
       } else {
-        console.log('✅ No hay cambios nuevos');
+
       }
     } catch (error) {
-      console.warn('⚠️ Error en sincronización periódica:', error);
+      console.warn('?? Error en sincronizaci�n peri�dica:', error);
     }
   }, 60000); // 60 segundos = 1 minuto
 
-  console.log('✅ Sincronización periódica activada');
 }
 
 // Verificar si hay cambios en Supabase
 async function verificarCambiosEnSupabase() {
   try {
-    // Obtener timestamp más reciente de cualquier registro
+    // Obtener timestamp m�s reciente de cualquier registro
     const { data, error } = await window.supabaseClient
       .from('agenda_data')
       .select('id, last_updated')
@@ -1863,47 +1814,44 @@ async function verificarCambiosEnSupabase() {
       .limit(1);
 
     if (error) {
-      console.warn('⚠️ Error al verificar cambios:', error);
+      console.warn('?? Error al verificar cambios:', error);
       return true; // Asumir que hay cambios si hay error
     }
 
     if (!data || data.length === 0) {
-      console.log('ℹ️ No hay datos en Supabase');
+
       return false;
     }
 
     const ultimoTimestampRemoto = data[0].last_updated;
 
-    // Si es la primera verificación, guardar timestamp y no sincronizar
+    // Si es la primera verificaci�n, guardar timestamp y no sincronizar
     if (!ultimoTimestampVerificado) {
       ultimoTimestampVerificado = ultimoTimestampRemoto;
-      console.log('📝 Timestamp inicial guardado:', ultimoTimestampRemoto);
+
       return false;
     }
 
     // Comparar timestamps
     if (ultimoTimestampRemoto !== ultimoTimestampVerificado) {
-      console.log('🔄 Cambio detectado:', {
-        anterior: ultimoTimestampVerificado,
-        nuevo: ultimoTimestampRemoto
-      });
+
       ultimoTimestampVerificado = ultimoTimestampRemoto;
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error('❌ Error verificando cambios:', error);
+    console.error('? Error verificando cambios:', error);
     return true; // Asumir que hay cambios por seguridad
   }
 }
 
-// Detener sincronización periódica
+// Detener sincronizaci�n peri�dica
 function detenerSincronizacionPeriodica() {
   if (intervaloSincronizacion) {
     clearInterval(intervaloSincronizacion);
     intervaloSincronizacion = null;
-    console.log('🛑 Sincronización periódica detenida');
+
   }
 }
 

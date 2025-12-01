@@ -234,5 +234,3 @@ function getTimeAgo(timestamp) {
     if (diffDays === 1) return 'Hace 1 día';
     return `Hace ${diffDays} días`;
 }
-
-console.log('⚡ Conflict Resolution cargado');
