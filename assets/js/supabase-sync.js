@@ -1,4 +1,5 @@
 ﻿// ========== SUPABASE SYNC ==========
+console.log('🚀 Cargando supabase-sync.js...');
 // Sistema de sincronización en la nube sin límites de peticiones
 
 // ========== CONFIGURACIÓN GLOBAL ==========
@@ -348,10 +349,10 @@ async function supabasePull() {
       switch (collection) {
         case 'tareas':
           console.log('📦 CARGANDO TAREAS desde Supabase:', data);
-          
+
           // Inicializar tareasData si no existe
           if (!window.tareasData) window.tareasData = {};
-          
+
           // Actualizar tareasData PRIMERO
           window.tareasData = {
             ...window.tareasData,
@@ -359,17 +360,17 @@ async function supabasePull() {
             tareas: data.tareas || [],
             listasPersonalizadas: data.listasPersonalizadas || []
           };
-          
+
           // Luego actualizar appState
           if (!window.appState.agenda) window.appState.agenda = {};
           window.appState.agenda.tareas_criticas = data.tareas_criticas || [];
           window.appState.agenda.tareas = data.tareas || [];
           window.appState.agenda.listasPersonalizadas = data.listasPersonalizadas || [];
-          
+
           console.log('  ✅ Tareas críticas cargadas:', data.tareas_criticas?.length || 0);
           console.log('  ✅ Tareas normales cargadas:', data.tareas?.length || 0);
           console.log('  ✅ Listas personalizadas cargadas:', data.listasPersonalizadas?.length || 0);
-          
+
           if (data.listasPersonalizadas) {
             data.listasPersonalizadas.forEach((lista, idx) => {
               console.log(`    📋 Lista ${idx}: "${lista.nombre}" con ${lista.tareas?.length || 0} tareas`);
@@ -468,13 +469,13 @@ async function supabasePull() {
 
     // IMPORTANTE: Renderizar listas personalizadas DESPUÉS de actualizar tareasData
     console.log('🔄 Verificando tareasData antes de renderizar:', window.tareasData?.listasPersonalizadas?.length || 0);
-    
+
     // Regenerar secciones HTML primero
     if (typeof window.regenerarSeccionesListasPersonalizadas === 'function') {
       setTimeout(() => {
         console.log('🏗️ Regenerando secciones HTML...');
         window.regenerarSeccionesListasPersonalizadas();
-        
+
         // Luego renderizar el contenido
         if (typeof window.renderizarTodasLasListasPersonalizadas === 'function') {
           setTimeout(() => {
