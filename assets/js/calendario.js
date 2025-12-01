@@ -1685,6 +1685,11 @@ window.toggleCalendarioCitas = toggleCalendarioCitas;
 
 // ========== MODAL DE EVENTOS DEL DÍA ==========
 function mostrarEventosDelDia(fecha, eventos) {
+  const modalExistente = document.getElementById('modal-eventos-dia');
+  if (modalExistente) {
+    modalExistente.remove();
+  }
+  
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'modal-eventos-dia';
@@ -1723,10 +1728,12 @@ function mostrarEventosDelDia(fecha, eventos) {
     });
   }
   
+  const alturaContenido = eventos.length === 0 ? 80 : Math.max(120, Math.min(eventos.length * 70, 400));
+  
   modal.innerHTML = `
-    <div class="modal-content" style="max-width:500px;width:90%;">
+    <div class="modal-content" style="max-width:500px;width:90%;max-height:${alturaContenido + 120}px;">
       <h4>📅 ${fechaFormateada}</h4>
-      <div style="max-height:${eventos.length === 0 ? 150 : Math.min(80 + (eventos.length * 60), 400)}px;overflow-y:auto;">
+      <div style="max-height:${alturaContenido}px;overflow-y:auto;">
         ${contenidoEventos}
       </div>
       <div class="modal-botones">
