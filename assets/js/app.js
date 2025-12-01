@@ -234,7 +234,8 @@ async function verificarConectividad() {
       const { error } = await window.supabaseClient
         .from('agenda_data')
         .select('id')
-        .limit(1);
+        .limit(1)
+        .abortSignal(AbortSignal.timeout(5000));
 
       if (error) {
         console.warn('⚠️ Error de conectividad con Supabase:', error);

@@ -1285,21 +1285,21 @@ function mostrarResumenDiarioManual() {
 // Función auxiliar para cargar estadísticas motivacionales
 function cargarEstadisticasMotivacionales() {
   try {
-    // Cargar datos del historial
-    const historialTareas = JSON.parse(localStorage.getItem('historial-tareas') || '[]');
-    const historialEliminados = JSON.parse(localStorage.getItem('historial-eliminados') || '[]');
+    // Las tareas completadas son las que tienen "Eliminar tarea" en el log
+    const log = window.logAcciones || [];
+    const historialTareas = log.filter(accion => accion.accion && accion.accion.includes('Eliminar tarea'));
 
     // Calcular estadísticas de los últimos 7 días
     const hace7Dias = new Date();
     hace7Dias.setDate(hace7Dias.getDate() - 7);
 
     const tareasUltimos7Dias = historialTareas.filter(tarea => {
-      const fechaTarea = new Date(tarea.fechaCompletada || tarea.fecha);
+      const fechaTarea = new Date(tarea.fecha || tarea.timestamp);
       return fechaTarea >= hace7Dias;
     });
 
     const tareasHoy = historialTareas.filter(tarea => {
-      const fechaTarea = new Date(tarea.fechaCompletada || tarea.fecha);
+      const fechaTarea = new Date(tarea.fecha || tarea.timestamp);
       const hoy = new Date();
       return fechaTarea.toDateString() === hoy.toDateString();
     });
@@ -1334,7 +1334,7 @@ function cargarEstadisticasMotivacionales() {
       fecha.setDate(fecha.getDate() - i);
 
       const tareasDelDia = historialTareas.filter(tarea => {
-        const fechaTarea = new Date(tarea.fechaCompletada || tarea.fecha);
+        const fechaTarea = new Date(tarea.fecha || tarea.timestamp);
         return fechaTarea.toDateString() === fecha.toDateString();
       }).length;
 
@@ -1342,7 +1342,7 @@ function cargarEstadisticasMotivacionales() {
         const f = new Date();
         f.setDate(f.getDate() - j);
         return historialTareas.filter(t => {
-          const ft = new Date(t.fechaCompletada || t.fecha);
+          const ft = new Date(t.fecha || t.timestamp);
           return ft.toDateString() === f.toDateString();
         }).length;
       })))) * 100);
@@ -1599,10 +1599,10 @@ function exportarResumenDiario() {
   try {
     const hoy = new Date();
     const fecha = hoy.toISOString().slice(0, 10);
-    const historialTareas = JSON.parse(localStorage.getItem('historial-tareas') || '[]');
+    const historialTareas = window.historialEliminados || [];
 
     const tareasHoy = historialTareas.filter(tarea => {
-      const fechaTarea = new Date(tarea.fechaCompletada || tarea.fecha);
+      const fechaTarea = new Date(tarea.fechaEliminacion || tarea.timestamp);
       return fechaTarea.toDateString() === hoy.toDateString();
     });
 
@@ -1617,9 +1617,10 @@ function exportarResumenDiario() {
       contenido += `✅ Tareas Completadas:\n`;
       contenido += `-----------------------\n`;
       tareasHoy.forEach(tarea => {
-        const hora = new Date(tarea.fechaCompletada || tarea.fecha).toLocaleTimeString('es-ES');
-        contenido += `${hora} - ${tarea.esCritica ? '[CRÍTICA] ' : ''}${tarea.titulo || tarea.texto}\n`;
-        if (tarea.persona) contenido += `  👤 Persona: ${tarea.persona}\n`;
+        const hora = new Date(tarea.fechaEliminacion || tarea.timestamp).toLocaleTimeString('es-ES');
+        const item = tarea.item || tarea;
+        contenido += `${hora} - ${item.esCritica ? '[CRÍTICA] ' : ''}${item.titulo || item.texto}\n`;
+        if (item.persona) contenido += `  👤 Persona: ${item.persona}\n`;
       });
     }
 
