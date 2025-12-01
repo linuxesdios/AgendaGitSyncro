@@ -217,8 +217,7 @@ function renderCalendar() {
 
       cell.addEventListener('click', () => {
         appState.calendar.selectedDate = dateStr;
-        promptAddAppointmentForDay(dateStr);
-        showAppointments(dateStr);
+        mostrarEventosDelDia(dateStr, eventos);
       });
 
       cell.dataset.date = dateStr;
@@ -697,8 +696,6 @@ mostrarAlerta('📅 Cita añadida correctamente', 'success');
 function abrirCalendario() {
   abrirModal('modal-calendar');
   renderCalendar();
-  renderAllAppointmentsList();
-  renderAppointmentsList();
 }
 
 function abrirCalendarioTareas() {
@@ -1684,3 +1681,68 @@ window.initializeCalendarioIntegrado = initializeCalendarioIntegrado;
 window.renderCalendarioIntegrado = renderCalendarioIntegrado;
 window.showAppointmentsIntegrado = showAppointmentsIntegrado;
 window.toggleCalendarioCitas = toggleCalendarioCitas;
+
+
+// ========== MODAL DE EVENTOS DEL DÍA ==========
+function mostrarEventosDelDia(fecha, eventos) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-eventos-dia';
+  modal.style.display = 'flex';
+  
+  const fechaObj = new Date(fecha + 'T00:00:00');
+  const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const fechaFormateada = `${diasSemana[fechaObj.getDay()]}, ${fechaObj.getDate()} de ${meses[fechaObj.getMonth()]}`;
+  
+  let contenidoEventos = '';
+  if (eventos.length === 0) {
+    contenidoEventos = '<p style="text-align:center;color:#999;padding:20px;">No hay eventos para este día</p>';
+  } else {
+    eventos.forEach(evento => {
+      let icono = '✅';
+      let titulo = evento.nombre || 'Sin título';
+      
+      if (evento.tipo === 'cita') {
+        icono = '📅';
+        if (titulo.includes(' - ')) {
+          const partes = titulo.split(' - ');
+          titulo = `${partes[0]} - <strong>${partes[1]}</strong>`;
+        }
+      } else if (evento.tipo === 'critica') {
+        icono = '🚨';
+      } else if (evento.tipo === 'personalizada') {
+        icono = '📋';
+      }
+      
+      contenidoEventos += `
+        <div style="padding:12px;margin:8px 0;background:${evento.color}15;border-left:4px solid ${evento.color};border-radius:6px;">
+          <div style="font-size:16px;margin-bottom:4px;">${icono} ${titulo}</div>
+        </div>
+      `;
+    });
+  }
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:500px;">
+      <h4>📅 ${fechaFormateada}</h4>
+      <div style="max-height:400px;overflow-y:auto;">
+        ${contenidoEventos}
+      </div>
+      <div class="modal-botones">
+        <button class="btn-primario" onclick="document.getElementById('nueva-cita-fecha').value='${fecha}';cerrarModal('modal-eventos-dia');abrirModalNuevaCita();">➕ Nueva Cita</button>
+        <button class="btn-secundario" onclick="cerrarModal('modal-eventos-dia')">Cerrar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      cerrarModal('modal-eventos-dia');
+    }
+  });
+}
+
+window.mostrarEventosDelDia = mostrarEventosDelDia;
