@@ -917,3 +917,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 1000);
 });
+
+// ========== EXPORTAR FUNCIONES GLOBALES ==========
+
+// Exponer funciones necesarias para ser llamadas desde HTML
+window.connectGoogleCalendar = connectGoogleCalendar;
+window.disconnectGoogleCalendar = disconnectGoogleCalendar;
+window.syncBidirectionalGoogleCalendar = syncBidirectionalGoogleCalendar;
+window.syncSingleEventToGoogle = syncSingleEventToGoogle;
+window.toggleCalendarSelection = toggleCalendarSelection;
