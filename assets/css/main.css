@@ -2216,6 +2216,41 @@ input[type="file"] {
     padding: 2px 4px !important;
     margin-bottom: 1px !important;
   }
+
+  /* Modal del calendario responsivo en móvil */
+  #modal-calendar .modal-content {
+    width: 98% !important;
+    max-width: 98% !important;
+    padding: 10px !important;
+    margin: 10px auto !important;
+  }
+
+  #modal-calendar h4 {
+    font-size: 18px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .calendar-header {
+    padding: 8px 0 !important;
+  }
+
+  .calendar-header h3 {
+    font-size: 16px !important;
+  }
+
+  .calendar-nav-btn {
+    width: 35px !important;
+    height: 35px !important;
+    font-size: 16px !important;
+  }
+
+  .calendar-weekdays {
+    font-size: 10px !important;
+  }
+
+  .calendar-weekday {
+    padding: 5px 2px !important;
+  }
 }
 
 /* Móviles en landscape */
