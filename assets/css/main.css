@@ -2275,153 +2275,155 @@ input[type="file"] {
   }
 }
 
-/* ========== FIX CRÍTICO PARA TAREAS EN MÓVIL ========== */
+/* ========== FIX CRÍTICO PARA TAREAS EN MÓVIL - NUEVO LAYOUT ========== */
 
 @media (max-width: 768px) {
-  /* REORGANIZAR TAREAS COMPLETAMENTE EN MÓVIL */
+  /* LAYOUT DE 4 FILAS PARA MÓVIL */
   .tarea-item {
-    display: grid !important;
-    grid-template-columns: auto 1fr !important;
-    grid-template-rows: auto auto !important;
-    gap: 8px 10px !important;
-    padding: 8px 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 6px 8px !important;
     min-height: auto !important;
-    align-items: start !important;
+    align-items: flex-start !important;
   }
 
-  /* Símbolo y texto en la primera fila */
+  /* FILA 1: Icono pequeño + Texto en la misma línea */
   .tarea-simbolo {
-    grid-column: 1;
-    grid-row: 1;
-    font-size: 18px !important;
-    min-width: 30px !important;
-    align-self: start;
-    margin-top: 2px;
+    display: inline !important;
+    font-size: 14px !important;
+    min-width: auto !important;
+    margin-right: 6px !important;
+    vertical-align: middle !important;
   }
 
   .tarea-texto {
-    grid-column: 2;
-    grid-row: 1;
+    display: inline !important;
     font-size: 13px !important;
-    line-height: 1.4 !important;
+    line-height: 1.5 !important;
     word-break: break-word;
     overflow-wrap: anywhere;
+    font-weight: 500;
   }
 
-  /* Botones en la segunda fila, ocupando ambas columnas */
-  .tarea-item > button,
-  .tarea-item > .btn-subtarea,
-  .tarea-item > .btn-pomodoro-tarea,
-  .tarea-item > .btn-borrar-tarea {
-    grid-column: 1 / -1 !important;
-    grid-row: 2 !important;
+  /* FILA 2: Etiquetas, fecha, persona - todo en una línea */
+  .tarea-texto span {
+    font-size: 10px !important;
+    padding: 2px 5px !important;
+    margin: 1px 2px !important;
+    display: inline-block !important;
+    border-radius: 3px !important;
+    vertical-align: middle !important;
   }
 
-  /* Contenedor de botones si existe */
-  .tarea-item > div:has(button) {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 4px !important;
-    justify-content: flex-start !important;
-    margin-top: 4px;
-  }
-
-  /* Hacer botones más pequeños pero táctiles */
+  /* FILA 3: Botones compactos */
   .tarea-item button,
   .btn-subtarea,
   .btn-pomodoro-tarea,
   .btn-borrar-tarea {
-    min-width: 32px !important;
-    min-height: 32px !important;
-    padding: 4px 6px !important;
-    font-size: 13px !important;
-    flex: 0 0 auto !important;
-    border-radius: 6px !important;
-  }
-
-  /* Alertas urgentes más pequeñas */
-  .alerta-urgente {
-    font-size: 14px !important;
-    margin: 0 2px !important;
-  }
-
-  /* Fechas y etiquetas más compactas */
-  .tarea-texto span {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    padding: 2px !important;
     font-size: 11px !important;
-    padding: 2px 6px !important;
-    margin: 2px !important;
-    display: inline-block;
+    flex: 0 0 auto !important;
+    border-radius: 4px !important;
+    margin: 2px 3px 2px 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* FILA 4: Alertas urgentes en línea separada */
+  .alerta-urgente {
+    font-size: 11px !important;
+    margin: 2px 0 !important;
+    display: block !important;
+    width: 100% !important;
+    padding: 2px 4px !important;
+    background: rgba(255, 0, 0, 0.05) !important;
+    border-radius: 3px !important;
   }
 
   /* Reducir margen entre tareas */
   .tarea-item {
-    margin-bottom: 6px !important;
+    margin-bottom: 5px !important;
+  }
+
+  /* Asegurar que símbolos y texto estén en línea */
+  .tarea-item > .tarea-simbolo,
+  .tarea-item > .tarea-texto {
+    display: inline !important;
   }
 }
 
-/* Para móviles muy pequeños, botones aún más compactos */
+/* Para móviles muy pequeños */
 @media (max-width: 480px) {
   .tarea-item {
-    padding: 6px 8px !important;
-    gap: 6px 8px !important;
-  }
-
-  .tarea-simbolo {
-    font-size: 16px !important;
-    min-width: 26px !important;
-  }
-
-  .tarea-texto {
-    font-size: 12px !important;
-  }
-
-  .tarea-item button {
-    min-width: 30px !important;
-    min-height: 30px !important;
-    font-size: 12px !important;
-    padding: 3px 5px !important;
-  }
-
-  /* Ocultar algunos botones menos importantes en móviles muy pequeños */
-  .btn-pomodoro-tarea {
-    display: none !important;
-  }
-
-  /* Reducir tamaño de badges de fecha */
-  .tarea-texto span[style*="background"] {
-    font-size: 10px !important;
-    padding: 1px 4px !important;
-  }
-}
-
-/* Móviles extra pequeños - layout ultra compacto */
-@media (max-width: 375px) {
-  .tarea-item {
     padding: 5px 6px !important;
-    gap: 5px 6px !important;
+    gap: 3px !important;
   }
 
   .tarea-simbolo {
-    font-size: 15px !important;
-    min-width: 24px !important;
+    font-size: 13px !important;
+    margin-right: 4px !important;
   }
 
   .tarea-texto {
-    font-size: 11px !important;
-    line-height: 1.3 !important;
+    font-size: 12px !important;
   }
 
   .tarea-item button {
-    min-width: 28px !important;
-    min-height: 28px !important;
-    font-size: 11px !important;
-    padding: 2px 4px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 10px !important;
+    padding: 2px !important;
+  }
+
+  .tarea-texto span {
+    font-size: 9px !important;
+    padding: 1px 4px !important;
   }
 
   .alerta-urgente {
+    font-size: 10px !important;
+    padding: 1px 3px !important;
+  }
+}
+
+/* Móviles extra pequeños */
+@media (max-width: 375px) {
+  .tarea-item {
+    padding: 4px 5px !important;
+    gap: 2px !important;
+  }
+
+  .tarea-simbolo {
     font-size: 12px !important;
+    margin-right: 3px !important;
+  }
+
+  .tarea-texto {
+    font-size: 11px !important;
+  }
+
+  .tarea-item button {
+    min-width: 24px !important;
+    min-height: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 9px !important;
+  }
+
+  .tarea-texto span {
+    font-size: 8px !important;
+  }
+
+  .alerta-urgente {
+    font-size: 9px !important;
   }
 }
 
@@ -2468,5 +2470,92 @@ input[type="file"] {
   .container > * {
     max-width: 100%;
     overflow-x: hidden;
+  }
+}
+
+/* ========== BOTONES DEL HEADER EN MÓVIL ========== */
+
+@media (max-width: 768px) {
+  /* Botón principal de tarea */
+  #btn-tarea-universal {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    padding: 4px !important;
+    min-width: 32px !important;
+  }
+
+  /* Todos los botones del header */
+  .header button,
+  #btn-add-list,
+  #btn-config,
+  #btn-pomodoro,
+  #btn-progreso,
+  #btn-resumen {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    padding: 4px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+
+  /* Reducir gap entre botones del header */
+  .header > div:last-child > div {
+    gap: 3px !important;
+  }
+
+  .header > div:last-child {
+    gap: 3px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Botones aún más pequeños en móviles pequeños */
+  #btn-tarea-universal {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 13px !important;
+    padding: 3px !important;
+  }
+
+  .header button,
+  #btn-add-list,
+  #btn-config,
+  #btn-pomodoro,
+  #btn-progreso,
+  #btn-resumen {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 13px !important;
+    padding: 3px !important;
+  }
+
+  /* Ocultar algunos botones menos importantes */
+  #btn-pomodoro {
+    display: none !important;
+  }
+}
+
+@media (max-width: 375px) {
+  /* Ultra compacto para móviles extra pequeños */
+  #btn-tarea-universal {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    padding: 2px !important;
+  }
+
+  .header button {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    padding: 2px !important;
+  }
+
+  /* Ocultar más botones para ahorrar espacio */
+  #btn-progreso,
+  #btn-resumen {
+    display: none !important;
   }
 }
