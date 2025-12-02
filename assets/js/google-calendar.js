@@ -571,6 +571,41 @@ async function deleteGoogleTask(taskId) {
   }
 }
 
+async function getGoogleTasks() {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    console.error('❌ No hay access token para obtener tareas');
+    return [];
+  }
+
+  try {
+    console.log('📥 Obteniendo tareas desde Google Tasks...');
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks?showCompleted=true&showHidden=true`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Error en respuesta de Google Tasks:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorData
+      });
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Obtenidas ${data.items?.length || 0} tareas desde Google Tasks`);
+    return data.items || [];
+  } catch (error) {
+    console.error('❌ Error obteniendo tareas de Google Tasks:', error);
+    return [];
+  }
+}
+
 // ========== LISTAR CALENDARIOS ==========
 
 async function listGoogleCalendars() {
@@ -906,20 +941,41 @@ async function syncSingleEventToGoogle(eventoId, tipo) {
     } else if (tipo === 'tarea') {
       evento = window.appState.agenda.tareas.find(t => t.id === eventoId);
       if (evento) {
-        const eventoParaGoogle = {
+        const tareaParaGoogle = {
           id: evento.id,
-          tipo: 'tarea',
-          titulo: evento.texto,
-          nombre: evento.texto,
-          fecha: evento.fecha_fin || new Date().toISOString().split('T')[0],
-          descripcion: evento.texto,
-          notas: evento.texto,
-          etiqueta: evento.etiqueta,
-          googleCalendarId: evento.googleCalendarId
+          titulo: evento.texto || evento.nombre,
+          nombre: evento.texto || evento.nombre,
+          texto: evento.texto || evento.nombre,
+          fecha: evento.fecha_fin,
+          descripcion: evento.texto || evento.nombre,
+          notas: evento.texto || evento.nombre,
+          estado: evento.estado
         };
 
-        await syncEventToGoogleCalendar(eventoParaGoogle);
-        mostrarAlerta('✅ Tarea sincronizada con Google Calendar', 'success');
+        // Si ya tiene googleTaskId, actualizar; si no, crear
+        if (evento.googleTaskId) {
+          const updatedTask = await updateGoogleTask(evento.googleTaskId, tareaParaGoogle);
+          if (updatedTask) {
+            mostrarAlerta('✅ Tarea actualizada en Google Tasks', 'success');
+          } else {
+            mostrarAlerta('❌ Error al actualizar tarea', 'error');
+          }
+        } else {
+          const createdTask = await createGoogleTask(tareaParaGoogle);
+          if (createdTask && createdTask.id) {
+            // Guardar ID de Google Task
+            const index = window.appState.agenda.tareas.findIndex(t => t.id === evento.id);
+            if (index !== -1) {
+              window.appState.agenda.tareas[index].googleTaskId = createdTask.id;
+              if (typeof guardarJSON === 'function') {
+                guardarJSON(false);
+              }
+            }
+            mostrarAlerta('✅ Tarea sincronizada con Google Tasks', 'success');
+          } else {
+            mostrarAlerta('❌ Error al crear tarea', 'error');
+          }
+        }
       }
     }
 
@@ -1047,13 +1103,54 @@ async function syncBidirectionalGoogleCalendar() {
   mostrarAlerta('🔄 Sincronización bidireccional iniciada...', 'info');
 
   try {
-    // 1. Traer eventos desde Google
+    // 1. Traer eventos desde Google Calendar
     await pullEventsFromGoogleCalendar();
 
-    // 2. Enviar eventos locales a Google
+    // 2. Traer tareas desde Google Tasks
+    const syncOptions = JSON.parse(localStorage.getItem('googleCalendarSyncOptions') || '{"syncEvents":true,"syncTasks":false,"autoSync":true}');
+    if (syncOptions.syncTasks) {
+      const googleTasks = await getGoogleTasks();
+      console.log(`📥 Tareas obtenidas desde Google: ${googleTasks.length}`);
+
+      // Importar tareas a la agenda local
+      if (googleTasks.length > 0 && window.appState && window.appState.agenda) {
+        for (const googleTask of googleTasks) {
+          // Verificar si la tarea ya existe localmente
+          const existeLocal = window.appState.agenda.tareas.find(t => t.googleTaskId === googleTask.id);
+
+          if (!existeLocal) {
+            // Crear nueva tarea local desde Google Task
+            const nuevaTarea = {
+              id: Date.now() + Math.random(),
+              texto: googleTask.title,
+              completada: googleTask.status === 'completed',
+              estado: googleTask.status === 'completed' ? 'completada' : 'pendiente',
+              fecha_fin: googleTask.due ? googleTask.due.split('T')[0] : null,
+              googleTaskId: googleTask.id,
+              etiqueta: 'General'
+            };
+
+            window.appState.agenda.tareas.push(nuevaTarea);
+            console.log(`✅ Tarea importada desde Google: ${googleTask.title}`);
+          }
+        }
+
+        // Guardar cambios
+        if (typeof guardarJSON === 'function') {
+          await guardarJSON(false);
+        }
+
+        // Renderizar tareas
+        if (typeof renderizar === 'function') {
+          renderizar();
+        }
+      }
+    }
+
+    // 3. Enviar eventos locales a Google
     await manualSyncGoogleCalendar();
 
-    // 3. Actualizar calendario
+    // 4. Actualizar calendario
     if (typeof renderCalendar === 'function') {
       renderCalendar();
     }
