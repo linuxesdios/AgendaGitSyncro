@@ -687,9 +687,26 @@
               </label>
             </div>
 
-            <button onclick="manualSyncGoogleCalendar()" class="btn-secundario"
+            <!-- Selección de calendarios -->
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <h4 style="margin: 0;">📅 Calendarios de Google</h4>
+                <button onclick="loadAndDisplayCalendars()" class="btn-secundario"
+                        style="font-size: 11px; padding: 5px 10px;">
+                  🔄 Actualizar
+                </button>
+              </div>
+              <div id="calendar-list-container" style="background: #f8fafc; padding: 15px; border-radius: 8px; min-height: 100px;">
+                <p style="color: #666; text-align: center;">Cargando calendarios...</p>
+              </div>
+              <small style="color: #666; display: block; margin-top: 8px;">
+                Selecciona los calendarios que quieres sincronizar con tu agenda
+              </small>
+            </div>
+
+            <button onclick="syncBidirectionalGoogleCalendar()" class="btn-secundario"
                     style="width: 100%; margin-top: 15px; font-size: 13px;">
-              🔄 Sincronizar Ahora
+              🔄 Sincronizar Ahora (Bidireccional)
             </button>
           </div>
 

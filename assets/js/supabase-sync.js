@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 // ========== SUPABASE SYNC ==========
 // Sistema de sincronizaci�n en la nube sin l�mites de peticiones
+=======
+﻿// ========== SUPABASE SYNC ==========
+console.log('🚀 Cargando supabase-sync.js...');
+// Sistema de sincronización en la nube sin límites de peticiones
+>>>>>>> 674885ed5413fcf15be39ac6b24272c68a5b2ec7
 
 // ========== CONFIGURACI�N GLOBAL ==========
 window.supabaseClient = null;
@@ -346,10 +352,14 @@ async function supabasePull() {
     results.forEach(({ collection, data }) => {
       switch (collection) {
         case 'tareas':
+<<<<<<< HEAD
+=======
+          console.log('📦 CARGANDO TAREAS desde Supabase:', data);
+>>>>>>> 674885ed5413fcf15be39ac6b24272c68a5b2ec7
 
           // Inicializar tareasData si no existe
           if (!window.tareasData) window.tareasData = {};
-          
+
           // Actualizar tareasData PRIMERO
           window.tareasData = {
             ...window.tareasData,
@@ -357,14 +367,20 @@ async function supabasePull() {
             tareas: data.tareas || [],
             listasPersonalizadas: data.listasPersonalizadas || []
           };
-          
+
           // Luego actualizar appState
           if (!window.appState.agenda) window.appState.agenda = {};
           window.appState.agenda.tareas_criticas = data.tareas_criticas || [];
           window.appState.agenda.tareas = data.tareas || [];
           window.appState.agenda.listasPersonalizadas = data.listasPersonalizadas || [];
 
+<<<<<<< HEAD
 
+=======
+          console.log('  ✅ Tareas críticas cargadas:', data.tareas_criticas?.length || 0);
+          console.log('  ✅ Tareas normales cargadas:', data.tareas?.length || 0);
+          console.log('  ✅ Listas personalizadas cargadas:', data.listasPersonalizadas?.length || 0);
+>>>>>>> 674885ed5413fcf15be39ac6b24272c68a5b2ec7
 
           if (data.listasPersonalizadas) {
             data.listasPersonalizadas.forEach((lista, idx) => {
@@ -460,14 +476,19 @@ async function supabasePull() {
       window.renderizarCriticas();
     }
 
+<<<<<<< HEAD
     // IMPORTANTE: Renderizar listas personalizadas DESPU�S de actualizar tareasData
+=======
+    // IMPORTANTE: Renderizar listas personalizadas DESPUÉS de actualizar tareasData
+    console.log('🔄 Verificando tareasData antes de renderizar:', window.tareasData?.listasPersonalizadas?.length || 0);
+>>>>>>> 674885ed5413fcf15be39ac6b24272c68a5b2ec7
 
     // Regenerar secciones HTML primero
     if (typeof window.regenerarSeccionesListasPersonalizadas === 'function') {
       setTimeout(() => {
 
         window.regenerarSeccionesListasPersonalizadas();
-        
+
         // Luego renderizar el contenido
         if (typeof window.renderizarTodasLasListasPersonalizadas === 'function') {
           setTimeout(() => {

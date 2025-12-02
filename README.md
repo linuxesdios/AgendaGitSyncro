@@ -12,6 +12,9 @@ Esta guía te explicará paso a paso cómo configurar Supabase como base de dato
 6. [Verificar conexión](#6-verificar-conexión)
 
 ---
+## Video explicativo  en youtube
+
+[![Mira el video](https://img.youtube.com/vi/2oo-bkpt6Lw/0.jpg)](https://www.youtube.com/watch?v=2oo-bkpt6Lw)
 
 ## 1. Crear cuenta en Supabase
 
@@ -94,42 +97,31 @@ Ahora necesitas crear la estructura de la base de datos donde se guardará toda 
 Copia y pega exactamente este código SQL en el editor:
 
 ```sql
--- Crear la tabla principal para almacenar todos los datos de la agenda
-CREATE TABLE agenda_data (
-  id text PRIMARY KEY,
-  data jsonb NOT NULL DEFAULT '{}'::jsonb,
-  last_updated timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+-- Crear extensión UUID si no existe
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Crear la tabla de backups
+CREATE TABLE IF NOT EXISTS public.agenda_backups (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  fecha timestamptz DEFAULT now(),
+  origen text DEFAULT 'app',
+  datos jsonb NOT NULL
 );
 
--- Crear índice para búsquedas más rápidas
-CREATE INDEX idx_agenda_data_last_updated ON agenda_data(last_updated);
+-- Índice por fecha
+CREATE INDEX IF NOT EXISTS idx_agenda_backups_fecha
+ON public.agenda_backups(fecha);
 
--- Habilitar Row Level Security (seguridad a nivel de fila)
-ALTER TABLE agenda_data ENABLE ROW LEVEL SECURITY;
+-- Activar seguridad RLS
+ALTER TABLE public.agenda_backups ENABLE ROW LEVEL SECURITY;
 
--- Crear política para permitir lectura y escritura anónima
--- IMPORTANTE: Esto permite acceso completo. Para producción, considera usar autenticación.
-CREATE POLICY "Permitir acceso completo anónimo" 
-ON agenda_data 
-FOR ALL 
-USING (true) 
+-- Política para permitir todos los accesos desde la web
+CREATE POLICY IF NOT EXISTS "acceso_completo_agenda_backups"
+ON public.agenda_backups
+FOR ALL
+USING (true)
 WITH CHECK (true);
 
--- Insertar datos iniciales
-INSERT INTO agenda_data (id, data) VALUES
-  ('tareas', '{"tareas_criticas": [], "tareas": [], "listasPersonalizadas": []}'::jsonb),
-  ('citas', '{"citas": []}'::jsonb),
-  ('config', '{"visual": {}, "funcionales": {}, "opciones": {}}'::jsonb),
-  ('notas', '{"notas": ""}'::jsonb),
-  ('sentimientos', '{"sentimientos": ""}'::jsonb),
-  ('contrasenas', '{"lista": []}'::jsonb),
-  ('historial_eliminados', '{"items": []}'::jsonb),
-  ('historial_tareas', '{"items": []}'::jsonb),
-  ('personas', '{"lista": []}'::jsonb),
-  ('etiquetas', '{"tareas": [{"nombre": "trabajo", "simbolo": "💼", "color": "#3498db"}, {"nombre": "ocio", "simbolo": "🎮", "color": "#9b59b6"}, {"nombre": "médicos", "simbolo": "🏥", "color": "#e74c3c"}], "citas": [{"nombre": "trabajo", "simbolo": "💼", "color": "#3498db"}, {"nombre": "ocio", "simbolo": "🎮", "color": "#9b59b6"}, {"nombre": "médicos", "simbolo": "🏥", "color": "#e74c3c"}]}'::jsonb),
-  ('log', '{"acciones": []}'::jsonb),
-  ('salvados', '{}'::jsonb)
-ON CONFLICT (id) DO NOTHING;
 ```
 
 ### 4.3 Ejecutar el Script
@@ -171,6 +163,8 @@ Ahora que tienes Supabase configurado, vamos a conectar la aplicación:
 ---
 
 ## 6. Verificar conexión
+
+[![Mira el video](https://img.youtube.com/vi/O3i5Zb5G4EU/0.jpg)](https://www.youtube.com/watch?v=O3i5Zb5G4EU)
 
 Es importante verificar que todo funciona correctamente:
 

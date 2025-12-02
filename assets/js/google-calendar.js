@@ -82,11 +82,21 @@ function updateGoogleCalendarUI() {
         document.getElementById('google-calendar-email').textContent = userInfo.email;
       }
     });
+
+    // Cargar calendarios disponibles
+    setTimeout(() => {
+      loadAndDisplayCalendars();
+    }, 500);
   } else {
     // No conectado
     statusPanel.style.display = 'none';
     btnConnect.textContent = '🔗 Conectar con Google';
     btnConnect.style.background = '#34A853';
+
+    const container = document.getElementById('calendar-list-container');
+    if (container) {
+      container.innerHTML = '<p style="color: #666; text-align: center;">Conecta primero con Google Calendar</p>';
+    }
   }
 }
 
@@ -312,6 +322,65 @@ async function deleteGoogleCalendarEvent(googleEventId) {
   }
 }
 
+// ========== LISTAR CALENDARIOS ==========
+
+async function listGoogleCalendars() {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return [];
+
+  try {
+    const response = await fetch(`${GOOGLE_CALENDAR_API}/users/me/calendarList`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener calendarios');
+    }
+
+    const data = await response.json();
+    return data.items || [];
+  } catch (error) {
+    console.error('Error listando calendarios:', error);
+    return [];
+  }
+}
+
+async function getGoogleCalendarEvents(calendarId = 'primary', timeMin = null, timeMax = null) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return [];
+
+  try {
+    const now = new Date();
+    const defaultTimeMin = timeMin || new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+    const defaultTimeMax = timeMax || new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+
+    const url = new URL(`${GOOGLE_CALENDAR_API}/calendars/${calendarId}/events`);
+    url.searchParams.append('timeMin', defaultTimeMin);
+    url.searchParams.append('timeMax', defaultTimeMax);
+    url.searchParams.append('singleEvents', 'true');
+    url.searchParams.append('orderBy', 'startTime');
+    url.searchParams.append('maxResults', '250');
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener eventos');
+    }
+
+    const data = await response.json();
+    return data.items || [];
+  } catch (error) {
+    console.error('Error obteniendo eventos de Google Calendar:', error);
+    return [];
+  }
+}
+
 // ========== SINCRONIZACIÓN ==========
 
 async function syncEventToGoogleCalendar(event) {
@@ -415,6 +484,127 @@ async function manualSyncGoogleCalendar() {
   }
 }
 
+// ========== SINCRONIZACIÓN BIDIRECCIONAL ==========
+
+async function pullEventsFromGoogleCalendar() {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    console.log('📅 Google Calendar no conectado, saltando pull');
+    return [];
+  }
+
+  const selectedCalendars = JSON.parse(localStorage.getItem('googleSelectedCalendars') || '["primary"]');
+  let allEvents = [];
+
+  try {
+    for (const calendarId of selectedCalendars) {
+      const events = await getGoogleCalendarEvents(calendarId);
+      allEvents = allEvents.concat(events);
+    }
+
+    console.log(`📥 Obtenidos ${allEvents.length} eventos desde Google Calendar`);
+
+    // Guardar eventos en cache para mostrarlos en el calendario
+    localStorage.setItem('googleCalendarEvents', JSON.stringify(allEvents));
+
+    return allEvents;
+  } catch (error) {
+    console.error('Error en pull desde Google Calendar:', error);
+    return [];
+  }
+}
+
+async function loadAndDisplayCalendars() {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    document.getElementById('calendar-list-container').innerHTML = '<p style="color: #666;">Conecta primero con Google Calendar</p>';
+    return;
+  }
+
+  const calendars = await listGoogleCalendars();
+  if (calendars.length === 0) {
+    document.getElementById('calendar-list-container').innerHTML = '<p style="color: #666;">No se encontraron calendarios</p>';
+    return;
+  }
+
+  const selectedCalendars = JSON.parse(localStorage.getItem('googleSelectedCalendars') || '["primary"]');
+
+  let html = '<div style="max-height: 300px; overflow-y: auto;">';
+
+  calendars.forEach(calendar => {
+    const isChecked = selectedCalendars.includes(calendar.id);
+    const color = calendar.backgroundColor || '#4285F4';
+
+    html += `
+      <label style="display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; background: ${isChecked ? '#f0f9ff' : 'white'}; border: 1px solid ${isChecked ? '#3b82f6' : '#e5e7eb'};">
+        <input type="checkbox"
+               value="${calendar.id}"
+               ${isChecked ? 'checked' : ''}
+               onchange="toggleCalendarSelection('${calendar.id}')"
+               style="cursor: pointer;">
+        <div style="width: 16px; height: 16px; border-radius: 50%; background: ${color};"></div>
+        <div style="flex: 1;">
+          <div style="font-weight: 500;">${calendar.summary}</div>
+          <div style="font-size: 11px; color: #666;">${calendar.id === 'primary' ? 'Principal' : calendar.id.split('@')[0]}</div>
+        </div>
+      </label>
+    `;
+  });
+
+  html += '</div>';
+
+  document.getElementById('calendar-list-container').innerHTML = html;
+}
+
+function toggleCalendarSelection(calendarId) {
+  let selectedCalendars = JSON.parse(localStorage.getItem('googleSelectedCalendars') || '["primary"]');
+
+  const index = selectedCalendars.indexOf(calendarId);
+  if (index > -1) {
+    selectedCalendars.splice(index, 1);
+  } else {
+    selectedCalendars.push(calendarId);
+  }
+
+  // Asegurar que al menos uno esté seleccionado
+  if (selectedCalendars.length === 0) {
+    selectedCalendars = ['primary'];
+  }
+
+  localStorage.setItem('googleSelectedCalendars', JSON.stringify(selectedCalendars));
+  console.log('📅 Calendarios seleccionados:', selectedCalendars);
+
+  // Recargar eventos
+  pullEventsFromGoogleCalendar().then(() => {
+    // Re-renderizar calendario si está visible
+    if (typeof renderCalendar === 'function') {
+      renderCalendar();
+    }
+  });
+}
+
+async function syncBidirectionalGoogleCalendar() {
+  mostrarAlerta('🔄 Sincronización bidireccional iniciada...', 'info');
+
+  try {
+    // 1. Traer eventos desde Google
+    await pullEventsFromGoogleCalendar();
+
+    // 2. Enviar eventos locales a Google
+    await manualSyncGoogleCalendar();
+
+    // 3. Actualizar calendario
+    if (typeof renderCalendar === 'function') {
+      renderCalendar();
+    }
+
+    mostrarAlerta('✅ Sincronización bidireccional completada', 'success');
+  } catch (error) {
+    console.error('Error en sincronización bidireccional:', error);
+    mostrarAlerta('❌ Error en sincronización bidireccional', 'error');
+  }
+}
+
 // ========== INICIALIZACIÓN ==========
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -434,5 +624,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cargar configuración inicial
   setTimeout(() => {
     loadGoogleCalendarConfig();
-  }, 500);
+
+    // Cargar eventos de Google Calendar si está conectado
+    const auth = JSON.parse(localStorage.getItem('googleCalendarAuth') || '{}');
+    if (auth.access_token && auth.expires_at > Date.now()) {
+      console.log('📅 Cargando eventos desde Google Calendar...');
+      pullEventsFromGoogleCalendar().then(() => {
+        console.log('✅ Eventos de Google Calendar cargados');
+        // Re-renderizar calendario para mostrar eventos de Google
+        if (typeof renderCalendar === 'function') {
+          renderCalendar();
+        }
+      });
+
+      // Actualizar eventos periódicamente cada 5 minutos
+      setInterval(() => {
+        pullEventsFromGoogleCalendar().then(() => {
+          if (typeof renderCalendar === 'function') {
+            renderCalendar();
+          }
+        });
+      }, 5 * 60 * 1000);
+    }
+  }, 1000);
 });

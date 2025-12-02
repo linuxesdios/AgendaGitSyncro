@@ -156,6 +156,44 @@ function renderCalendar() {
         });
       }
 
+      // Añadir eventos de Google Calendar
+      try {
+        const googleEvents = JSON.parse(localStorage.getItem('googleCalendarEvents') || '[]');
+        googleEvents.forEach(googleEvent => {
+          if (!googleEvent || !googleEvent.start) return;
+
+          // Obtener fecha del evento de Google
+          const eventDate = googleEvent.start.date || googleEvent.start.dateTime;
+          if (!eventDate) return;
+
+          const eventDateStr = eventDate.split('T')[0]; // Extraer solo YYYY-MM-DD
+
+          if (eventDateStr === dateStr) {
+            // Obtener hora si existe
+            let displayName = googleEvent.summary || 'Sin título';
+            if (googleEvent.start.dateTime) {
+              const time = new Date(googleEvent.start.dateTime).toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+              displayName = `${time} - ${displayName}`;
+            }
+
+            eventos.push({
+              id: googleEvent.id,
+              tipo: 'google',
+              nombre: displayName,
+              color: '#EA4335', // Rojo de Google
+              descripcion: googleEvent.description || '',
+              lugar: googleEvent.location || '',
+              googleEvent: googleEvent // Guardar evento completo por si se necesita
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error procesando eventos de Google Calendar:', error);
+      }
+
       const tieneEventos = eventos.length > 0;
 
       // Aplicar clases CSS especiales
