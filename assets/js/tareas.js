@@ -890,22 +890,38 @@ async function agregarTarea() {
   renderizar();
   await guardarJSON(true);
 
-  // Sincronizar con Google Calendar si está conectado
-  if (typeof syncEventToGoogleCalendar === 'function' && appState.ui.tareaEditando === null) {
+  // Sincronizar con Google Tasks si está conectado
+  if (typeof createGoogleTask === 'function' && appState.ui.tareaEditando === null) {
     const tareaRecienCreada = appState.agenda.tareas[appState.agenda.tareas.length - 1];
-    if (tareaRecienCreada) {
-      const eventoParaGoogle = {
-        id: tareaRecienCreada.id,
-        tipo: 'tarea',
-        titulo: texto,
-        nombre: texto,
-        fecha: fecha || new Date().toISOString().split('T')[0],
-        descripcion: texto,
-        notas: texto,
-        etiqueta: etiqueta,
-        googleCalendarId: tareaRecienCreada.googleCalendarId
-      };
-      syncEventToGoogleCalendar(eventoParaGoogle);
+    if (tareaRecienCreada && !tareaRecienCreada.googleTaskId) {
+      // Verificar si la sincronización de tareas está habilitada
+      const syncOptions = JSON.parse(localStorage.getItem('googleCalendarSyncOptions') || '{"syncEvents":true,"syncTasks":false,"autoSync":true}');
+      if (syncOptions.syncTasks && syncOptions.autoSync) {
+        const tareaParaGoogle = {
+          id: tareaRecienCreada.id,
+          titulo: texto,
+          nombre: texto,
+          texto: texto,
+          fecha: fecha || new Date().toISOString().split('T')[0],
+          descripcion: texto,
+          notas: texto,
+          estado: tareaRecienCreada.estado
+        };
+
+        createGoogleTask(tareaParaGoogle).then(createdTask => {
+          if (createdTask && createdTask.id) {
+            // Guardar ID de Google Task
+            const index = appState.agenda.tareas.findIndex(t => t.id === tareaRecienCreada.id);
+            if (index !== -1) {
+              appState.agenda.tareas[index].googleTaskId = createdTask.id;
+              guardarJSON(false);
+            }
+            console.log('✅ Tarea sincronizada automáticamente con Google Tasks');
+          }
+        }).catch(error => {
+          console.error('Error sincronizando tarea automáticamente:', error);
+        });
+      }
     }
   }
 

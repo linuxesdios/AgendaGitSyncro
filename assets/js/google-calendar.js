@@ -2,12 +2,14 @@
 
 const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/calendar.events'
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/tasks'
 ].join(' ');
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
+const GOOGLE_TASKS_API = 'https://www.googleapis.com/tasks/v1';
 
 // ========== CONFIGURACIÓN ==========
 
@@ -438,6 +440,137 @@ async function deleteGoogleCalendarEvent(googleEventId) {
   }
 }
 
+// ========== GOOGLE TASKS API ==========
+
+async function createGoogleTask(task) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    console.error('No access token available');
+    return null;
+  }
+
+  try {
+    console.log('📝 Creando tarea en Google Tasks:', task);
+
+    // Convertir fecha a formato RFC 3339
+    let dueDate = null;
+    if (task.fecha) {
+      const fechaStr = Array.isArray(task.fecha)
+        ? `${task.fecha[0]}-${String(task.fecha[1]).padStart(2, '0')}-${String(task.fecha[2]).padStart(2, '0')}`
+        : task.fecha;
+      // Google Tasks requiere formato RFC 3339 (ISO 8601)
+      dueDate = `${fechaStr}T00:00:00.000Z`;
+    }
+
+    const googleTask = {
+      title: task.titulo || task.nombre || task.texto || 'Sin título',
+      notes: task.descripcion || task.notas || task.texto || '',
+      due: dueDate,
+      status: task.estado === 'completada' ? 'completed' : 'needsAction'
+    };
+
+    console.log('📤 Datos de tarea a enviar:', JSON.stringify(googleTask, null, 2));
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(googleTask)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error de Google Tasks API:', errorText);
+      throw new Error(`Bad Request: ${errorText}`);
+    }
+
+    const createdTask = await response.json();
+    console.log('✅ Tarea creada en Google Tasks:', createdTask.title);
+    return createdTask;
+  } catch (error) {
+    console.error('Error creating Google Task:', error);
+    console.error('Tarea que falló:', task);
+    return null;
+  }
+}
+
+async function updateGoogleTask(taskId, task) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return null;
+
+  try {
+    console.log('🔄 Actualizando tarea en Google Tasks:', task);
+    console.log('🔄 Google Task ID:', taskId);
+
+    // Convertir fecha a formato RFC 3339
+    let dueDate = null;
+    if (task.fecha) {
+      const fechaStr = Array.isArray(task.fecha)
+        ? `${task.fecha[0]}-${String(task.fecha[1]).padStart(2, '0')}-${String(task.fecha[2]).padStart(2, '0')}`
+        : task.fecha;
+      dueDate = `${fechaStr}T00:00:00.000Z`;
+    }
+
+    const googleTask = {
+      title: task.titulo || task.nombre || task.texto || 'Sin título',
+      notes: task.descripcion || task.notas || task.texto || '',
+      due: dueDate,
+      status: task.estado === 'completada' ? 'completed' : 'needsAction'
+    };
+
+    console.log('🔄 Datos de tarea a enviar:', JSON.stringify(googleTask, null, 2));
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(googleTask)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Error en respuesta de Google Tasks:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorData
+      });
+      throw new Error(`Error updating task: ${response.status} ${response.statusText}`);
+    }
+
+    const updatedTask = await response.json();
+    console.log('✅ Tarea actualizada en Google Tasks:', updatedTask.title);
+    return updatedTask;
+
+  } catch (error) {
+    console.error('❌ Error updating Google Task:', error);
+    console.error('❌ Detalles de la tarea:', task);
+    return null;
+  }
+}
+
+async function deleteGoogleTask(taskId) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return false;
+
+  try {
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks/${taskId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting Google Task:', error);
+    return false;
+  }
+}
+
 // ========== LISTAR CALENDARIOS ==========
 
 async function listGoogleCalendars() {
@@ -653,34 +786,56 @@ async function manualSyncGoogleCalendar() {
       }
     }
 
-    // Sincronizar tareas
+    // Sincronizar tareas (usando Google Tasks API)
     if (syncOptions.syncTasks && window.appState && window.appState.agenda && window.appState.agenda.tareas) {
       const tareas = window.appState.agenda.tareas;
-      console.log(`📋 Procesando ${tareas.length} tareas...`);
+      console.log(`📋 Procesando ${tareas.length} tareas con Google Tasks API...`);
 
       for (const tarea of tareas) {
-        if (tarea.estado !== 'completada') {
-          try {
-            // Transformar tarea al formato correcto para Google Calendar
-            const eventoParaGoogle = {
-              id: tarea.id,
-              tipo: 'tarea',
-              titulo: tarea.texto || tarea.nombre,
-              nombre: tarea.texto || tarea.nombre,
-              fecha: tarea.fecha_fin || new Date().toISOString().split('T')[0],
-              descripcion: tarea.texto || tarea.nombre,
-              notas: tarea.texto || tarea.nombre,
-              etiqueta: tarea.etiqueta,
-              googleCalendarId: tarea.googleCalendarId
-            };
+        try {
+          // Preparar tarea para Google Tasks
+          const tareaParaGoogle = {
+            id: tarea.id,
+            titulo: tarea.texto || tarea.nombre,
+            nombre: tarea.texto || tarea.nombre,
+            texto: tarea.texto || tarea.nombre,
+            fecha: tarea.fecha_fin,
+            descripcion: tarea.texto || tarea.nombre,
+            notas: tarea.texto || tarea.nombre,
+            estado: tarea.estado,
+            googleTaskId: tarea.googleTaskId
+          };
 
-            await syncEventToGoogleCalendar(eventoParaGoogle);
-            syncCount++;
-            console.log(`✅ Tarea sincronizada: ${tarea.texto || tarea.nombre}`);
-          } catch (error) {
-            errorCount++;
-            console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
+          // Si ya tiene googleTaskId, actualizar; si no, crear
+          if (tarea.googleTaskId) {
+            const updatedTask = await updateGoogleTask(tarea.googleTaskId, tareaParaGoogle);
+            if (updatedTask) {
+              syncCount++;
+              console.log(`✅ Tarea actualizada en Google Tasks: ${tarea.texto || tarea.nombre}`);
+            } else {
+              errorCount++;
+            }
+          } else {
+            const createdTask = await createGoogleTask(tareaParaGoogle);
+            if (createdTask && createdTask.id) {
+              // Guardar ID de Google Task en la tarea local
+              const index = tareas.findIndex(t => t.id === tarea.id);
+              if (index !== -1) {
+                tareas[index].googleTaskId = createdTask.id;
+                // Guardar cambios
+                if (typeof guardarJSON === 'function') {
+                  guardarJSON(false);
+                }
+              }
+              syncCount++;
+              console.log(`✅ Tarea creada en Google Tasks: ${tarea.texto || tarea.nombre}`);
+            } else {
+              errorCount++;
+            }
           }
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
         }
       }
     }
