@@ -2316,11 +2316,12 @@ input[type="file"] {
     vertical-align: middle !important;
   }
 
-  /* FILA 3: Botones compactos */
+  /* FILA 3: Botones compactos EN LÍNEA HORIZONTAL */
   .tarea-item button,
   .btn-subtarea,
   .btn-pomodoro-tarea,
-  .btn-borrar-tarea {
+  .btn-borrar-tarea,
+  .btn-reprogramar-tarea {
     min-width: 28px !important;
     min-height: 28px !important;
     width: 28px !important;
@@ -2333,6 +2334,23 @@ input[type="file"] {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    vertical-align: middle !important;
+  }
+
+  /* Contenedor de botones forzar horizontal */
+  .tarea-item > div:not(.tarea-texto) {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    align-items: center !important;
+  }
+
+  /* Botón de Reprogramar/Delegar */
+  .btn-reprogramar-tarea {
+    background: #9c27b0 !important;
+    color: white !important;
+    border: 1px solid #7b1fa2 !important;
   }
 
   /* FILA 4: Alertas urgentes en línea separada */
@@ -2473,20 +2491,64 @@ input[type="file"] {
   }
 }
 
-/* ========== BOTONES DEL HEADER EN MÓVIL ========== */
+/* ========== BOTONES DEL HEADER EN MÓVIL - LAYOUT HORIZONTAL ========== */
 
 @media (max-width: 768px) {
-  /* Botón principal de tarea */
-  #btn-tarea-universal {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 14px !important;
-    padding: 4px !important;
-    min-width: 32px !important;
+  /* Header reorganizado: Nombre → Fecha → Botones en línea */
+  .header {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding-bottom: 10px !important;
   }
 
-  /* Todos los botones del header */
+  /* Ocultar emoji grande del header */
+  .header > div:first-child {
+    display: none !important;
+  }
+
+  /* Centro del header: nombre y fecha */
+  .header-center {
+    width: 100% !important;
+    order: -1 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .header h1 {
+    font-size: 18px !important;
+    margin: 0 0 4px 0 !important;
+  }
+
+  .frase-motivacional {
+    display: none !important;
+  }
+
+  .fecha-actual {
+    font-size: 13px !important;
+    margin: 0 !important;
+  }
+
+  /* Botones en UNA SOLA FILA HORIZONTAL */
+  .header > div:last-child {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Ocultar las sub-filas internas */
+  .header > div:last-child > div {
+    display: contents !important;
+  }
+
+  /* Todos los botones del header en línea */
   .header button,
+  #btn-tarea-universal,
   #btn-add-list,
   #btn-config,
   #btn-pomodoro,
@@ -2494,68 +2556,88 @@ input[type="file"] {
   #btn-resumen {
     width: 32px !important;
     height: 32px !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     padding: 4px !important;
     min-width: 32px !important;
     min-height: 32px !important;
-  }
-
-  /* Reducir gap entre botones del header */
-  .header > div:last-child > div {
-    gap: 3px !important;
-  }
-
-  .header > div:last-child {
-    gap: 3px !important;
+    flex-shrink: 0 !important;
   }
 }
 
 @media (max-width: 480px) {
-  /* Botones aún más pequeños en móviles pequeños */
-  #btn-tarea-universal {
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 13px !important;
-    padding: 3px !important;
+  .header h1 {
+    font-size: 16px !important;
   }
 
-  .header button,
-  #btn-add-list,
-  #btn-config,
-  #btn-pomodoro,
-  #btn-progreso,
-  #btn-resumen {
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 13px !important;
-    padding: 3px !important;
+  .fecha-actual {
+    font-size: 12px !important;
   }
 
-  /* Ocultar algunos botones menos importantes */
-  #btn-pomodoro {
-    display: none !important;
+  .header button {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+    padding: 3px !important;
   }
 }
 
 @media (max-width: 375px) {
-  /* Ultra compacto para móviles extra pequeños */
-  #btn-tarea-universal {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 12px !important;
-    padding: 2px !important;
+  .header h1 {
+    font-size: 15px !important;
+  }
+
+  .fecha-actual {
+    font-size: 11px !important;
   }
 
   .header button {
     width: 28px !important;
     height: 28px !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
     padding: 2px !important;
   }
+}
 
-  /* Ocultar más botones para ahorrar espacio */
-  #btn-progreso,
-  #btn-resumen {
-    display: none !important;
+/* ========== DESACTIVAR GESTOS Y MEJORAR SCROLL ========== */
+
+@media (max-width: 768px) {
+  /* Desactivar gestos que interfieren */
+  * {
+    touch-action: pan-y pinch-zoom !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Permitir selección solo en inputs y textareas */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  /* Mejorar scroll vertical */
+  body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+  }
+
+  /* Botones deben responder a touch */
+  button, a, [onclick] {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+    cursor: pointer;
+  }
+
+  /* Prevenir zoom accidental en inputs */
+  input, textarea, select {
+    font-size: 16px !important;
+    touch-action: manipulation !important;
+  }
+
+  /* Scroll suave en contenedores */
+  .tarea-item, .cita-item, section {
+    touch-action: pan-y !important;
   }
 }

@@ -89,12 +89,9 @@ function configurarDragAndDrop(div, tipo, index, listaId = null) {
     div.dataset.listaId = listaId;
   }
 
-  // Eventos touch para móvil
-  if (typeof isMobile === 'function' && isMobile()) {
-    div.addEventListener('touchstart', handleTouchStart, { passive: false });
-    div.addEventListener('touchmove', handleTouchMove, { passive: false });
-    div.addEventListener('touchend', handleTouchEnd, { passive: false });
-  } else {
+  // Eventos touch desactivados para evitar interferencia con scroll
+  // Solo drag en desktop
+  if (!(typeof isMobile === 'function' && isMobile())) {
     div.addEventListener('dragstart', handleDragStart);
     div.addEventListener('dragend', handleDragEnd);
   }
@@ -244,6 +241,23 @@ function renderizarCriticas() {
     };
     div.appendChild(btnSync);
 
+    // Botón de Reprogramar/Delegar
+    const btnReprogramar = document.createElement('button');
+    btnReprogramar.className = 'btn-reprogramar-tarea';
+    btnReprogramar.textContent = '🔄';
+    btnReprogramar.title = 'Reprogramar o Delegar';
+    btnReprogramar.onclick = (e) => {
+      e.stopPropagation();
+      // Abrir modal para reprogramar o delegar la tarea
+      if (typeof abrirModalReprogramar === 'function') {
+        abrirModalReprogramar(tarea, 'critica', realIndex);
+      } else {
+        // Fallback: editar la tarea
+        abrirEditorTarea(realIndex, 'critica');
+      }
+    };
+    div.appendChild(btnReprogramar);
+
     // Botón de borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
@@ -285,11 +299,8 @@ function renderizarCriticas() {
       div.dataset.index = realIndex;
 
       // Eventos touch para móvil
-      if (typeof isMobile === 'function' && isMobile()) {
-        div.addEventListener('touchstart', handleTouchStart, { passive: false });
-        div.addEventListener('touchmove', handleTouchMove, { passive: false });
-        div.addEventListener('touchend', handleTouchEnd, { passive: false });
-      } else {
+      // Eventos touch desactivados para evitar interferencia con scroll
+      if (!(typeof isMobile === 'function' && isMobile())) {
         div.addEventListener('dragstart', handleDragStart);
         div.addEventListener('dragend', handleDragEnd);
       }
@@ -469,6 +480,23 @@ function renderizarTareas() {
     };
     div.appendChild(btnSyncNormal);
 
+    // Botón de Reprogramar/Delegar
+    const btnReprogramarNormal = document.createElement('button');
+    btnReprogramarNormal.className = 'btn-reprogramar-tarea';
+    btnReprogramarNormal.textContent = '🔄';
+    btnReprogramarNormal.title = 'Reprogramar o Delegar';
+    btnReprogramarNormal.onclick = (e) => {
+      e.stopPropagation();
+      // Abrir modal para reprogramar o delegar la tarea
+      if (typeof abrirModalReprogramar === 'function') {
+        abrirModalReprogramar(tarea, 'normal', realIndex);
+      } else {
+        // Fallback: editar la tarea
+        abrirEditorTarea(realIndex, 'normal');
+      }
+    };
+    div.appendChild(btnReprogramarNormal);
+
     // Botón de borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
@@ -510,11 +538,8 @@ function renderizarTareas() {
       div.dataset.index = realIndex;
 
       // Eventos touch para móvil
-      if (typeof isMobile === 'function' && isMobile()) {
-        div.addEventListener('touchstart', handleTouchStart, { passive: false });
-        div.addEventListener('touchmove', handleTouchMove, { passive: false });
-        div.addEventListener('touchend', handleTouchEnd, { passive: false });
-      } else {
+      // Eventos touch desactivados para evitar interferencia con scroll
+      if (!(typeof isMobile === 'function' && isMobile())) {
         div.addEventListener('dragstart', handleDragStart);
         div.addEventListener('dragend', handleDragEnd);
       }
