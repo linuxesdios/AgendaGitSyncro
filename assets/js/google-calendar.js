@@ -442,7 +442,7 @@ async function deleteGoogleCalendarEvent(googleEventId) {
 
 // ========== GOOGLE TASKS API ==========
 
-async function createGoogleTask(task) {
+async function createGoogleTask(task, listId = '@default') {
   const accessToken = await getValidAccessToken();
   if (!accessToken) {
     console.error('No access token available');
@@ -450,7 +450,7 @@ async function createGoogleTask(task) {
   }
 
   try {
-    console.log('📝 Creando tarea en Google Tasks:', task);
+    console.log('📝 Creando tarea en Google Tasks:', task, 'en lista:', listId);
 
     // Convertir fecha a formato RFC 3339
     let dueDate = null;
@@ -471,7 +471,7 @@ async function createGoogleTask(task) {
 
     console.log('📤 Datos de tarea a enviar:', JSON.stringify(googleTask, null, 2));
 
-    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks`, {
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/${listId}/tasks`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -496,12 +496,12 @@ async function createGoogleTask(task) {
   }
 }
 
-async function updateGoogleTask(taskId, task) {
+async function updateGoogleTask(taskId, task, listId = '@default') {
   const accessToken = await getValidAccessToken();
   if (!accessToken) return null;
 
   try {
-    console.log('🔄 Actualizando tarea en Google Tasks:', task);
+    console.log('🔄 Actualizando tarea en Google Tasks:', task, 'en lista:', listId);
     console.log('🔄 Google Task ID:', taskId);
 
     // Convertir fecha a formato RFC 3339
@@ -522,7 +522,7 @@ async function updateGoogleTask(taskId, task) {
 
     console.log('🔄 Datos de tarea a enviar:', JSON.stringify(googleTask, null, 2));
 
-    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks/${taskId}`, {
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/${listId}/tasks/${taskId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -552,12 +552,13 @@ async function updateGoogleTask(taskId, task) {
   }
 }
 
-async function deleteGoogleTask(taskId) {
+async function deleteGoogleTask(taskId, listId = '@default') {
   const accessToken = await getValidAccessToken();
   if (!accessToken) return false;
 
   try {
-    const response = await fetch(`${GOOGLE_TASKS_API}/lists/@default/tasks/${taskId}`, {
+    console.log('🗑️ Eliminando tarea de Google Tasks:', taskId, 'de lista:', listId);
+    const response = await fetch(`${GOOGLE_TASKS_API}/lists/${listId}/tasks/${taskId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -602,6 +603,140 @@ async function getGoogleTasks() {
     return data.items || [];
   } catch (error) {
     console.error('❌ Error obteniendo tareas de Google Tasks:', error);
+    return [];
+  }
+}
+
+// ========== GESTIÓN DE LISTAS DE GOOGLE TASKS ==========
+
+async function createGoogleTaskList(nombre) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    console.error('❌ No hay access token para crear lista');
+    return null;
+  }
+
+  try {
+    console.log('📝 Creando lista en Google Tasks:', nombre);
+
+    const googleTaskList = {
+      title: nombre
+    };
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/users/@me/lists`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(googleTaskList)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error de Google Tasks API:', errorText);
+      throw new Error(`Bad Request: ${errorText}`);
+    }
+
+    const createdList = await response.json();
+    console.log('✅ Lista creada en Google Tasks:', createdList.title, '- ID:', createdList.id);
+    return createdList;
+  } catch (error) {
+    console.error('❌ Error creating Google Task List:', error);
+    return null;
+  }
+}
+
+async function updateGoogleTaskList(listId, nombre) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return null;
+
+  try {
+    console.log('🔄 Actualizando lista en Google Tasks:', listId, '->', nombre);
+
+    const googleTaskList = {
+      title: nombre
+    };
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/users/@me/lists/${listId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(googleTaskList)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Error en respuesta de Google Tasks:', errorData);
+      throw new Error(`Error updating list: ${response.status}`);
+    }
+
+    const updatedList = await response.json();
+    console.log('✅ Lista actualizada en Google Tasks:', updatedList.title);
+    return updatedList;
+
+  } catch (error) {
+    console.error('❌ Error updating Google Task List:', error);
+    return null;
+  }
+}
+
+async function deleteGoogleTaskList(listId) {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return false;
+
+  try {
+    console.log('🗑️ Eliminando lista de Google Tasks:', listId);
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/users/@me/lists/${listId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (response.ok) {
+      console.log('✅ Lista eliminada de Google Tasks');
+      return true;
+    } else {
+      console.error('❌ Error al eliminar lista:', response.status);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Error deleting Google Task List:', error);
+    return false;
+  }
+}
+
+async function getGoogleTaskLists() {
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    console.error('❌ No hay access token para obtener listas');
+    return [];
+  }
+
+  try {
+    console.log('📥 Obteniendo listas desde Google Tasks...');
+
+    const response = await fetch(`${GOOGLE_TASKS_API}/users/@me/lists`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Error en respuesta de Google Tasks:', errorData);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Obtenidas ${data.items?.length || 0} listas desde Google Tasks`);
+    return data.items || [];
+  } catch (error) {
+    console.error('❌ Error obteniendo listas de Google Tasks:', error);
     return [];
   }
 }
@@ -823,77 +958,87 @@ async function manualSyncGoogleCalendar() {
 
     // Sincronizar tareas (usando Google Tasks API)
     if (syncOptions.syncTasks && window.appState && window.appState.agenda) {
-      // Recolectar tareas de todas las fuentes
-      let todasLasTareas = [];
+      // Función auxiliar para sincronizar tareas a una lista específica
+      const sincronizarTareasALista = async (tareas, listId, nombreLista) => {
+        console.log(`📋 Procesando ${tareas.length} tareas de "${nombreLista}" -> Lista Google: ${listId}`);
 
-      // 1. Tareas del array principal
-      if (window.appState.agenda.tareas && window.appState.agenda.tareas.length > 0) {
-        todasLasTareas = todasLasTareas.concat(window.appState.agenda.tareas);
-        console.log(`📋 Encontradas ${window.appState.agenda.tareas.length} tareas en array principal`);
-      }
+        for (const tarea of tareas) {
+          try {
+            // Preparar tarea para Google Tasks
+            const tareaParaGoogle = {
+              id: tarea.id,
+              titulo: tarea.texto || tarea.titulo || tarea.nombre,
+              nombre: tarea.texto || tarea.titulo || tarea.nombre,
+              texto: tarea.texto || tarea.titulo || tarea.nombre,
+              fecha: tarea.fecha_fin || tarea.fecha,
+              descripcion: tarea.texto || tarea.titulo || tarea.nombre,
+              notas: tarea.texto || tarea.titulo || tarea.nombre,
+              estado: tarea.estado,
+              googleTaskId: tarea.googleTaskId
+            };
 
-      // 2. Tareas críticas
-      if (window.appState.agenda.tareas_criticas && window.appState.agenda.tareas_criticas.length > 0) {
-        todasLasTareas = todasLasTareas.concat(window.appState.agenda.tareas_criticas);
-        console.log(`🔥 Encontradas ${window.appState.agenda.tareas_criticas.length} tareas críticas`);
-      }
-
-      // 3. Tareas de listas personalizadas
-      if (window.configVisual && window.configVisual.listasPersonalizadas) {
-        window.configVisual.listasPersonalizadas.forEach(lista => {
-          if (lista.tareas && lista.tareas.length > 0) {
-            todasLasTareas = todasLasTareas.concat(lista.tareas);
-            console.log(`📝 Encontradas ${lista.tareas.length} tareas en lista "${lista.nombre}"`);
-          }
-        });
-      }
-
-      console.log(`📋 Total de tareas a procesar: ${todasLasTareas.length}`);
-
-      for (const tarea of todasLasTareas) {
-        try {
-          // Preparar tarea para Google Tasks
-          const tareaParaGoogle = {
-            id: tarea.id,
-            titulo: tarea.texto || tarea.titulo || tarea.nombre,
-            nombre: tarea.texto || tarea.titulo || tarea.nombre,
-            texto: tarea.texto || tarea.titulo || tarea.nombre,
-            fecha: tarea.fecha_fin || tarea.fecha,
-            descripcion: tarea.texto || tarea.titulo || tarea.nombre,
-            notas: tarea.texto || tarea.titulo || tarea.nombre,
-            estado: tarea.estado,
-            googleTaskId: tarea.googleTaskId
-          };
-
-          // Si ya tiene googleTaskId, actualizar; si no, crear
-          if (tarea.googleTaskId) {
-            const updatedTask = await updateGoogleTask(tarea.googleTaskId, tareaParaGoogle);
-            if (updatedTask) {
-              syncCount++;
-              console.log(`✅ Tarea actualizada: ${tareaParaGoogle.titulo}`);
-            } else {
-              errorCount++;
-            }
-          } else {
-            const createdTask = await createGoogleTask(tareaParaGoogle);
-            if (createdTask && createdTask.id) {
-              // Guardar ID de Google Task en la tarea local
-              tarea.googleTaskId = createdTask.id;
-
-              // Guardar cambios
-              if (typeof guardarJSON === 'function') {
-                guardarJSON(false);
+            // Si ya tiene googleTaskId, actualizar; si no, crear
+            if (tarea.googleTaskId) {
+              const updatedTask = await updateGoogleTask(tarea.googleTaskId, tareaParaGoogle, listId);
+              if (updatedTask) {
+                syncCount++;
+                console.log(`✅ Tarea actualizada: ${tareaParaGoogle.titulo}`);
+              } else {
+                errorCount++;
               }
-
-              syncCount++;
-              console.log(`✅ Tarea creada: ${tareaParaGoogle.titulo}`);
             } else {
-              errorCount++;
+              const createdTask = await createGoogleTask(tareaParaGoogle, listId);
+              if (createdTask && createdTask.id) {
+                // Guardar ID de Google Task en la tarea local
+                tarea.googleTaskId = createdTask.id;
+
+                // Guardar cambios
+                if (typeof guardarJSON === 'function') {
+                  guardarJSON(false);
+                }
+
+                syncCount++;
+                console.log(`✅ Tarea creada: ${tareaParaGoogle.titulo}`);
+              } else {
+                errorCount++;
+              }
             }
+          } catch (error) {
+            errorCount++;
+            console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
           }
-        } catch (error) {
-          errorCount++;
-          console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
+        }
+      };
+
+      // 1. Tareas del array principal -> @default
+      if (window.appState.agenda.tareas && window.appState.agenda.tareas.length > 0) {
+        await sincronizarTareasALista(
+          window.appState.agenda.tareas,
+          '@default',
+          'Array Principal'
+        );
+      }
+
+      // 2. Tareas críticas -> @default
+      if (window.appState.agenda.tareas_criticas && window.appState.agenda.tareas_criticas.length > 0) {
+        await sincronizarTareasALista(
+          window.appState.agenda.tareas_criticas,
+          '@default',
+          'Tareas Críticas'
+        );
+      }
+
+      // 3. Tareas de listas personalizadas -> su lista específica o @default
+      if (window.configVisual && window.configVisual.listasPersonalizadas) {
+        for (const lista of window.configVisual.listasPersonalizadas) {
+          if (lista.tareas && lista.tareas.length > 0) {
+            const listId = lista.googleTaskListId || '@default';
+            await sincronizarTareasALista(
+              lista.tareas,
+              listId,
+              lista.nombre
+            );
+          }
         }
       }
     }
@@ -962,34 +1107,73 @@ async function syncSingleEventToGoogle(eventoId, tipo) {
         }
       }
     } else if (tipo === 'tarea') {
-      evento = window.appState.agenda.tareas.find(t => t.id === eventoId);
-      if (evento) {
+      // Buscar la tarea en todas las fuentes posibles
+      let tareaEncontrada = null;
+      let listId = '@default';
+      let arrayTareas = null;
+      let indexTarea = -1;
+
+      // 1. Buscar en array principal
+      indexTarea = window.appState.agenda.tareas.findIndex(t => t.id === eventoId);
+      if (indexTarea !== -1) {
+        tareaEncontrada = window.appState.agenda.tareas[indexTarea];
+        arrayTareas = window.appState.agenda.tareas;
+        listId = '@default';
+      }
+
+      // 2. Buscar en tareas críticas
+      if (!tareaEncontrada && window.appState.agenda.tareas_criticas) {
+        indexTarea = window.appState.agenda.tareas_criticas.findIndex(t => t.id === eventoId);
+        if (indexTarea !== -1) {
+          tareaEncontrada = window.appState.agenda.tareas_criticas[indexTarea];
+          arrayTareas = window.appState.agenda.tareas_criticas;
+          listId = '@default';
+        }
+      }
+
+      // 3. Buscar en listas personalizadas
+      if (!tareaEncontrada && window.configVisual && window.configVisual.listasPersonalizadas) {
+        for (const lista of window.configVisual.listasPersonalizadas) {
+          if (lista.tareas) {
+            indexTarea = lista.tareas.findIndex(t => t.id === eventoId);
+            if (indexTarea !== -1) {
+              tareaEncontrada = lista.tareas[indexTarea];
+              arrayTareas = lista.tareas;
+              listId = lista.googleTaskListId || '@default';
+              break;
+            }
+          }
+        }
+      }
+
+      if (tareaEncontrada) {
         const tareaParaGoogle = {
-          id: evento.id,
-          titulo: evento.texto || evento.nombre,
-          nombre: evento.texto || evento.nombre,
-          texto: evento.texto || evento.nombre,
-          fecha: evento.fecha_fin,
-          descripcion: evento.texto || evento.nombre,
-          notas: evento.texto || evento.nombre,
-          estado: evento.estado
+          id: tareaEncontrada.id,
+          titulo: tareaEncontrada.texto || tareaEncontrada.nombre,
+          nombre: tareaEncontrada.texto || tareaEncontrada.nombre,
+          texto: tareaEncontrada.texto || tareaEncontrada.nombre,
+          fecha: tareaEncontrada.fecha_fin,
+          descripcion: tareaEncontrada.texto || tareaEncontrada.nombre,
+          notas: tareaEncontrada.texto || tareaEncontrada.nombre,
+          estado: tareaEncontrada.estado
         };
 
+        console.log(`🔄 Sincronizando tarea a lista Google: ${listId}`);
+
         // Si ya tiene googleTaskId, actualizar; si no, crear
-        if (evento.googleTaskId) {
-          const updatedTask = await updateGoogleTask(evento.googleTaskId, tareaParaGoogle);
+        if (tareaEncontrada.googleTaskId) {
+          const updatedTask = await updateGoogleTask(tareaEncontrada.googleTaskId, tareaParaGoogle, listId);
           if (updatedTask) {
             mostrarAlerta('✅ Tarea actualizada en Google Tasks', 'success');
           } else {
             mostrarAlerta('❌ Error al actualizar tarea', 'error');
           }
         } else {
-          const createdTask = await createGoogleTask(tareaParaGoogle);
+          const createdTask = await createGoogleTask(tareaParaGoogle, listId);
           if (createdTask && createdTask.id) {
             // Guardar ID de Google Task
-            const index = window.appState.agenda.tareas.findIndex(t => t.id === evento.id);
-            if (index !== -1) {
-              window.appState.agenda.tareas[index].googleTaskId = createdTask.id;
+            if (arrayTareas && indexTarea !== -1) {
+              arrayTareas[indexTarea].googleTaskId = createdTask.id;
               if (typeof guardarJSON === 'function') {
                 guardarJSON(false);
               }
@@ -999,6 +1183,8 @@ async function syncSingleEventToGoogle(eventoId, tipo) {
             mostrarAlerta('❌ Error al crear tarea', 'error');
           }
         }
+      } else {
+        evento = null; // Para que muestre el mensaje de "No se encontró el evento"
       }
     }
 

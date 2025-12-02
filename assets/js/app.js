@@ -2914,6 +2914,22 @@ async function agregarListaPersonalizada() {
     orden: listasPersonalizadas.length
   };
 
+  // Crear la lista en Google Tasks si está conectado
+  const syncOptions = JSON.parse(localStorage.getItem('googleCalendarSyncOptions') || '{"syncTasks":false}');
+  if (syncOptions.syncTasks && typeof createGoogleTaskList === 'function') {
+    try {
+      console.log('📝 Creando lista en Google Tasks:', nombre);
+      const googleList = await createGoogleTaskList(`${emoji} ${nombre}`);
+      if (googleList && googleList.id) {
+        nuevaLista.googleTaskListId = googleList.id;
+        console.log('✅ Lista creada en Google Tasks con ID:', googleList.id);
+      }
+    } catch (error) {
+      console.error('❌ Error al crear lista en Google Tasks:', error);
+      // Continuar aunque falle la creación en Google
+    }
+  }
+
   listasPersonalizadas.push(nuevaLista);
 
   // Actualizar configuración global
@@ -2932,7 +2948,7 @@ async function agregarListaPersonalizada() {
     const guardado = await supabasePush();
     if (guardado) {
 
-      mostrarAlerta(`✅ Lista "${nombre}" creada correctamente`, 'success');
+      mostrarAlerta(`✅ Lista "${nombre}" creada correctamente${nuevaLista.googleTaskListId ? ' y sincronizada con Google Tasks' : ''}`, 'success');
 
       // Re-renderizar configuración PRIMERO
       renderizarListasPersonalizadas();
