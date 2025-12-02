@@ -822,21 +822,45 @@ async function manualSyncGoogleCalendar() {
     }
 
     // Sincronizar tareas (usando Google Tasks API)
-    if (syncOptions.syncTasks && window.appState && window.appState.agenda && window.appState.agenda.tareas) {
-      const tareas = window.appState.agenda.tareas;
-      console.log(`📋 Procesando ${tareas.length} tareas con Google Tasks API...`);
+    if (syncOptions.syncTasks && window.appState && window.appState.agenda) {
+      // Recolectar tareas de todas las fuentes
+      let todasLasTareas = [];
 
-      for (const tarea of tareas) {
+      // 1. Tareas del array principal
+      if (window.appState.agenda.tareas && window.appState.agenda.tareas.length > 0) {
+        todasLasTareas = todasLasTareas.concat(window.appState.agenda.tareas);
+        console.log(`📋 Encontradas ${window.appState.agenda.tareas.length} tareas en array principal`);
+      }
+
+      // 2. Tareas críticas
+      if (window.appState.agenda.tareas_criticas && window.appState.agenda.tareas_criticas.length > 0) {
+        todasLasTareas = todasLasTareas.concat(window.appState.agenda.tareas_criticas);
+        console.log(`🔥 Encontradas ${window.appState.agenda.tareas_criticas.length} tareas críticas`);
+      }
+
+      // 3. Tareas de listas personalizadas
+      if (window.configVisual && window.configVisual.listasPersonalizadas) {
+        window.configVisual.listasPersonalizadas.forEach(lista => {
+          if (lista.tareas && lista.tareas.length > 0) {
+            todasLasTareas = todasLasTareas.concat(lista.tareas);
+            console.log(`📝 Encontradas ${lista.tareas.length} tareas en lista "${lista.nombre}"`);
+          }
+        });
+      }
+
+      console.log(`📋 Total de tareas a procesar: ${todasLasTareas.length}`);
+
+      for (const tarea of todasLasTareas) {
         try {
           // Preparar tarea para Google Tasks
           const tareaParaGoogle = {
             id: tarea.id,
-            titulo: tarea.texto || tarea.nombre,
-            nombre: tarea.texto || tarea.nombre,
-            texto: tarea.texto || tarea.nombre,
-            fecha: tarea.fecha_fin,
-            descripcion: tarea.texto || tarea.nombre,
-            notas: tarea.texto || tarea.nombre,
+            titulo: tarea.texto || tarea.titulo || tarea.nombre,
+            nombre: tarea.texto || tarea.titulo || tarea.nombre,
+            texto: tarea.texto || tarea.titulo || tarea.nombre,
+            fecha: tarea.fecha_fin || tarea.fecha,
+            descripcion: tarea.texto || tarea.titulo || tarea.nombre,
+            notas: tarea.texto || tarea.titulo || tarea.nombre,
             estado: tarea.estado,
             googleTaskId: tarea.googleTaskId
           };
@@ -846,7 +870,7 @@ async function manualSyncGoogleCalendar() {
             const updatedTask = await updateGoogleTask(tarea.googleTaskId, tareaParaGoogle);
             if (updatedTask) {
               syncCount++;
-              console.log(`✅ Tarea actualizada en Google Tasks: ${tarea.texto || tarea.nombre}`);
+              console.log(`✅ Tarea actualizada: ${tareaParaGoogle.titulo}`);
             } else {
               errorCount++;
             }
@@ -854,16 +878,15 @@ async function manualSyncGoogleCalendar() {
             const createdTask = await createGoogleTask(tareaParaGoogle);
             if (createdTask && createdTask.id) {
               // Guardar ID de Google Task en la tarea local
-              const index = tareas.findIndex(t => t.id === tarea.id);
-              if (index !== -1) {
-                tareas[index].googleTaskId = createdTask.id;
-                // Guardar cambios
-                if (typeof guardarJSON === 'function') {
-                  guardarJSON(false);
-                }
+              tarea.googleTaskId = createdTask.id;
+
+              // Guardar cambios
+              if (typeof guardarJSON === 'function') {
+                guardarJSON(false);
               }
+
               syncCount++;
-              console.log(`✅ Tarea creada en Google Tasks: ${tarea.texto || tarea.nombre}`);
+              console.log(`✅ Tarea creada: ${tareaParaGoogle.titulo}`);
             } else {
               errorCount++;
             }
