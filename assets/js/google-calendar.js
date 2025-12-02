@@ -418,20 +418,26 @@ async function syncEventToGoogleCalendar(event) {
         // Guardar ID de Google Calendar en el evento local
         event.googleCalendarId = googleEvent.id;
 
-        // Actualizar en localStorage
-        if (event.tipo === 'cita') {
-          const eventos = getEventos();
+        // Actualizar en appState
+        if (event.tipo === 'cita' && window.appState && window.appState.agenda && window.appState.agenda.citas) {
+          const eventos = window.appState.agenda.citas;
           const index = eventos.findIndex(e => e.id === event.id);
           if (index !== -1) {
-            eventos[index] = event;
-            setEventos(eventos);
+            eventos[index].googleCalendarId = googleEvent.id;
+            // Guardar cambios
+            if (typeof guardarJSON === 'function') {
+              guardarJSON(false);
+            }
           }
-        } else if (event.tipo === 'tarea') {
-          const tareas = getTareas();
+        } else if (event.tipo === 'tarea' && window.appState && window.appState.agenda && window.appState.agenda.tareas) {
+          const tareas = window.appState.agenda.tareas;
           const index = tareas.findIndex(t => t.id === event.id);
           if (index !== -1) {
-            tareas[index] = event;
-            setTareas(tareas);
+            tareas[index].googleCalendarId = googleEvent.id;
+            // Guardar cambios
+            if (typeof guardarJSON === 'function') {
+              guardarJSON(false);
+            }
           }
         }
 
@@ -458,8 +464,8 @@ async function manualSyncGoogleCalendar() {
 
   try {
     // Sincronizar eventos (citas)
-    if (syncOptions.syncEvents) {
-      const eventos = getEventos();
+    if (syncOptions.syncEvents && window.appState && window.appState.agenda && window.appState.agenda.citas) {
+      const eventos = window.appState.agenda.citas;
       for (const evento of eventos) {
         await syncEventToGoogleCalendar(evento);
         syncCount++;
@@ -467,8 +473,8 @@ async function manualSyncGoogleCalendar() {
     }
 
     // Sincronizar tareas
-    if (syncOptions.syncTasks) {
-      const tareas = getTareas();
+    if (syncOptions.syncTasks && window.appState && window.appState.agenda && window.appState.agenda.tareas) {
+      const tareas = window.appState.agenda.tareas;
       for (const tarea of tareas) {
         if (tarea.estado !== 'completada') {
           await syncEventToGoogleCalendar(tarea);

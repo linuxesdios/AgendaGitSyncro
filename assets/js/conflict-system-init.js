@@ -59,10 +59,9 @@
 
     // Cargar scripts de conflictos
     function cargarScripts() {
-        const scripts = [
-            'assets/js/device-manager.js',
-            'assets/js/conflict-resolution.js'
-        ];
+        // Los scripts de device-manager y conflict-resolution fueron eliminados
+        // Este sistema de conflictos está desactivado
+        const scripts = [];
 
         scripts.forEach((src, index) => {
             const script = document.createElement('script');
@@ -77,7 +76,7 @@
 
             // Insertar antes del primer script existente
             const firstScript = document.getElementsByTagName('script')[0];
-            firstScript.parentNode.insertBefore(script, firstScript);
+            firstScript.parentNode.insertBorder(script, firstScript);
         });
     }
 
