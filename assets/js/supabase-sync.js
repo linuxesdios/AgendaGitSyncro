@@ -1097,14 +1097,14 @@ async function asegurarConfiguracionCargada() {
 // Generar nombre de backup con fecha y hora
 function generarNombreBackup() {
   const ahora = new Date();
-  const a�o = ahora.getFullYear();
+  const ano = ahora.getFullYear();
   const mes = String(ahora.getMonth() + 1).padStart(2, '0');
   const dia = String(ahora.getDate()).padStart(2, '0');
   const hora = String(ahora.getHours()).padStart(2, '0');
   const minuto = String(ahora.getMinutes()).padStart(2, '0');
   const segundo = String(ahora.getSeconds()).padStart(2, '0');
 
-  return `backup_${a�o}-${mes}-${dia}_${hora}-${minuto}-${segundo}`;
+  return `backup_${ano}-${mes}-${dia}_${hora}-${minuto}-${segundo}`;
 }
 
 // Guardar backup completo en Supabase
@@ -1112,14 +1112,14 @@ async function guardarBackupAutomatico(esManual = false) {
   const connected = await initSupabase();
   if (!connected) {
     if (esManual) {
-      alert('? Error: No hay conexi�n con Supabase.\n\nConfigura Supabase primero.');
+      alert('? Error: No hay conexinn con Supabase.\n\nConfigura Supabase primero.');
     }
     console.warn('?? No se puede crear backup: Supabase no configurado');
     return false;
   }
 
   try {
-    const logPrefix = esManual ? '?? BACKUP MANUAL' : '?? BACKUP AUTOM�TICO';
+    const logPrefix = esManual ? '?? BACKUP MANUAL' : '?? BACKUP AUTOMnTICO';
 
     const collections = [
       'tareas', 'citas', 'config', 'notas', 'sentimientos',
@@ -1166,7 +1166,7 @@ async function guardarBackupAutomatico(esManual = false) {
           const shouldCreate = confirm(
             '?? Tabla de Backups No Existe\n\n' +
             'La tabla "agenda_backups" no existe en tu base de datos.\n\n' +
-            '�Quieres crear la tabla autom�ticamente?'
+            'nQuieres crear la tabla automnticamente?'
           );
 
           if (shouldCreate) {
@@ -1201,7 +1201,7 @@ async function guardarBackupAutomatico(esManual = false) {
 async function crearTablaBackups() {
   const connected = await initSupabase();
   if (!connected) {
-    alert('? Error: No hay conexi�n con Supabase.');
+    alert('? Error: No hay conexinn con Supabase.');
     return;
   }
 
@@ -1225,7 +1225,7 @@ async function crearTablaBackups() {
     return true;
 
   } catch (error) {
-    console.warn('?? No se pudo crear autom�ticamente:', error);
+    console.warn('?? No se pudo crear automnticamente:', error);
 
     // Mostrar instrucciones manuales
     const sqlQuery = `CREATE TABLE agenda_backups (
@@ -1234,11 +1234,11 @@ async function crearTablaBackups() {
   data jsonb
 );`;
 
-    // Crear un modal m�s visual con el SQL
+    // Crear un modal mns visual con el SQL
     const shouldCopy = confirm(
       '??? CREAR TABLA DE BACKUPS MANUALMENTE:\n\n' +
       '1. Ve a supabase.com ? tu proyecto\n' +
-      '2. Click "SQL Editor" (men� izquierdo)\n' +
+      '2. Click "SQL Editor" (menn izquierdo)\n' +
       '3. Click "New query"\n' +
       '4. Pega el c�digo SQL (se copiar� al portapapeles)\n' +
       '5. Click "Run"\n' +
