@@ -84,11 +84,11 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
             inyectarModalConflictos();
-            cargarScripts();
+            // cargarScripts(); // Desactivado - archivos eliminados
         });
     } else {
         inyectarModalConflictos();
-        cargarScripts();
+        // cargarScripts(); // Desactivado - archivos eliminados
     }
 
 })();
