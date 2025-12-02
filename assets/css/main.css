@@ -2278,23 +2278,21 @@ input[type="file"] {
 /* ========== FIX CRÍTICO PARA TAREAS EN MÓVIL - NUEVO LAYOUT ========== */
 
 @media (max-width: 768px) {
-  /* LAYOUT DE 4 FILAS PARA MÓVIL */
+  /* LAYOUT COMPACTO PARA MÓVIL */
   .tarea-item {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 4px !important;
+    display: block !important;
     padding: 6px 8px !important;
     min-height: auto !important;
-    align-items: flex-start !important;
   }
 
-  /* FILA 1: Icono pequeño + Texto en la misma línea */
+  /* LÍNEA 1: Icono + Texto + Etiquetas */
   .tarea-simbolo {
     display: inline !important;
     font-size: 14px !important;
     min-width: auto !important;
     margin-right: 6px !important;
-    vertical-align: middle !important;
+    vertical-align: top !important;
+    float: left !important;
   }
 
   .tarea-texto {
@@ -2304,9 +2302,10 @@ input[type="file"] {
     word-break: break-word;
     overflow-wrap: anywhere;
     font-weight: 500;
+    margin-bottom: 4px !important;
   }
 
-  /* FILA 2: Etiquetas, fecha, persona - todo en una línea */
+  /* Etiquetas, fecha, persona */
   .tarea-texto span {
     font-size: 10px !important;
     padding: 2px 5px !important;
@@ -2316,34 +2315,35 @@ input[type="file"] {
     vertical-align: middle !important;
   }
 
-  /* FILA 3: Botones compactos EN LÍNEA HORIZONTAL */
-  .tarea-item button,
-  .btn-subtarea,
-  .btn-pomodoro-tarea,
-  .btn-borrar-tarea,
-  .btn-reprogramar-tarea {
+  /* LÍNEA 2: Botones EN HORIZONTAL */
+  .tarea-item button {
+    display: inline-block !important;
     min-width: 28px !important;
     min-height: 28px !important;
     width: 28px !important;
     height: 28px !important;
     padding: 2px !important;
     font-size: 11px !important;
-    flex: 0 0 auto !important;
     border-radius: 4px !important;
-    margin: 2px 3px 2px 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    vertical-align: middle !important;
+    margin: 4px 3px 2px 0 !important;
+    vertical-align: top !important;
+    float: none !important;
   }
 
-  /* Contenedor de botones forzar horizontal */
-  .tarea-item > div:not(.tarea-texto) {
-    display: inline-flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    gap: 3px !important;
-    align-items: center !important;
+  .btn-subtarea,
+  .btn-pomodoro-tarea,
+  .btn-borrar-tarea,
+  .btn-reprogramar-tarea {
+    display: inline-block !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    padding: 2px !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+    margin: 4px 3px 2px 0 !important;
+    vertical-align: top !important;
   }
 
   /* Botón de Reprogramar/Delegar */
@@ -2353,11 +2353,12 @@ input[type="file"] {
     border: 1px solid #7b1fa2 !important;
   }
 
-  /* FILA 4: Alertas urgentes en línea separada */
+  /* LÍNEA 3: Alertas urgentes */
   .alerta-urgente {
     font-size: 11px !important;
-    margin: 2px 0 !important;
+    margin: 4px 0 2px 0 !important;
     display: block !important;
+    clear: both !important;
     width: 100% !important;
     padding: 2px 4px !important;
     background: rgba(255, 0, 0, 0.05) !important;
@@ -2367,12 +2368,14 @@ input[type="file"] {
   /* Reducir margen entre tareas */
   .tarea-item {
     margin-bottom: 5px !important;
+    clear: both !important;
   }
 
-  /* Asegurar que símbolos y texto estén en línea */
-  .tarea-item > .tarea-simbolo,
-  .tarea-item > .tarea-texto {
-    display: inline !important;
+  /* Clearfix para los floats */
+  .tarea-item::after {
+    content: "" !important;
+    display: table !important;
+    clear: both !important;
   }
 }
 
