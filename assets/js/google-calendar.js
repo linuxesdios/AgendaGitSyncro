@@ -209,6 +209,52 @@ async function fetchGoogleUserInfo() {
   }
 }
 
+// ========== FUNCIÓN AUXILIAR PARA FECHAS ==========
+
+/**
+ * Convierte una fecha de cualquier formato a YYYY-MM-DD
+ * @param {Array|String} fecha - Fecha como [2025, 12, 2] o "2025-12-02" o "2025-12-02T20:00:00"
+ * @returns {String|null} - Fecha en formato YYYY-MM-DD o null si es inválida
+ */
+function convertirFechaAString(fecha) {
+  if (!fecha) {
+    console.warn('⚠️ Fecha vacía o undefined');
+    return null;
+  }
+
+  // Si es un array [año, mes, día]
+  if (Array.isArray(fecha)) {
+    if (fecha.length !== 3) {
+      console.error('❌ Array de fecha inválido:', fecha);
+      return null;
+    }
+    const [year, month, day] = fecha;
+    // Asegurar formato con ceros a la izquierda
+    const fechaStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    console.log('🔄 Convertido array a string:', fecha, '→', fechaStr);
+    return fechaStr;
+  }
+
+  // Si es un string
+  if (typeof fecha === 'string') {
+    // Si tiene 'T', extraer solo la parte de la fecha
+    if (fecha.includes('T')) {
+      const fechaSola = fecha.split('T')[0];
+      console.log('🔄 Extraída fecha de datetime:', fecha, '→', fechaSola);
+      return fechaSola;
+    }
+    // Ya está en formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      return fecha;
+    }
+    console.error('❌ Formato de string inválido:', fecha);
+    return null;
+  }
+
+  console.error('❌ Tipo de fecha no reconocido:', typeof fecha, fecha);
+  return null;
+}
+
 async function createGoogleCalendarEvent(event) {
   const accessToken = await getValidAccessToken();
   if (!accessToken) {
@@ -227,22 +273,24 @@ async function createGoogleCalendarEvent(event) {
     // Determinar si es tarea sin hora o evento con hora
     if (event.tipo === 'tarea' || !event.inicio) {
       // Tarea sin hora específica - usar fecha completa (all-day event)
-      let fecha;
-      if (event.fecha && typeof event.fecha === 'string') {
-        fecha = event.fecha.includes('T') ? event.fecha.split('T')[0] : event.fecha;
-      } else if (event.fecha_fin) {
-        fecha = event.fecha_fin.includes('T') ? event.fecha_fin.split('T')[0] : event.fecha_fin;
-      } else {
+      console.log('📋 Procesando tarea. Fecha original:', event.fecha, 'Tipo:', typeof event.fecha);
+
+      let fechaOriginal = event.fecha || event.fecha_fin;
+      if (!fechaOriginal) {
         // Si no hay fecha, usar hoy
-        fecha = new Date().toISOString().split('T')[0];
+        fechaOriginal = new Date().toISOString().split('T')[0];
+        console.log('⚠️ Sin fecha, usando hoy:', fechaOriginal);
       }
 
-      // Validar formato de fecha (YYYY-MM-DD)
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        console.error('Formato de fecha inválido:', fecha);
-        throw new Error(`Formato de fecha inválido: ${fecha}`);
+      // Convertir usando la función auxiliar
+      const fecha = convertirFechaAString(fechaOriginal);
+
+      if (!fecha) {
+        console.error('❌ No se pudo convertir la fecha:', fechaOriginal);
+        throw new Error(`No se pudo convertir la fecha: ${JSON.stringify(fechaOriginal)}`);
       }
 
+      console.log('✅ Fecha convertida para Google Calendar:', fecha);
       googleEvent.start = { date: fecha };
       googleEvent.end = { date: fecha };
     } else {
@@ -305,20 +353,24 @@ async function updateGoogleCalendarEvent(googleEventId, event) {
     // Detectar si es una tarea (all-day) o evento (con hora específica)
     if (event.tipo === 'tarea' || !event.inicio) {
       // Tarea sin hora específica - usar fecha completa (all-day event)
-      let fecha;
-      if (event.fecha && typeof event.fecha === 'string') {
-        fecha = event.fecha.includes('T') ? event.fecha.split('T')[0] : event.fecha;
-      } else if (event.fecha_fin) {
-        fecha = event.fecha_fin.includes('T') ? event.fecha_fin.split('T')[0] : event.fecha_fin;
+      console.log('📋 Procesando tarea. Fecha original:', event.fecha, 'Tipo:', typeof event.fecha);
+
+      let fechaOriginal = event.fecha || event.fecha_fin;
+      if (!fechaOriginal) {
+        // Si no hay fecha, usar hoy
+        fechaOriginal = new Date().toISOString().split('T')[0];
+        console.log('⚠️ Sin fecha, usando hoy:', fechaOriginal);
       }
 
-      // Validar formato de fecha (YYYY-MM-DD)
-      if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-        console.error('❌ Formato de fecha inválido para tarea:', fecha);
-        throw new Error(`Formato de fecha inválido: ${fecha}`);
+      // Convertir usando la función auxiliar
+      const fecha = convertirFechaAString(fechaOriginal);
+
+      if (!fecha) {
+        console.error('❌ No se pudo convertir la fecha:', fechaOriginal);
+        throw new Error(`No se pudo convertir la fecha: ${JSON.stringify(fechaOriginal)}`);
       }
 
-      console.log('📅 Tarea (all-day) con fecha:', fecha);
+      console.log('✅ Fecha convertida para Google Calendar:', fecha);
       googleEvent.start = { date: fecha };
       googleEvent.end = { date: fecha };
 
@@ -413,19 +465,30 @@ async function listGoogleCalendars() {
 
 async function getGoogleCalendarEvents(calendarId = 'primary', timeMin = null, timeMax = null) {
   const accessToken = await getValidAccessToken();
-  if (!accessToken) return [];
+  if (!accessToken) {
+    console.error('❌ No hay access token para obtener eventos');
+    return [];
+  }
 
   try {
     const now = new Date();
     const defaultTimeMin = timeMin || new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
     const defaultTimeMax = timeMax || new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
 
-    const url = new URL(`${GOOGLE_CALENDAR_API}/calendars/${calendarId}/events`);
+    console.log('📥 Obteniendo eventos de Google Calendar:', {
+      calendarId,
+      timeMin: defaultTimeMin,
+      timeMax: defaultTimeMax
+    });
+
+    const url = new URL(`${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events`);
     url.searchParams.append('timeMin', defaultTimeMin);
     url.searchParams.append('timeMax', defaultTimeMax);
     url.searchParams.append('singleEvents', 'true');
     url.searchParams.append('orderBy', 'startTime');
     url.searchParams.append('maxResults', '250');
+
+    console.log('📤 URL de petición:', url.toString());
 
     const response = await fetch(url, {
       headers: {
@@ -434,13 +497,22 @@ async function getGoogleCalendarEvents(calendarId = 'primary', timeMin = null, t
     });
 
     if (!response.ok) {
-      throw new Error('Error al obtener eventos');
+      const errorData = await response.text();
+      console.error('❌ Error en respuesta de Google Calendar:', {
+        status: response.status,
+        statusText: response.statusText,
+        calendarId,
+        body: errorData
+      });
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`✅ Obtenidos ${data.items?.length || 0} eventos de ${calendarId}`);
     return data.items || [];
   } catch (error) {
-    console.error('Error obteniendo eventos de Google Calendar:', error);
+    console.error('❌ Error obteniendo eventos de Google Calendar:', error);
+    console.error('❌ Calendar ID:', calendarId);
     return [];
   }
 }
@@ -525,29 +597,68 @@ async function manualSyncGoogleCalendar() {
   mostrarAlerta('🔄 Sincronizando con Google Calendar...', 'info');
 
   let syncCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
 
   try {
     // Sincronizar eventos (citas)
     if (syncOptions.syncEvents && window.appState && window.appState.agenda && window.appState.agenda.citas) {
       const eventos = window.appState.agenda.citas;
+      console.log(`📋 Procesando ${eventos.length} citas...`);
+
       for (const evento of eventos) {
-        await syncEventToGoogleCalendar(evento);
-        syncCount++;
+        // Solo sincronizar si NO tiene googleCalendarId (evitar duplicados)
+        if (!evento.googleCalendarId) {
+          try {
+            await syncEventToGoogleCalendar(evento);
+            syncCount++;
+            console.log(`✅ Cita sincronizada: ${evento.titulo || evento.nombre}`);
+          } catch (error) {
+            errorCount++;
+            console.error(`❌ Error sincronizando cita ${evento.id}:`, error);
+          }
+        } else {
+          skippedCount++;
+          console.log(`⏭️ Cita ya sincronizada (ID: ${evento.googleCalendarId}): ${evento.titulo || evento.nombre}`);
+        }
       }
     }
 
     // Sincronizar tareas
     if (syncOptions.syncTasks && window.appState && window.appState.agenda && window.appState.agenda.tareas) {
       const tareas = window.appState.agenda.tareas;
+      console.log(`📋 Procesando ${tareas.length} tareas...`);
+
       for (const tarea of tareas) {
         if (tarea.estado !== 'completada') {
-          await syncEventToGoogleCalendar(tarea);
-          syncCount++;
+          // Solo sincronizar si NO tiene googleCalendarId (evitar duplicados)
+          if (!tarea.googleCalendarId) {
+            try {
+              await syncEventToGoogleCalendar(tarea);
+              syncCount++;
+              console.log(`✅ Tarea sincronizada: ${tarea.nombre}`);
+            } catch (error) {
+              errorCount++;
+              console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
+            }
+          } else {
+            skippedCount++;
+            console.log(`⏭️ Tarea ya sincronizada (ID: ${tarea.googleCalendarId}): ${tarea.nombre}`);
+          }
         }
       }
     }
 
-    mostrarAlerta(`✅ ${syncCount} eventos sincronizados con Google Calendar`, 'success');
+    console.log(`📊 Resumen: ${syncCount} sincronizados, ${skippedCount} omitidos (ya sincronizados), ${errorCount} errores`);
+
+    if (syncCount > 0) {
+      mostrarAlerta(`✅ ${syncCount} eventos nuevos sincronizados (${skippedCount} ya estaban sincronizados)`, 'success');
+    } else if (skippedCount > 0) {
+      mostrarAlerta(`ℹ️ Todos los eventos (${skippedCount}) ya estaban sincronizados`, 'info');
+    } else {
+      mostrarAlerta('ℹ️ No hay eventos para sincronizar', 'info');
+    }
+
   } catch (error) {
     console.error('Error en sincronización manual:', error);
     mostrarAlerta('❌ Error al sincronizar con Google Calendar', 'error');
@@ -641,23 +752,35 @@ async function pullEventsFromGoogleCalendar() {
 
   const selectedCalendars = JSON.parse(localStorage.getItem('googleSelectedCalendars') || '["primary"]');
   let allEvents = [];
+  let successCount = 0;
+  let errorCount = 0;
 
-  try {
-    for (const calendarId of selectedCalendars) {
+  console.log(`📥 Iniciando pull de ${selectedCalendars.length} calendario(s)...`);
+
+  for (const calendarId of selectedCalendars) {
+    try {
       const events = await getGoogleCalendarEvents(calendarId);
-      allEvents = allEvents.concat(events);
+      if (events && events.length > 0) {
+        allEvents = allEvents.concat(events);
+        successCount++;
+        console.log(`✅ Calendario ${calendarId}: ${events.length} eventos`);
+      } else {
+        console.log(`ℹ️ Calendario ${calendarId}: sin eventos`);
+        successCount++;
+      }
+    } catch (error) {
+      errorCount++;
+      console.error(`❌ Error obteniendo eventos de ${calendarId}:`, error);
+      // Continuar con el siguiente calendario
     }
-
-    console.log(`📥 Obtenidos ${allEvents.length} eventos desde Google Calendar`);
-
-    // Guardar eventos en cache para mostrarlos en el calendario
-    localStorage.setItem('googleCalendarEvents', JSON.stringify(allEvents));
-
-    return allEvents;
-  } catch (error) {
-    console.error('Error en pull desde Google Calendar:', error);
-    return [];
   }
+
+  console.log(`📥 Pull completado: ${successCount} exitosos, ${errorCount} errores, ${allEvents.length} eventos totales`);
+
+  // Guardar eventos en cache para mostrarlos en el calendario
+  localStorage.setItem('googleCalendarEvents', JSON.stringify(allEvents));
+
+  return allEvents;
 }
 
 async function loadAndDisplayCalendars() {
