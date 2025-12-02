@@ -2278,46 +2278,54 @@ input[type="file"] {
 /* ========== FIX CRÍTICO PARA TAREAS EN MÓVIL - NUEVO LAYOUT ========== */
 
 @media (max-width: 768px) {
-  /* LAYOUT FLUIDO Y COMPACTO - Todo fluye inline naturalmente */
+  /* ESTRUCTURA 3 FILAS: Icono+Nombre | Persona+Fecha | Botones */
   .tarea-item {
     display: block !important;
     padding: 6px 8px !important;
     min-height: auto !important;
-    line-height: 1.6 !important;
+    line-height: 1.4 !important;
   }
 
-  /* Icono - inline sin float */
+  /* FILA 1: Icono + Nombre (juntos en línea) */
   .tarea-simbolo {
     display: inline-block !important;
     font-size: 14px !important;
-    min-width: auto !important;
     margin-right: 4px !important;
-    vertical-align: middle !important;
+    vertical-align: top !important;
   }
 
-  /* Texto de la tarea - inline */
   .tarea-texto {
-    display: inline !important;
+    display: block !important;
     font-size: 13px !important;
-    line-height: 1.6 !important;
-    word-break: break-word;
-    font-weight: 500;
+    font-weight: 500 !important;
+    margin-bottom: 3px !important;
   }
 
-  /* Etiquetas, fecha, persona - todo inline */
+  /* Ocultar el <strong> y mostrarlo inline con el icono */
+  .tarea-texto strong {
+    display: inline !important;
+    font-weight: 500 !important;
+  }
+
+  /* FILA 2: Badges de persona y fecha (forzar nueva línea) */
   .tarea-texto span,
-  .tarea-item .badge,
-  .tarea-item .persona-badge,
-  .tarea-item .fecha-badge {
+  .tarea-texto small {
+    display: inline-block !important;
     font-size: 10px !important;
     padding: 2px 5px !important;
-    margin: 0 2px !important;
-    display: inline-block !important;
+    margin: 0 3px 3px 0 !important;
     border-radius: 3px !important;
     vertical-align: middle !important;
   }
 
-  /* Botones - inline horizontal, flujo natural */
+  /* Forzar que badges estén en segunda línea */
+  .tarea-texto span:first-of-type,
+  .tarea-texto small:first-of-type {
+    display: block !important;
+    margin-top: 3px !important;
+  }
+
+  /* FILA 3: Botones (nueva línea horizontal) */
   .tarea-item button {
     display: inline-block !important;
     width: 28px !important;
@@ -2325,9 +2333,14 @@ input[type="file"] {
     padding: 2px !important;
     font-size: 11px !important;
     border-radius: 4px !important;
-    margin: 2px 2px !important;
+    margin: 3px 3px 0 0 !important;
     vertical-align: middle !important;
     border: 1px solid rgba(0,0,0,0.1) !important;
+  }
+
+  /* Primer botón con margin-top para separar de fila 2 */
+  .tarea-item button:first-of-type {
+    margin-top: 5px !important;
   }
 
   .btn-subtarea,
@@ -2340,7 +2353,7 @@ input[type="file"] {
     height: 28px !important;
     padding: 2px !important;
     font-size: 11px !important;
-    margin: 2px 2px !important;
+    margin: 3px 3px 0 0 !important;
     vertical-align: middle !important;
   }
 
@@ -2351,21 +2364,21 @@ input[type="file"] {
     border: 1px solid #7b1fa2 !important;
   }
 
-  /* Alertas urgentes */
+  /* Alertas urgentes - fila extra */
   .alerta-urgente {
     font-size: 11px !important;
-    margin: 2px 0 !important;
-    display: inline-block !important;
-    padding: 2px 6px !important;
+    margin-top: 4px !important;
+    display: block !important;
+    padding: 3px 6px !important;
     background: rgba(255, 0, 0, 0.1) !important;
     border-radius: 3px !important;
     color: #d32f2f !important;
-    vertical-align: middle !important;
+    width: fit-content !important;
   }
 
-  /* Reducir margen entre tareas */
+  /* Margen entre tareas */
   .tarea-item {
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
   }
 }
 
