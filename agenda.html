@@ -515,6 +515,8 @@
         style="position:sticky;top:0;background:white;z-index:10;display:flex;flex-wrap:wrap;gap:5px;padding:8px 0 8px 0;border-bottom:1px solid #eee;margin-bottom:20px;justify-content:center;">
         <button class="config-tab active" onclick="switchTab('supabase')"
           style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">☁️ Supabase</button>
+        <button class="config-tab" onclick="switchTab('google-calendar')"
+          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">📅 Google</button>
         <button class="config-tab" onclick="switchTab('visual')"
           style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🎨 Visual</button>
         <button class="config-tab" onclick="switchTab('funcionales')"
@@ -591,7 +593,109 @@
         </div>
       </div>
 
+      <!-- Contenido Google Calendar -->
+      <div id="tab-google-calendar" class="tab-content">
+        <div class="google-calendar-config-panel">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 48px;">📅</span>
+            <h3 style="color: #4285F4;">Sincronización con Google Calendar</h3>
+            <p>Sincroniza tus eventos y tareas automáticamente</p>
+          </div>
 
+          <!-- Panel de Estado -->
+          <div id="google-calendar-status-panel" style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 20px; display: none;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 0 4px #dbeafe;"></div>
+              <div style="flex: 1;">
+                <strong style="color: #1e40af;">✅ Conectado a Google Calendar</strong>
+                <div style="font-size: 12px; color: #1e3a8a;">
+                  Cuenta: <span id="google-calendar-email">-</span>
+                </div>
+              </div>
+              <button onclick="disconnectGoogleCalendar()" class="btn-secundario" style="font-size: 11px; padding: 5px 10px;">
+                🔓 Desconectar
+              </button>
+            </div>
+          </div>
+
+          <!-- Instrucciones de configuración -->
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border: 1px solid #fbbf24; margin-bottom: 20px;">
+            <strong style="color: #92400e;">📋 Configuración necesaria:</strong>
+            <ol style="margin: 10px 0 0 20px; font-size: 13px; color: #78350f;">
+              <li>Ve a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #2563eb;">Google Cloud Console</a></li>
+              <li>Crea credenciales OAuth 2.0</li>
+              <li>Añade origen: <code style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io</code></li>
+              <li>Añade redirect URI: <code style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io/AgendaGitSyncro/auth/callback.html</code></li>
+              <li>Copia Client ID y Client Secret aquí abajo</li>
+            </ol>
+          </div>
+
+          <!-- Formulario de configuración -->
+          <div class="form-group">
+            <label>Client ID:</label>
+            <input type="text" id="google-client-id" class="form-control"
+                   placeholder="123456789-abc.apps.googleusercontent.com">
+            <small style="color: #666;">Lo obtienes en Google Cloud Console</small>
+          </div>
+
+          <div class="form-group">
+            <label>Client Secret:</label>
+            <div style="position: relative;">
+              <input type="password" id="google-client-secret" class="form-control"
+                     placeholder="GOCSPX-..." style="padding-right: 50px;">
+              <button type="button" onclick="toggleGoogleSecretVisibility()"
+                      style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+                             background: none; border: none; font-size: 16px; cursor: pointer;
+                             color: #666; padding: 0; width: 30px; height: 30px;
+                             display: flex; align-items: center; justify-content: center;">
+                👁️
+              </button>
+            </div>
+            <small style="color: #666;">Guárdalo de forma segura</small>
+          </div>
+
+          <!-- Botones de acción -->
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="saveGoogleCalendarConfig()" class="btn-primario"
+                    style="background: #4285F4; flex: 1;">
+              💾 Guardar Configuración
+            </button>
+            <button onclick="connectGoogleCalendar()" class="btn-primario"
+                    style="background: #34A853; flex: 1;" id="btn-connect-google">
+              🔗 Conectar con Google
+            </button>
+          </div>
+
+          <!-- Opciones de sincronización -->
+          <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            <h4>⚙️ Opciones de Sincronización</h4>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px;">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="google-sync-events" checked>
+                <span>Sincronizar eventos (citas) automáticamente</span>
+              </label>
+
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                <input type="checkbox" id="google-sync-tasks">
+                <span>Sincronizar tareas como eventos de Google Calendar</span>
+              </label>
+
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                <input type="checkbox" id="google-auto-sync" checked>
+                <span>Sincronización automática al guardar</span>
+              </label>
+            </div>
+
+            <button onclick="manualSyncGoogleCalendar()" class="btn-secundario"
+                    style="width: 100%; margin-top: 15px; font-size: 13px;">
+              🔄 Sincronizar Ahora
+            </button>
+          </div>
+
+          <div id="google-calendar-status" style="margin-top:15px;padding:10px;border-radius:6px;display:none;"></div>
+        </div>
+      </div>
 
       <!-- Contenido Visual -->
       <div id="tab-visual" class="tab-content">
@@ -1738,10 +1842,10 @@
   <script src="assets/js/calendario.js"></script>
   <script src="assets/js/sincronizacion-simple.js"></script>
   <script src="assets/js/supabase-sync.js"></script>
+  <script src="assets/js/google-calendar.js"></script>
   <script src="assets/js/historial-viewer.js"></script>
   <script src="assets/js/rendimiento.js"></script>
   <script src="assets/js/compatibility.js"></script>
-  <script src="assets/js/restore-backup.js"></script> <!-- TEMPORAL: Para restaurar backup -->
 
   <!-- Service Worker Registration -->
   <script>

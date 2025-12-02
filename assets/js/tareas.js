@@ -862,6 +862,25 @@ async function agregarTarea() {
   renderizar();
   await guardarJSON(true);
 
+  // Sincronizar con Google Calendar si está conectado
+  if (typeof syncEventToGoogleCalendar === 'function' && appState.ui.tareaEditando === null) {
+    const tareaRecienCreada = appState.agenda.tareas[appState.agenda.tareas.length - 1];
+    if (tareaRecienCreada) {
+      const eventoParaGoogle = {
+        id: tareaRecienCreada.id,
+        tipo: 'tarea',
+        titulo: texto,
+        nombre: texto,
+        fecha: fecha || new Date().toISOString().split('T')[0],
+        descripcion: texto,
+        notas: texto,
+        etiqueta: etiqueta,
+        googleCalendarId: tareaRecienCreada.googleCalendarId
+      };
+      syncEventToGoogleCalendar(eventoParaGoogle);
+    }
+  }
+
   // Cancelar auto-save programado después de guardado manual exitoso
   if (appState.sync.autoSaveTimer) {
     clearTimeout(appState.sync.autoSaveTimer);

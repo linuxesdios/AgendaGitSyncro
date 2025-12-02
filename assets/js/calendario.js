@@ -690,6 +690,22 @@ mostrarAlerta('📅 Cita anadida', 'success');
 // Programar notificaciones para esta nueva cita
 programarNotificacionesCita(nuevaCita);
 
+// Sincronizar con Google Calendar si está conectado
+if (typeof syncEventToGoogleCalendar === 'function') {
+  const eventoParaGoogle = {
+    id: nuevaCita.id,
+    tipo: 'cita',
+    titulo: descripcion,
+    fecha: fecha,
+    inicio: `${fecha}T${hora.padStart(2, '0')}:${minutos.padStart(2, '0')}:00`,
+    fin: `${fecha}T${(parseInt(hora) + 1).toString().padStart(2, '0')}:${minutos.padStart(2, '0')}:00`,
+    descripcion: descripcion,
+    etiqueta: etiqueta,
+    googleCalendarId: nuevaCita.googleCalendarId
+  };
+  syncEventToGoogleCalendar(eventoParaGoogle);
+}
+
 mostrarAlerta('📅 Cita anadida correctamente', 'success');
 }
 
@@ -1407,6 +1423,23 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
     // Guardar cambios
     if (typeof guardarJSON === 'function') {
       guardarJSON(true);
+    }
+
+    // Sincronizar con Google Calendar si está conectado
+    if (typeof syncEventToGoogleCalendar === 'function') {
+      const eventoParaGoogle = {
+        id: appState.agenda.citas[index].id,
+        tipo: 'cita',
+        titulo: nuevaDesc,
+        fecha: nuevaFecha,
+        inicio: `${nuevaFecha}T${nuevaHora.padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00`,
+        fin: `${nuevaFecha}T${(parseInt(nuevaHora) + 1).toString().padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00`,
+        descripcion: nuevaDesc,
+        lugar: nuevoLugar,
+        etiqueta: appState.agenda.citas[index].etiqueta,
+        googleCalendarId: appState.agenda.citas[index].googleCalendarId
+      };
+      syncEventToGoogleCalendar(eventoParaGoogle);
     }
 
     renderCalendar();

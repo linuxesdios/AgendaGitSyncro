@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conectando con Google Calendar...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      background: rgba(255, 0, 0, 0.2);
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+    .success {
+      background: rgba(0, 255, 0, 0.2);
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Conectando con Google Calendar</h1>
+    <div class="spinner"></div>
+    <p id="status">Procesando autorización...</p>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const messageEl = document.getElementById('message');
+
+    async function handleCallback() {
+      try {
+        // Obtener código de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        if (error) {
+          throw new Error(`Error de autorización: ${error}`);
+        }
+
+        if (!code) {
+          throw new Error('No se recibió el código de autorización');
+        }
+
+        statusEl.textContent = 'Código recibido, intercambiando por tokens...';
+
+        // Obtener configuración de Google Calendar guardada
+        const googleConfig = JSON.parse(localStorage.getItem('googleCalendarConfig') || '{}');
+
+        if (!googleConfig.clientId || !googleConfig.clientSecret) {
+          throw new Error('Configuración de Google Calendar no encontrada. Por favor, configura Client ID y Client Secret.');
+        }
+
+        // Intercambiar código por tokens
+        const redirectUri = window.location.origin + window.location.pathname;
+
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            code: code,
+            client_id: googleConfig.clientId,
+            client_secret: googleConfig.clientSecret,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code'
+          })
+        });
+
+        if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.json();
+          throw new Error(`Error al obtener tokens: ${errorData.error_description || errorData.error}`);
+        }
+
+        const tokens = await tokenResponse.json();
+
+        // Guardar tokens en localStorage
+        const googleAuth = {
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_at: Date.now() + (tokens.expires_in * 1000),
+          token_type: tokens.token_type
+        };
+
+        localStorage.setItem('googleCalendarAuth', JSON.stringify(googleAuth));
+
+        statusEl.textContent = '¡Conexión exitosa!';
+        messageEl.innerHTML = '<div class="success">✅ Google Calendar conectado correctamente<br>Redirigiendo...</div>';
+
+        // Redirigir de vuelta a la aplicación
+        setTimeout(() => {
+          window.location.href = '../agenda.html';
+        }, 2000);
+
+      } catch (error) {
+        console.error('Error en callback:', error);
+        statusEl.textContent = 'Error al conectar';
+        messageEl.innerHTML = `<div class="error">❌ ${error.message}<br><br><a href="../agenda.html" style="color: white;">Volver a la aplicación</a></div>`;
+      }
+    }
+
+    // Ejecutar al cargar la página
+    handleCallback();
+  </script>
+</body>
+</html>

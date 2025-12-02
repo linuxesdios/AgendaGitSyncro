@@ -150,7 +150,7 @@ ON CONFLICT (id) DO NOTHING;
 
 Ahora que tienes Supabase configurado, vamos a conectar la aplicación:
 
-1. **Abre la aplicación** (agenda.html o agendaphone.html)
+1. **Abre la aplicación** (agenda.html)
 
 2. **Abre el modal de configuración:**
    - Haz clic en el botón de **configuración** (⚙️) en la parte superior

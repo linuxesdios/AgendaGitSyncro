@@ -631,7 +631,7 @@ function solicitarPermisoNotificaciones() {
 function aplicarConfiguracionColumnas() {
   const contenedorDosColumnas = document.querySelector('.contenedor-dos-columnas');
 
-  // Si no existe el contenedor (agendaphone.html), salir silenciosamente
+  // Si no existe el contenedor, salir silenciosamente
   if (!contenedorDosColumnas) {
     return;
   }
@@ -1186,10 +1186,6 @@ async function guardarConfigVisualPanel() {
     mostrarAlerta('⚠️ No se pudo sincronizar con Supabase', 'warning');
   }
 
-  // Actualizar título en carrusel móvil si está activo
-  if (typeof window.actualizarTituloCarruselMovil === 'function') {
-    window.actualizarTituloCarruselMovil();
-  }
 }
 
 // ========== FUNCIONES PARA MOSTRAR/OCULTAR CITAS Y TAREAS EN CALENDARIO ==========
@@ -2941,11 +2937,6 @@ async function agregarListaPersonalizada() {
       // Re-renderizar configuración PRIMERO
       renderizarListasPersonalizadas();
 
-      // Actualizar bottom navigation
-      if (typeof renderizarBottomNav === 'function') {
-        renderizarBottomNav();
-      }
-
       // Regenerar las secciones principales para incluir la nueva lista
       setTimeout(() => {
 
@@ -3252,7 +3243,7 @@ function renderizarListasPersonalizadas() {
 
 // ========== FUNCIONES PARA SECCIONES PRINCIPALES DE LISTAS ==========
 function regenerarSeccionesListasPersonalizadas() {
-  // Buscar la columna derecha - si no existe (agendaphone), salir silenciosamente
+  // Buscar la columna derecha - si no existe, salir silenciosamente
   const columnaDerecha = document.querySelector('.columna-derecha');
   if (!columnaDerecha) {
     return;
@@ -4151,11 +4142,6 @@ function eliminarListaPersonalizada(listaId) {
     renderizarListasPersonalizadas();
   }
 
-  // Actualizar bottom navigation
-  if (typeof renderizarBottomNav === 'function') {
-    renderizarBottomNav();
-  }
-
   registrarAccion('Eliminar lista personalizada', lista.nombre);
   mostrarAlerta(`✅ Lista "${lista.nombre}" eliminada`, 'success');
 }
@@ -4263,15 +4249,6 @@ function renderizarTodasLasListasPersonalizadas() {
   }
 
   renderizarListasTimeout = setTimeout(() => {
-
-    // Detectar si estamos en móvil (agendaphone.html)
-    if (typeof renderizarListasMovil === 'function' && document.getElementById('listas-personalizadas-movil')) {
-      console.log('📱 Detectado modo móvil, delegando a renderizarListasMovil()');
-      renderizarListasMovil();
-      renderizarListasTimeout = null;
-      return;
-    }
-
     // Usar función helper para obtener las listas
     const listasPersonalizadas = obtenerListasPersonalizadas();
 

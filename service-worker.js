@@ -1,11 +1,8 @@
-const CACHE_NAME = 'agenda-pablo-v1';
+const CACHE_NAME = 'agenda-pablo-v2';
 const urlsToCache = [
   './agenda.html',
-  './agendaphone.html',
   './assets/css/agenda.css',
-  './assets/css/agendaphone.css',
   './assets/js/supabase-sync.js',
-  './assets/js/bottom-nav.js',
   './assets/js/calendario.js'
 ];
 
