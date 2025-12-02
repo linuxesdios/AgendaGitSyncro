@@ -9,7 +9,8 @@
       "Bash(python:*)",
       "Bash(del temp_edit.py)",
       "Bash(del:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
