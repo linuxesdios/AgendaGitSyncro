@@ -607,19 +607,48 @@ async function manualSyncGoogleCalendar() {
       console.log(`📋 Procesando ${eventos.length} citas...`);
 
       for (const evento of eventos) {
-        // Solo sincronizar si NO tiene googleCalendarId (evitar duplicados)
-        if (!evento.googleCalendarId) {
-          try {
-            await syncEventToGoogleCalendar(evento);
-            syncCount++;
-            console.log(`✅ Cita sincronizada: ${evento.titulo || evento.nombre}`);
-          } catch (error) {
+        try {
+          // Transformar cita al formato correcto para Google Calendar
+          const match = evento.nombre.match(/^(\d{1,2}):(\d{2})\s*-\s*(.+)$/);
+          if (!match) {
+            console.warn(`⚠️ Cita sin formato de hora válido: ${evento.nombre}`);
             errorCount++;
-            console.error(`❌ Error sincronizando cita ${evento.id}:`, error);
+            continue;
           }
-        } else {
-          skippedCount++;
-          console.log(`⏭️ Cita ya sincronizada (ID: ${evento.googleCalendarId}): ${evento.titulo || evento.nombre}`);
+
+          const [_, hora, minutos, descripcion] = match;
+
+          // Convertir fecha de Array a String
+          const fechaStr = Array.isArray(evento.fecha)
+            ? `${evento.fecha[0]}-${String(evento.fecha[1]).padStart(2, '0')}-${String(evento.fecha[2]).padStart(2, '0')}`
+            : evento.fecha;
+
+          // Calcular offset de zona horaria
+          const offsetMinutes = new Date().getTimezoneOffset();
+          const offsetHours = Math.abs(offsetMinutes / 60);
+          const offsetSign = offsetMinutes > 0 ? '-' : '+';
+          const offsetString = `${offsetSign}${String(Math.floor(offsetHours)).padStart(2, '0')}:${String(Math.abs(offsetMinutes % 60)).padStart(2, '0')}`;
+
+          // Crear evento con formato correcto
+          const eventoParaGoogle = {
+            id: evento.id,
+            tipo: 'cita',
+            titulo: descripcion,
+            fecha: fechaStr,
+            inicio: `${fechaStr}T${hora.padStart(2, '0')}:${minutos}:00${offsetString}`,
+            fin: `${fechaStr}T${(parseInt(hora) + 1).toString().padStart(2, '0')}:${minutos}:00${offsetString}`,
+            descripcion: descripcion,
+            lugar: evento.lugar,
+            etiqueta: evento.etiqueta,
+            googleCalendarId: evento.googleCalendarId
+          };
+
+          await syncEventToGoogleCalendar(eventoParaGoogle);
+          syncCount++;
+          console.log(`✅ Cita sincronizada: ${descripcion}`);
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ Error sincronizando cita ${evento.id}:`, error);
         }
       }
     }
@@ -631,30 +660,37 @@ async function manualSyncGoogleCalendar() {
 
       for (const tarea of tareas) {
         if (tarea.estado !== 'completada') {
-          // Solo sincronizar si NO tiene googleCalendarId (evitar duplicados)
-          if (!tarea.googleCalendarId) {
-            try {
-              await syncEventToGoogleCalendar(tarea);
-              syncCount++;
-              console.log(`✅ Tarea sincronizada: ${tarea.nombre}`);
-            } catch (error) {
-              errorCount++;
-              console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
-            }
-          } else {
-            skippedCount++;
-            console.log(`⏭️ Tarea ya sincronizada (ID: ${tarea.googleCalendarId}): ${tarea.nombre}`);
+          try {
+            // Transformar tarea al formato correcto para Google Calendar
+            const eventoParaGoogle = {
+              id: tarea.id,
+              tipo: 'tarea',
+              titulo: tarea.texto || tarea.nombre,
+              nombre: tarea.texto || tarea.nombre,
+              fecha: tarea.fecha_fin || new Date().toISOString().split('T')[0],
+              descripcion: tarea.texto || tarea.nombre,
+              notas: tarea.texto || tarea.nombre,
+              etiqueta: tarea.etiqueta,
+              googleCalendarId: tarea.googleCalendarId
+            };
+
+            await syncEventToGoogleCalendar(eventoParaGoogle);
+            syncCount++;
+            console.log(`✅ Tarea sincronizada: ${tarea.texto || tarea.nombre}`);
+          } catch (error) {
+            errorCount++;
+            console.error(`❌ Error sincronizando tarea ${tarea.id}:`, error);
           }
         }
       }
     }
 
-    console.log(`📊 Resumen: ${syncCount} sincronizados, ${skippedCount} omitidos (ya sincronizados), ${errorCount} errores`);
+    console.log(`📊 Resumen: ${syncCount} sincronizados, ${errorCount} errores`);
 
     if (syncCount > 0) {
-      mostrarAlerta(`✅ ${syncCount} eventos nuevos sincronizados (${skippedCount} ya estaban sincronizados)`, 'success');
-    } else if (skippedCount > 0) {
-      mostrarAlerta(`ℹ️ Todos los eventos (${skippedCount}) ya estaban sincronizados`, 'info');
+      mostrarAlerta(`✅ ${syncCount} eventos sincronizados con Google Calendar`, 'success');
+    } else if (errorCount > 0) {
+      mostrarAlerta(`⚠️ Se encontraron ${errorCount} errores al sincronizar`, 'warning');
     } else {
       mostrarAlerta('ℹ️ No hay eventos para sincronizar', 'info');
     }
