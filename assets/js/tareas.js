@@ -230,6 +230,20 @@ function renderizarCriticas() {
     };
     div.appendChild(btnPomodoro);
 
+    // Botón de sincronizar con Google
+    const btnSync = document.createElement('button');
+    btnSync.className = 'btn-borrar-tarea';
+    btnSync.textContent = '📅';
+    btnSync.title = 'Sincronizar con Google Calendar';
+    btnSync.style.background = '#4285F4';
+    btnSync.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof syncSingleEventToGoogle === 'function') {
+        syncSingleEventToGoogle(tarea.id, 'tarea');
+      }
+    };
+    div.appendChild(btnSync);
+
     // Botón de borrar
     const btnBorrar = document.createElement('button');
     btnBorrar.className = 'btn-borrar-tarea';
@@ -440,6 +454,20 @@ function renderizarTareas() {
       iniciarPomodoroConTarea(tarea.texto);
     };
     div.appendChild(btnPomodoroNormal);
+
+    // Botón de sincronizar con Google
+    const btnSyncNormal = document.createElement('button');
+    btnSyncNormal.className = 'btn-borrar-tarea';
+    btnSyncNormal.textContent = '📅';
+    btnSyncNormal.title = 'Sincronizar con Google Calendar';
+    btnSyncNormal.style.background = '#4285F4';
+    btnSyncNormal.onclick = (e) => {
+      e.stopPropagation();
+      if (typeof syncSingleEventToGoogle === 'function') {
+        syncSingleEventToGoogle(tarea.id, 'tarea');
+      }
+    };
+    div.appendChild(btnSyncNormal);
 
     // Botón de borrar
     const btnBorrar = document.createElement('button');

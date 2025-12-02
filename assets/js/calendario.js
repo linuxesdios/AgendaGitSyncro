@@ -643,6 +643,7 @@ function renderCitasPanel() {
     div.innerHTML = `
       <span style="${(esHoy || esPasada) ? 'color: #d32f2f; font-weight: bold;' : ''}">${contenidoCita}</span>
       ${alertaHtml}
+      <button onclick="syncSingleEventToGoogle(${c.id}, 'cita')" class="btn-borrar-tarea" title="Sincronizar con Google Calendar" style="background:#4285F4;margin-right:5px;">📅</button>
       <button onclick="deleteCita('${fechaArrayToString(c.fecha)}', '${c.nombre}')" class="btn-borrar-tarea" title="Eliminar cita">🗑️</button>
     `;
 
@@ -730,13 +731,19 @@ programarNotificacionesCita(nuevaCita);
 
 // Sincronizar con Google Calendar si está conectado
 if (typeof syncEventToGoogleCalendar === 'function') {
+  // Obtener offset de zona horaria local
+  const offsetMinutes = new Date().getTimezoneOffset();
+  const offsetHours = Math.abs(offsetMinutes / 60);
+  const offsetSign = offsetMinutes > 0 ? '-' : '+';
+  const offsetString = `${offsetSign}${String(Math.floor(offsetHours)).padStart(2, '0')}:${String(Math.abs(offsetMinutes % 60)).padStart(2, '0')}`;
+
   const eventoParaGoogle = {
     id: nuevaCita.id,
     tipo: 'cita',
     titulo: descripcion,
     fecha: fecha,
-    inicio: `${fecha}T${hora.padStart(2, '0')}:${minutos.padStart(2, '0')}:00`,
-    fin: `${fecha}T${(parseInt(hora) + 1).toString().padStart(2, '0')}:${minutos.padStart(2, '0')}:00`,
+    inicio: `${fecha}T${hora.padStart(2, '0')}:${minutos.padStart(2, '0')}:00${offsetString}`,
+    fin: `${fecha}T${(parseInt(hora) + 1).toString().padStart(2, '0')}:${minutos.padStart(2, '0')}:00${offsetString}`,
     descripcion: descripcion,
     etiqueta: etiqueta,
     googleCalendarId: nuevaCita.googleCalendarId
@@ -1465,13 +1472,19 @@ function guardarEdicionCita(fechaOriginal, nombreOriginal) {
 
     // Sincronizar con Google Calendar si está conectado
     if (typeof syncEventToGoogleCalendar === 'function') {
+      // Obtener offset de zona horaria local
+      const offsetMinutes = new Date().getTimezoneOffset();
+      const offsetHours = Math.abs(offsetMinutes / 60);
+      const offsetSign = offsetMinutes > 0 ? '-' : '+';
+      const offsetString = `${offsetSign}${String(Math.floor(offsetHours)).padStart(2, '0')}:${String(Math.abs(offsetMinutes % 60)).padStart(2, '0')}`;
+
       const eventoParaGoogle = {
         id: appState.agenda.citas[index].id,
         tipo: 'cita',
         titulo: nuevaDesc,
         fecha: nuevaFecha,
-        inicio: `${nuevaFecha}T${nuevaHora.padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00`,
-        fin: `${nuevaFecha}T${(parseInt(nuevaHora) + 1).toString().padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00`,
+        inicio: `${nuevaFecha}T${nuevaHora.padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00${offsetString}`,
+        fin: `${nuevaFecha}T${(parseInt(nuevaHora) + 1).toString().padStart(2, '0')}:${nuevosMinutos.padStart(2, '0')}:00${offsetString}`,
         descripcion: nuevaDesc,
         lugar: nuevoLugar,
         etiqueta: appState.agenda.citas[index].etiqueta,
