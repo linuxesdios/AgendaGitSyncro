@@ -1147,18 +1147,23 @@ async function syncSingleEventToGoogle(eventoId, tipo) {
       }
 
       if (tareaEncontrada) {
+        evento = tareaEncontrada; // Marcar que se encontró la tarea
+
+        // Obtener el texto de la tarea (puede estar en titulo, texto o nombre según el tipo)
+        const textoTarea = tareaEncontrada.titulo || tareaEncontrada.texto || tareaEncontrada.nombre || 'Sin título';
+
         const tareaParaGoogle = {
           id: tareaEncontrada.id,
-          titulo: tareaEncontrada.texto || tareaEncontrada.nombre,
-          nombre: tareaEncontrada.texto || tareaEncontrada.nombre,
-          texto: tareaEncontrada.texto || tareaEncontrada.nombre,
-          fecha: tareaEncontrada.fecha_fin,
-          descripcion: tareaEncontrada.texto || tareaEncontrada.nombre,
-          notas: tareaEncontrada.texto || tareaEncontrada.nombre,
+          titulo: textoTarea,
+          nombre: textoTarea,
+          texto: textoTarea,
+          fecha: tareaEncontrada.fecha_fin || tareaEncontrada.fecha,
+          descripcion: textoTarea,
+          notas: textoTarea,
           estado: tareaEncontrada.estado
         };
 
-        console.log(`🔄 Sincronizando tarea a lista Google: ${listId}`);
+        console.log(`🔄 Sincronizando tarea "${textoTarea}" a lista Google: ${listId}`);
 
         // Si ya tiene googleTaskId, actualizar; si no, crear
         if (tareaEncontrada.googleTaskId) {
@@ -1183,8 +1188,6 @@ async function syncSingleEventToGoogle(eventoId, tipo) {
             mostrarAlerta('❌ Error al crear tarea', 'error');
           }
         }
-      } else {
-        evento = null; // Para que muestre el mensaje de "No se encontró el evento"
       }
     }
 
