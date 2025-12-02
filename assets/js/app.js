@@ -3511,6 +3511,20 @@ function renderizarListaPersonalizada(listaId) {
       };
       div.appendChild(btnPomodoroPersonalizada);
 
+      // Botón de sincronizar con Google Tasks
+      const btnSyncPersonalizada = document.createElement('button');
+      btnSyncPersonalizada.className = 'btn-borrar-tarea';
+      btnSyncPersonalizada.textContent = '📅';
+      btnSyncPersonalizada.title = 'Sincronizar con Google Tasks';
+      btnSyncPersonalizada.style.background = '#4285F4';
+      btnSyncPersonalizada.onclick = (e) => {
+        e.stopPropagation();
+        if (typeof syncSingleEventToGoogle === 'function') {
+          syncSingleEventToGoogle(tarea.id, 'tarea');
+        }
+      };
+      div.appendChild(btnSyncPersonalizada);
+
       // Botón de Borrar
       const btnBorrar = document.createElement('button');
       btnBorrar.className = 'btn-borrar-tarea';
