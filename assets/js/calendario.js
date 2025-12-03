@@ -1868,4 +1868,7 @@ function mostrarEventosDelDia(fecha, eventos) {
 
 window.mostrarEventosDelDia = mostrarEventosDelDia;
 window.parsearFechaCita = parsearFechaCita;
+window.fechaArrayToString = fechaArrayToString;
+window.fechaStringToArray = fechaStringToArray;
+window.compararFechaConString = compararFechaConString;
 

@@ -2388,7 +2388,9 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
 // Función auxiliar para verificar si una tarea debe mostrarse según el período
 function debeMotrarTareaPorPeriodo(tarea, listaId) {
   const filtro = window.appState.filtrosPeriodo?.[listaId];
-  if (!filtro || !filtro.fechaLimite) return true; // Sin filtro o "todo", mostrar todas
+  if (!filtro || !filtro.fechaLimite) {
+    return true; // Sin filtro o "todo", mostrar todas
+  }
 
   // Buscar fecha_fin en la tarea
   let fechaTarea = null;

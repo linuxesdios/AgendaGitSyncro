@@ -393,8 +393,18 @@ function esFechaHoy(fecha) {
   // Usar fecha local en lugar de UTC para evitar errores de zona horaria
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-  // Extraer solo la parte de fecha si tiene hora
-  const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
+
+  // Extraer fecha como string, manejando arrays y strings
+  let soloFecha;
+  if (Array.isArray(fecha)) {
+    const [year, month, day] = fecha;
+    soloFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  } else if (typeof fecha === 'string') {
+    soloFecha = fecha.includes('T') ? fecha.split('T')[0] : fecha;
+  } else {
+    return false;
+  }
+
   return soloFecha === hoyStr;
 }
 
@@ -403,8 +413,18 @@ function esFechaPasada(fecha) {
   // Usar fecha local en lugar de UTC para evitar errores de zona horaria
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-  // Extraer solo la parte de fecha si tiene hora
-  const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
+
+  // Extraer fecha como string, manejando arrays y strings
+  let soloFecha;
+  if (Array.isArray(fecha)) {
+    const [year, month, day] = fecha;
+    soloFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  } else if (typeof fecha === 'string') {
+    soloFecha = fecha.includes('T') ? fecha.split('T')[0] : fecha;
+  } else {
+    return false;
+  }
+
   return soloFecha < hoyStr;
 }
 
@@ -3408,13 +3428,17 @@ function limpiarListaPersonalizada(listaId) {
 // ========== RENDERIZADO RICO DE LISTAS PERSONALIZADAS ==========
 function renderizarListaPersonalizada(listaId) {
   const listasPersonalizadas = obtenerListasPersonalizadas();
-  const lista = listasPersonalizadas.find(l => l.id === listaId);
+
+  // Extraer el ID real si tiene el prefijo 'lista-'
+  const idReal = listaId.startsWith('lista-') ? listaId.substring(6) : listaId;
+  const lista = listasPersonalizadas.find(l => l.id === idReal);
 
   if (!lista) {
+    console.warn('⚠️ No se encontró la lista:', listaId, 'ID real:', idReal);
     return;
   }
 
-  const contenedor = document.getElementById(`lista-personalizada-${listaId}`);
+  const contenedor = document.getElementById(`lista-personalizada-${idReal}`);
   if (!contenedor) {
     return;
   }
@@ -4321,7 +4345,8 @@ function renderizarTodasLasListasPersonalizadas() {
 
     // Renderizar el contenido de cada lista
     listasPersonalizadas.forEach(lista => {
-      renderizarListaPersonalizada(lista.id);
+      // Usar el mismo formato de ID que los botones de filtro (con prefijo 'lista-')
+      renderizarListaPersonalizada(`lista-${lista.id}`);
 
     });
 
