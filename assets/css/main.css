@@ -283,10 +283,6 @@ section h3 {
   color: #2c3e50;
 }
 
-.tarea-completada {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
 
 /* ========== CALENDARIO ========== */
 .calendar-weekdays {
@@ -1136,10 +1132,6 @@ body.modo-oscuro {
   gap: 8px;
 }
 
-.subtarea-item.subtarea-completada {
-  opacity: 0.6;
-  text-decoration: line-through;
-}
 
 .subtarea-simbolo {
   cursor: pointer;

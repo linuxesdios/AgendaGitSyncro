@@ -35,7 +35,6 @@ function renderizar() {
 // ========== OBTENER SÍMBOLO DE TAREA ==========
 function obtenerSimbolo(tarea) {
   if (!tarea.estado) tarea.estado = 'pendiente';
-  if (tarea.estado === 'completada' || tarea.completada) return '✔';
   if (tarea.estado === 'migrada') return '→';
   if (tarea.estado === 'programada') return '<';
   return '●';
@@ -152,11 +151,10 @@ function renderizarCriticas() {
     const realIndex = appState.agenda.tareas_criticas.findIndex(t => t.id === tarea.id);
     const div = document.createElement('div');
     div.className = 'tarea-item';
-    if (tarea.completada) div.classList.add('tarea-completada');
 
     // Verificar si es urgente (fecha límite es hoy o pasada)
     const esUrgente = esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin);
-    if (esUrgente && !tarea.completada) {
+    if (esUrgente) {
       div.classList.add('urgente');
     }
 
@@ -164,7 +162,7 @@ function renderizarCriticas() {
     aplicarColorVisualizacion(div, tarea, 'critica');
 
     // Guardar información de urgencia para mostrar icono
-    if (esUrgente && !tarea.completada) {
+    if (esUrgente) {
       div.dataset.urgente = 'true';
     }
 
@@ -276,7 +274,7 @@ function renderizarCriticas() {
     div.appendChild(btnBorrar);
 
     // Agregar alerta si es urgente o pasada
-    if (!tarea.completada) {
+    {
       if (esFechaPasada(tarea.fecha_fin)) {
         const alerta = document.createElement('span');
         alerta.className = 'alerta-urgente';
@@ -313,7 +311,6 @@ function renderizarCriticas() {
       tarea.subtareas.forEach((subtarea, subIndex) => {
         const subDiv = document.createElement('div');
         subDiv.className = 'subtarea-item';
-        if (subtarea.completada) subDiv.classList.add('subtarea-completada');
 
         const subSimbolo = document.createElement('span');
         subSimbolo.className = 'subtarea-simbolo';
@@ -391,11 +388,10 @@ function renderizarTareas() {
     const realIndex = appState.agenda.tareas.findIndex(t => t.id === tarea.id);
     const div = document.createElement('div');
     div.className = 'tarea-item';
-    if (tarea.completada) div.classList.add('tarea-completada');
 
     // Verificar si es urgente (fecha límite o migración es hoy o pasada)
     const esUrgente = esFechaHoy(tarea.fecha_fin) || esFechaHoy(tarea.fecha_migrar) || esFechaPasada(tarea.fecha_fin) || esFechaPasada(tarea.fecha_migrar);
-    if (esUrgente && !tarea.completada) {
+    if (esUrgente) {
       div.classList.add('urgente');
     }
 
@@ -403,7 +399,7 @@ function renderizarTareas() {
     aplicarColorVisualizacion(div, tarea, 'tarea');
 
     // Guardar información de urgencia para mostrar icono
-    if (esUrgente && !tarea.completada) {
+    if (esUrgente) {
       div.dataset.urgente = 'true';
     }
 
@@ -515,7 +511,7 @@ function renderizarTareas() {
     div.appendChild(btnBorrar);
 
     // Agregar alerta si es urgente o pasada
-    if (!tarea.completada) {
+    {
       if (esFechaPasada(tarea.fecha_fin) || esFechaPasada(tarea.fecha_migrar)) {
         const alerta = document.createElement('span');
         alerta.className = 'alerta-urgente';
@@ -552,7 +548,6 @@ function renderizarTareas() {
       tarea.subtareas.forEach((subtarea, subIndex) => {
         const subDiv = document.createElement('div');
         subDiv.className = 'subtarea-item';
-        if (subtarea.completada) subDiv.classList.add('subtarea-completada');
 
         const subSimbolo = document.createElement('span');
         subSimbolo.className = 'subtarea-simbolo';
@@ -602,39 +597,34 @@ async function cambiarEstadoCritica(index) {
   if (tarea.estado === 'pendiente') {
     console.log('▶️ Pendiente → Migrada (abriendo modal migrar)');
     tarea.estado = 'migrada';
-    tarea.completada = false;
     appState.ui.tareaSeleccionada = { tipo: 'critica', index };
     abrirModal('modal-migrar');
     return;
   } else if (tarea.estado === 'migrada') {
-    // Si tiene persona asignada, mantener como migrada, sino pasar a programada
+    // Si tiene persona asignada, borrar tarea (ya está delegada)
     if (tarea.persona) {
-      console.log('▶️ Migrada (con persona) → Completada');
-      tarea.estado = 'completada';
-      tarea.completada = true;
-      guardarTareaCompletada(tarea, true);
+      console.log('▶️ Migrada (con persona) → Eliminada (delegada)');
       mostrarCelebracion();
-      registrarAccion('Completar tarea crítica', tarea.titulo);
+      moverAHistorial(tarea, 'tarea_critica');
+      registrarAccion('Eliminar tarea crítica delegada', tarea.titulo);
+      appState.agenda.tareas_criticas.splice(index, 1);
+      renderizar();
+      await guardarJSON(true);
+      return;
     } else {
       console.log('▶️ Migrada (sin persona) → Programada');
       tarea.estado = 'programada';
-      tarea.completada = false;
       registrarAccion('Programar tarea crítica', tarea.titulo);
     }
   } else if (tarea.estado === 'programada') {
-    console.log('▶️ Programada → Completada');
-    tarea.estado = 'completada';
-    tarea.completada = true;
-    guardarTareaCompletada(tarea, true);
+    console.log('▶️ Programada → Eliminada');
     mostrarCelebracion();
-    registrarAccion('Completar tarea crítica', tarea.titulo);
-  } else {
-    console.log('▶️ Completada → Pendiente (reiniciando)');
-    tarea.estado = 'pendiente';
-    tarea.completada = false;
-    delete tarea.persona;
-    delete tarea.fecha_migrar;
-    registrarAccion('Reiniciar tarea crítica', tarea.titulo);
+    moverAHistorial(tarea, 'tarea_critica');
+    registrarAccion('Eliminar tarea crítica', tarea.titulo);
+    appState.agenda.tareas_criticas.splice(index, 1);
+    renderizar();
+    await guardarJSON(true);
+    return;
   }
 
   console.log('🔄 Renderizando y guardando...');
@@ -650,39 +640,34 @@ async function cambiarEstadoTarea(index) {
   if (tarea.estado === 'pendiente') {
     console.log('▶️ Pendiente → Migrada (abriendo modal migrar)');
     tarea.estado = 'migrada';
-    tarea.completada = false;
     appState.ui.tareaSeleccionada = { tipo: 'tarea', index };
     abrirModal('modal-migrar');
     return;
   } else if (tarea.estado === 'migrada') {
-    // Si tiene persona asignada, mantener como migrada, sino pasar a programada
+    // Si tiene persona asignada, borrar tarea (ya está delegada)
     if (tarea.persona) {
-      console.log('▶️ Migrada (con persona) → Completada');
-      tarea.estado = 'completada';
-      tarea.completada = true;
-      guardarTareaCompletada(tarea, false);
+      console.log('▶️ Migrada (con persona) → Eliminada (delegada)');
       mostrarCelebracion();
-      registrarAccion('Completar tarea', tarea.texto);
+      moverAHistorial(tarea, 'tarea');
+      registrarAccion('Eliminar tarea delegada', tarea.texto);
+      appState.agenda.tareas.splice(index, 1);
+      renderizar();
+      await guardarJSON(true);
+      return;
     } else {
       console.log('▶️ Migrada (sin persona) → Programada');
       tarea.estado = 'programada';
-      tarea.completada = false;
       registrarAccion('Programar tarea', tarea.texto);
     }
   } else if (tarea.estado === 'programada') {
-    console.log('▶️ Programada → Completada');
-    tarea.estado = 'completada';
-    tarea.completada = true;
-    guardarTareaCompletada(tarea, false);
+    console.log('▶️ Programada → Eliminada');
     mostrarCelebracion();
-    registrarAccion('Completar tarea', tarea.texto);
-  } else {
-    console.log('▶️ Completada → Pendiente (reiniciando)');
-    tarea.estado = 'pendiente';
-    tarea.completada = false;
-    delete tarea.persona;
-    delete tarea.fecha_migrar;
-    registrarAccion('Reiniciar tarea', tarea.texto);
+    moverAHistorial(tarea, 'tarea');
+    registrarAccion('Eliminar tarea', tarea.texto);
+    appState.agenda.tareas.splice(index, 1);
+    renderizar();
+    await guardarJSON(true);
+    return;
   }
 
   console.log('🔄 Renderizando y guardando...');
