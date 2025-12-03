@@ -3257,6 +3257,7 @@ function eliminarListaPersonalizada(id) {
 
 function renderizarListasPersonalizadas() {
   console.log('📋 EJECUTANDO renderizarListasPersonalizadas()');
+  console.log('📋 Filtros actuales:', window.appState?.filtrosPeriodo);
 
   const contenedor = document.getElementById('listas-personalizadas-contenido');
 
@@ -4364,6 +4365,7 @@ function renderizarTodasLasListasPersonalizadas() {
     regenerarSeccionesListasPersonalizadas();
 
     // Renderizar el contenido de cada lista
+    console.log('🔶 Filtros antes de renderizar:', window.appState?.filtrosPeriodo);
     listasPersonalizadas.forEach(lista => {
       console.log('🔷 Renderizando lista:', { listaId: lista.id });
       renderizarListaPersonalizada(lista.id);
