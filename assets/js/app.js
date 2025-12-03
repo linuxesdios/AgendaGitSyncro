@@ -1208,6 +1208,16 @@ function nuevoPomodoro() {
 
 // ========== CONFIGURACIÓN VISUAL ==========
 async function guardarConfigVisualPanel() {
+  // Mostrar indicador de guardado inmediato
+  const select = document.getElementById('config-vista-periodo-defecto');
+  if (select) {
+    const originalBg = select.style.background;
+    select.style.background = 'rgba(76, 175, 80, 0.2)'; // Verde claro
+    setTimeout(() => {
+      select.style.background = originalBg;
+    }, 500);
+  }
+
   const temaSeleccionado = document.getElementById('config-tema-select')?.value || 'verde';
 
 
@@ -1240,6 +1250,7 @@ async function guardarConfigVisualPanel() {
   // ⚡ GUARDAR EN LOCALSTORAGE para aplicación instantánea (evitar flash verde)
   localStorage.setItem('tema_cache', config.tema);
   localStorage.setItem('titulo_cache', config.titulo);
+  localStorage.setItem('vistaPeriodoDefecto_cache', config.vistaPeriodoDefecto);
 
   // Guardar en Supabase
   if (typeof window.supabasePush === 'function') {
