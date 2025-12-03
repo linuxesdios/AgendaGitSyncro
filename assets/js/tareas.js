@@ -2396,30 +2396,68 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
 
 // Función auxiliar para verificar si una tarea debe mostrarse según el período
 function debeMotrarTareaPorPeriodo(tarea, listaId) {
-  const filtro = window.appState.filtrosPeriodo?.[listaId];
+  // Intentar obtener el filtro con el ID proporcionado
+  let filtro = window.appState.filtrosPeriodo?.[listaId];
+
+  // Si no se encuentra y el ID no tiene prefijo 'lista-', intentar con el prefijo
+  if (!filtro && !listaId.startsWith('lista-')) {
+    filtro = window.appState.filtrosPeriodo?.[`lista-${listaId}`];
+  }
+
+  // Si no se encuentra y el ID TIENE prefijo 'lista-', intentar SIN el prefijo (por si acaso)
+  if (!filtro && listaId.startsWith('lista-')) {
+    filtro = window.appState.filtrosPeriodo?.[listaId.substring(6)];
+  }
 
   console.log('🟡 debeMotrarTareaPorPeriodo:', {
-    tarea: tarea.texto?.substring(0, 30),
+    tarea: tarea.texto?.substring(0, 30) || tarea.titulo?.substring(0, 30),
     listaId,
     filtroExiste: !!filtro,
     filtro: filtro
   });
 
-  if (!filtro || !filtro.fechaLimite) {
-    console.log('  → Sin filtro, mostrando tarea');
-    return true; // Sin filtro o "todo", mostrar todas
+  if (!filtro) {
+    // Si no hay filtro, mostrar todo
+    return true;
   }
 
-  // Buscar fecha_fin en la tarea
-  let fechaTarea = null;
+  // Si el período es 'todo', mostrar siempre
+  if (filtro.periodo === 'todo') {
+    return true;
+  }
 
+  // Si hay filtro pero fechaLimite es falsy (y no es 'todo'), algo está mal
+  // Intentar recuperar fechaLimite si es posible o mostrar todo como fallback
+  if (!filtro.fechaLimite) {
+    console.warn('⚠️ Filtro con período diferente a "todo" pero sin fecha límite:', filtro);
+    return true;
+  }
+
+  // Normalizar fecha límite (manejar strings y objetos Date)
+  let fechaLimite = filtro.fechaLimite;
+  if (typeof fechaLimite === 'string') {
+    // Intentar convertir string a Date
+    const partes = fechaLimite.split('T')[0].split('-');
+    if (partes.length === 3) {
+      fechaLimite = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+    } else {
+      fechaLimite = new Date(fechaLimite);
+    }
+  }
+
+  if (!fechaLimite || isNaN(fechaLimite.getTime())) {
+    return true; // Fallback
+  }
+
+  // Normalizar a inicio del día para comparación correcta
+  fechaLimite.setHours(0, 0, 0, 0);
+
+  // Obtener fecha de la tarea
+  let fechaTarea = null;
   if (tarea.fecha_fin) {
-    // Puede ser string "YYYY-MM-DD", "YYYY-MM-DDTHH:MM", ISO string o array [YYYY, MM, DD]
     if (typeof tarea.fecha_fin === 'string') {
-      // Extraer solo la parte de fecha si tiene hora
       const soloFecha = extraerSoloFecha(tarea.fecha_fin);
       if (soloFecha) {
-        // Usar zona horaria local en lugar de UTC para evitar errores
         const [año, mes, dia] = soloFecha.split('-');
         fechaTarea = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
       }
@@ -2428,29 +2466,20 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
     }
   }
 
-  // Si no tiene fecha_fin, mostrarla siempre (las tareas sin fecha no se filtran)
+  // Si no tiene fecha, mostrarla siempre (las tareas sin fecha no se filtran por período)
   if (!fechaTarea || isNaN(fechaTarea.getTime())) {
-    console.log('  → Sin fecha, mostrando tarea');
     return true;
   }
 
-  // Normalizar fechas a solo día (sin hora) para comparación
   fechaTarea.setHours(0, 0, 0, 0);
-
-  const resultado = fechaTarea <= filtro.fechaLimite;
-  console.log('  → Comparación:', {
-    fechaTarea: fechaTarea.toISOString().slice(0, 10),
-    fechaLimite: filtro.fechaLimite.toISOString().slice(0, 10),
-    resultado
-  });
 
   // Caso especial "hoy": mostrar solo tareas de hoy y retrasadas (fechas pasadas)
   if (filtro.periodo === 'hoy') {
-    return fechaTarea <= filtro.fechaLimite; // fechaLimite es hoy, así que muestra hoy y anteriores
+    return fechaTarea <= fechaLimite;
   }
 
   // Otros períodos: mostrar solo si la fecha está dentro del límite
-  return fechaTarea <= filtro.fechaLimite;
+  return fechaTarea <= fechaLimite;
 }
 
 window.debeMotrarTareaPorPeriodo = debeMotrarTareaPorPeriodo;
