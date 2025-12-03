@@ -2317,6 +2317,8 @@ window.crearAlertaUrgencia = crearAlertaUrgencia;
 
 // Función para cambiar la vista de período (semana, quincena, mes, todo)
 function cambiarVistaPeriodo(listaId, periodo) {
+  console.log('🔵 cambiarVistaPeriodo llamado:', { listaId, periodo });
+
   // Guardar el período seleccionado en configVisual
   if (!window.configVisual) window.configVisual = {};
   if (!window.configVisual.vistaPeriodo) window.configVisual.vistaPeriodo = {};
@@ -2377,6 +2379,13 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
   if (!window.appState.filtrosPeriodo) window.appState.filtrosPeriodo = {};
   window.appState.filtrosPeriodo[listaId] = { periodo, fechaLimite };
 
+  console.log('🟢 Filtro guardado:', {
+    listaId,
+    periodo,
+    fechaLimite: fechaLimite ? fechaLimite.toISOString().slice(0, 10) : 'null',
+    todosLosFiltros: window.appState.filtrosPeriodo
+  });
+
   // Re-renderizar la lista correspondiente
   if (listaId === 'criticas') {
     renderizarTareas();
@@ -2388,7 +2397,16 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
 // Función auxiliar para verificar si una tarea debe mostrarse según el período
 function debeMotrarTareaPorPeriodo(tarea, listaId) {
   const filtro = window.appState.filtrosPeriodo?.[listaId];
+
+  console.log('🟡 debeMotrarTareaPorPeriodo:', {
+    tarea: tarea.texto?.substring(0, 30),
+    listaId,
+    filtroExiste: !!filtro,
+    filtro: filtro
+  });
+
   if (!filtro || !filtro.fechaLimite) {
+    console.log('  → Sin filtro, mostrando tarea');
     return true; // Sin filtro o "todo", mostrar todas
   }
 
@@ -2411,10 +2429,20 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
   }
 
   // Si no tiene fecha_fin, mostrarla siempre (las tareas sin fecha no se filtran)
-  if (!fechaTarea || isNaN(fechaTarea.getTime())) return true;
+  if (!fechaTarea || isNaN(fechaTarea.getTime())) {
+    console.log('  → Sin fecha, mostrando tarea');
+    return true;
+  }
 
   // Normalizar fechas a solo día (sin hora) para comparación
   fechaTarea.setHours(0, 0, 0, 0);
+
+  const resultado = fechaTarea <= filtro.fechaLimite;
+  console.log('  → Comparación:', {
+    fechaTarea: fechaTarea.toISOString().slice(0, 10),
+    fechaLimite: filtro.fechaLimite.toISOString().slice(0, 10),
+    resultado
+  });
 
   // Caso especial "hoy": mostrar solo tareas de hoy y retrasadas (fechas pasadas)
   if (filtro.periodo === 'hoy') {
