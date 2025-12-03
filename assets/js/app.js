@@ -611,19 +611,25 @@ function cargarConfigVisual() {
     // Cargar valores en el formulario de configuración
     cargarConfigVisualEnFormulario();
 
-    // Aplicar vista de período por defecto a todas las listas
+    // Aplicar vista de período por defecto SOLO SI NO HAY FILTRO ACTIVO
     const vistaPeriodoDefecto = config.vistaPeriodoDefecto || 'todo';
     if (typeof cambiarVistaPeriodo === 'function') {
       // Aplicar a tareas críticas
       setTimeout(() => {
-        cambiarVistaPeriodo('criticas', vistaPeriodoDefecto);
+        // Solo aplicar si no hay filtro activo
+        if (!window.appState?.filtrosPeriodo?.['criticas']) {
+          cambiarVistaPeriodo('criticas', vistaPeriodoDefecto);
+        }
 
         // Aplicar a todas las listas personalizadas
         const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
         listasPersonalizadas.forEach(lista => {
           // Asegurar que el ID tenga el prefijo 'lista-' una sola vez
           const listaId = lista.id.startsWith('lista-') ? lista.id : `lista-${lista.id}`;
-          cambiarVistaPeriodo(listaId, vistaPeriodoDefecto);
+          // Solo aplicar si no hay filtro activo
+          if (!window.appState?.filtrosPeriodo?.[listaId]) {
+            cambiarVistaPeriodo(listaId, vistaPeriodoDefecto);
+          }
         });
       }, 500); // Pequeño delay para asegurar que el DOM está listo
     }
