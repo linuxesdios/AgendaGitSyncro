@@ -3864,10 +3864,12 @@ async function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, sub
   const subtarea = tarea.subtareas[subIndex];
   const texto = document.getElementById('editor-subtarea-lp-texto').value.trim();
   const fecha = document.getElementById('editor-subtarea-lp-fecha').value;
-  const hora = document.getElementById('editor-subtarea-lp-hora')?.value || '';
+  const incluirHora = document.getElementById('editor-subtarea-lp-incluir-hora')?.checked || false;
+  const hora = incluirHora ? (document.getElementById('editor-subtarea-lp-hora')?.value || '') : '';
   const persona = document.getElementById('editor-subtarea-lp-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-subtarea-lp-fecha-migrar').value;
-  const horaMigrar = document.getElementById('editor-subtarea-lp-hora-migrar')?.value || '';
+  const incluirHoraMigrar = document.getElementById('editor-subtarea-lp-incluir-hora-migrar')?.checked || false;
+  const horaMigrar = incluirHoraMigrar ? (document.getElementById('editor-subtarea-lp-hora-migrar')?.value || '') : '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
@@ -4019,7 +4021,8 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
 
   const texto = document.getElementById('editor-lp-texto').value;
   const fecha = document.getElementById('editor-lp-fecha').value;
-  const hora = document.getElementById('editor-lp-hora')?.value || '';
+  const incluirHora = document.getElementById('editor-lp-incluir-hora')?.checked || false;
+  const hora = incluirHora ? (document.getElementById('editor-lp-hora')?.value || '') : '';
   const persona = document.getElementById('editor-lp-persona').value;
 
   if (!texto || !texto.trim()) {

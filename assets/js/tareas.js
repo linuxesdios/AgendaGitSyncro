@@ -859,12 +859,17 @@ function nuevaTareaCritica() {
 async function agregarTareaCritica() {
   const titulo = document.getElementById('critica-titulo').value.trim();
   const fecha = document.getElementById('critica-fecha').value;
+  const incluirHora = document.getElementById('critica-incluir-hora')?.checked || false;
+  const hora = incluirHora ? (document.getElementById('critica-hora')?.value || '') : '';
   const etiqueta = document.getElementById('critica-etiqueta').value;
 
   if (!titulo) {
     alert('Por favor, ingresa un título');
     return;
   }
+
+  // Combinar fecha y hora
+  const fechaFinal = combinarFechaHora(fecha, hora);
 
   // Verificar si se debe forzar fecha (nueva configuración funcional)
   const configFuncionales = window.configFuncionales || {};
@@ -1567,10 +1572,12 @@ function abrirEditorTarea(index, tipo) {
 function guardarEdicion(index, tipo) {
   const texto = document.getElementById('editor-texto').value.trim();
   const fecha = document.getElementById('editor-fecha').value;
-  const hora = document.getElementById('editor-hora')?.value || '';
+  const incluirHora = document.getElementById('editor-incluir-hora')?.checked || false;
+  const hora = incluirHora ? (document.getElementById('editor-hora')?.value || '') : '';
   const persona = document.getElementById('editor-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-fecha-migrar').value;
-  const horaMigrar = document.getElementById('editor-hora-migrar')?.value || '';
+  const incluirHoraMigrar = document.getElementById('editor-incluir-hora-migrar')?.checked || false;
+  const horaMigrar = incluirHoraMigrar ? (document.getElementById('editor-hora-migrar')?.value || '') : '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
@@ -1919,10 +1926,12 @@ function guardarEdicionSubtarea(tareaIndex, subIndex, tipo) {
   const subtarea = tarea.subtareas[subIndex];
   const texto = document.getElementById('editor-subtarea-texto').value.trim();
   const fecha = document.getElementById('editor-subtarea-fecha').value;
-  const hora = document.getElementById('editor-subtarea-hora')?.value || '';
+  const incluirHora = document.getElementById('editor-subtarea-incluir-hora')?.checked || false;
+  const hora = incluirHora ? (document.getElementById('editor-subtarea-hora')?.value || '') : '';
   const persona = document.getElementById('editor-subtarea-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-subtarea-fecha-migrar').value;
-  const horaMigrar = document.getElementById('editor-subtarea-hora-migrar')?.value || '';
+  const incluirHoraMigrar = document.getElementById('editor-subtarea-incluir-hora-migrar')?.checked || false;
+  const horaMigrar = incluirHoraMigrar ? (document.getElementById('editor-subtarea-hora-migrar')?.value || '') : '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
