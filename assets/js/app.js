@@ -621,7 +621,9 @@ function cargarConfigVisual() {
         // Aplicar a todas las listas personalizadas
         const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
         listasPersonalizadas.forEach(lista => {
-          cambiarVistaPeriodo(`lista-${lista.id}`, vistaPeriodoDefecto);
+          // Asegurar que el ID tenga el prefijo 'lista-' una sola vez
+          const listaId = lista.id.startsWith('lista-') ? lista.id : `lista-${lista.id}`;
+          cambiarVistaPeriodo(listaId, vistaPeriodoDefecto);
         });
       }, 500); // Pequeño delay para asegurar que el DOM está listo
     }
@@ -3349,23 +3351,27 @@ function regenerarSeccionesListasPersonalizadas() {
 }
 
 function generarSeccionListaPersonalizada(lista) {
-  const sectionId = `lista-personalizada-${lista.id}`;
-  const filtroId = `filtros-content-lista-${lista.id}`;
+  // Asegurar que el ID tenga el prefijo 'lista-' una sola vez
+  const listaIdCompleto = lista.id.startsWith('lista-') ? lista.id : `lista-${lista.id}`;
+  const listaIdNumerico = lista.id.startsWith('lista-') ? lista.id.substring(6) : lista.id;
+
+  const sectionId = `lista-personalizada-${listaIdNumerico}`;
+  const filtroId = `filtros-content-lista-${listaIdNumerico}`;
 
   return `
-    <section class="drop-zone seccion-lista-personalizada" data-target="lista-${lista.id}" style="border-left: 4px solid ${lista.color};">
+    <section class="drop-zone seccion-lista-personalizada" data-target="${listaIdCompleto}" style="border-left: 4px solid ${lista.color};">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h3 style="margin: 0; color: ${lista.color};">${lista.emoji} ${lista.nombre}</h3>
         <div style="display: flex; gap: 3px; flex-wrap: wrap;">
-          <button onclick="abrirModalNuevaTareaLista('${lista.id}')" class="boton-cargar" style="padding: 4px 8px; font-size: 10px; background: ${lista.color}; color: white;">+</button>
+          <button onclick="abrirModalNuevaTareaLista('${listaIdNumerico}')" class="boton-cargar" style="padding: 4px 8px; font-size: 10px; background: ${lista.color}; color: white;">+</button>
         </div>
       </div>
 
       <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn-periodo" data-periodo="semana" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'semana')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
-        <button class="btn-periodo" data-periodo="quincena" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'quincena')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
-        <button class="btn-periodo" data-periodo="mes" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'mes')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
-        <button class="btn-periodo active" data-periodo="todo" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'todo')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: ${lista.color}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
+        <button class="btn-periodo" data-periodo="semana" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'semana')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
+        <button class="btn-periodo" data-periodo="quincena" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'quincena')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
+        <button class="btn-periodo" data-periodo="mes" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'mes')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
+        <button class="btn-periodo active" data-periodo="todo" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'todo')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: ${lista.color}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
       </div>
 
       <div id="${sectionId}" class="lista-tareas" style="min-height: 60px;">
@@ -3429,15 +3435,27 @@ function limpiarListaPersonalizada(listaId) {
 function renderizarListaPersonalizada(listaId) {
   const listasPersonalizadas = obtenerListasPersonalizadas();
 
-  // Extraer el ID real si tiene el prefijo 'lista-'
-  const idReal = listaId.startsWith('lista-') ? listaId.substring(6) : listaId;
-  const lista = listasPersonalizadas.find(l => l.id === idReal);
+  // Buscar la lista: intentar primero con el ID completo, luego sin prefijo
+  let lista = listasPersonalizadas.find(l => l.id === listaId);
+
+  // Si no se encuentra y listaId tiene prefijo, intentar sin él
+  if (!lista && listaId.startsWith('lista-')) {
+    const idSinPrefijo = listaId.substring(6);
+    lista = listasPersonalizadas.find(l => l.id === idSinPrefijo);
+  }
+
+  // Si no se encuentra y listaId NO tiene prefijo, intentar con él
+  if (!lista && !listaId.startsWith('lista-')) {
+    lista = listasPersonalizadas.find(l => l.id === `lista-${listaId}`);
+  }
 
   if (!lista) {
-    console.warn('⚠️ No se encontró la lista:', listaId, 'ID real:', idReal);
+    console.warn('⚠️ No se encontró la lista con ningún formato de ID:', listaId);
     return;
   }
 
+  // Extraer el ID numérico para el contenedor
+  const idReal = lista.id.startsWith('lista-') ? lista.id.substring(6) : lista.id;
   const contenedor = document.getElementById(`lista-personalizada-${idReal}`);
   if (!contenedor) {
     return;
@@ -4347,10 +4365,8 @@ function renderizarTodasLasListasPersonalizadas() {
 
     // Renderizar el contenido de cada lista
     listasPersonalizadas.forEach(lista => {
-      // Asegurar que el ID tenga el prefijo 'lista-' una sola vez
-      const listaId = lista.id.startsWith('lista-') ? lista.id : `lista-${lista.id}`;
-      console.log('🔷 Renderizando lista:', { listaIdOriginal: lista.id, listaIdFinal: listaId });
-      renderizarListaPersonalizada(listaId);
+      console.log('🔷 Renderizando lista:', { listaId: lista.id });
+      renderizarListaPersonalizada(lista.id);
 
     });
 
