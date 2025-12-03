@@ -85,6 +85,27 @@
         <div class="fecha-actual" id="fecha-actual"
           style="font-size: 28px; font-weight: bold; color: #2d5a27; text-align: center; margin-top: 8px;"></div>
       </div>
+
+      <!-- Filtros Globales de Período -->
+      <div id="filtros-periodo-global"
+        style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-right: 10px;">
+        <button class="btn-periodo-global" data-periodo="hoy" onclick="cambiarVistaPeriodoGlobal('hoy')"
+          style="padding: 6px 12px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: all 0.3s;">🕐
+          Hoy</button>
+        <button class="btn-periodo-global" data-periodo="semana" onclick="cambiarVistaPeriodoGlobal('semana')"
+          style="padding: 6px 12px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: all 0.3s;">📅
+          Semana</button>
+        <button class="btn-periodo-global" data-periodo="quincena" onclick="cambiarVistaPeriodoGlobal('quincena')"
+          style="padding: 6px 12px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: all 0.3s;">📆
+          15 Días</button>
+        <button class="btn-periodo-global" data-periodo="mes" onclick="cambiarVistaPeriodoGlobal('mes')"
+          style="padding: 6px 12px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: all 0.3s;">🗓️
+          Mes</button>
+        <button class="btn-periodo-global active" data-periodo="todo" onclick="cambiarVistaPeriodoGlobal('todo')"
+          style="padding: 6px 12px; border: 2px solid #4ecdc4; background: #4ecdc4; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 12px; transition: all 0.3s;">📋
+          Todo</button>
+      </div>
+
       <div style="display: flex; flex-direction: column; align-items: flex-end; width:auto; gap:5px;">
         <!-- Primera fila: ➕ 📋 ⚙️ -->
         <div style="display: flex; gap: 5px;">
@@ -120,14 +141,6 @@
       <div class="columna-izquierda">
         <section class="drop-zone" data-target="criticas">
           <h3>🚨 Tareas Críticas 🚨</h3>
-
-          <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-periodo" data-periodo="hoy" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'hoy')" style="padding: 8px 16px; border: 2px solid #ff1744; background: white; color: #ff1744; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">⚠️ Hoy</button>
-            <button class="btn-periodo" data-periodo="semana" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'semana')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
-            <button class="btn-periodo" data-periodo="quincena" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'quincena')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
-            <button class="btn-periodo" data-periodo="mes" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'mes')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
-            <button class="btn-periodo active" data-periodo="todo" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'todo')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: #4ecdc4; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
-          </div>
 
           <div id="lista-criticas"></div>
           <button class="boton-agregar tooltip" onclick="nuevaTareaCritica()" data-tooltip="Crear nueva tarea crítica">➕
@@ -229,24 +242,24 @@
     <div class="modal-content" style="max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;">
       <h4>📅 Calendario</h4>
       <div>
-          <div class="calendar-header">
-            <button id="prevMonth" class="calendar-nav-btn">◀</button>
-            <h3 id="monthYear"></h3>
-            <button id="nextMonth" class="calendar-nav-btn">▶</button>
-          </div>
-          <div class="calendar-weekdays">
-            <div class="calendar-weekday">Lun</div>
-            <div class="calendar-weekday">Mar</div>
-            <div class="calendar-weekday">Mié</div>
-            <div class="calendar-weekday">Jue</div>
-            <div class="calendar-weekday">Vie</div>
-            <div class="calendar-weekday">Sáb</div>
-            <div class="calendar-weekday">Dom</div>
-          </div>
-          <div class="calendar-grid" id="calendarGrid" style="min-height:300px;"></div>
-          <div class="calendar-appointments">
-            <div id="appointmentsList"></div>
-          </div>
+        <div class="calendar-header">
+          <button id="prevMonth" class="calendar-nav-btn">◀</button>
+          <h3 id="monthYear"></h3>
+          <button id="nextMonth" class="calendar-nav-btn">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">Lun</div>
+          <div class="calendar-weekday">Mar</div>
+          <div class="calendar-weekday">Mié</div>
+          <div class="calendar-weekday">Jue</div>
+          <div class="calendar-weekday">Vie</div>
+          <div class="calendar-weekday">Sáb</div>
+          <div class="calendar-weekday">Dom</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" style="min-height:300px;"></div>
+        <div class="calendar-appointments">
+          <div id="appointmentsList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -575,29 +588,39 @@
           </div>
 
           <!-- Panel de Estado -->
-          <div id="google-calendar-status-panel" style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 20px; display: none;">
+          <div id="google-calendar-status-panel"
+            style="background: #f0f9ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 20px; display: none;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 0 4px #dbeafe;"></div>
+              <div
+                style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 0 4px #dbeafe;">
+              </div>
               <div style="flex: 1;">
                 <strong style="color: #1e40af;">✅ Conectado a Google Calendar</strong>
                 <div style="font-size: 12px; color: #1e3a8a;">
                   Cuenta: <span id="google-calendar-email">-</span>
                 </div>
               </div>
-              <button onclick="disconnectGoogleCalendar()" class="btn-secundario" style="font-size: 11px; padding: 5px 10px;">
+              <button onclick="disconnectGoogleCalendar()" class="btn-secundario"
+                style="font-size: 11px; padding: 5px 10px;">
                 🔓 Desconectar
               </button>
             </div>
           </div>
 
           <!-- Instrucciones de configuración -->
-          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border: 1px solid #fbbf24; margin-bottom: 20px;">
+          <div
+            style="background: #fef3c7; padding: 15px; border-radius: 8px; border: 1px solid #fbbf24; margin-bottom: 20px;">
             <strong style="color: #92400e;">📋 Configuración necesaria:</strong>
             <ol style="margin: 10px 0 0 20px; font-size: 13px; color: #78350f;">
-              <li>Ve a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #2563eb;">Google Cloud Console</a></li>
+              <li>Ve a <a href="https://console.cloud.google.com/apis/credentials" target="_blank"
+                  style="color: #2563eb;">Google Cloud Console</a></li>
               <li>Crea credenciales OAuth 2.0</li>
-              <li>Añade origen: <code style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io</code></li>
-              <li>Añade redirect URI: <code style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io/AgendaGitSyncro/auth/callback.html</code></li>
+              <li>Añade origen: <code
+                  style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io</code>
+              </li>
+              <li>Añade redirect URI: <code
+                  style="background: white; padding: 2px 6px; border-radius: 4px;">https://linuxesdios.github.io/AgendaGitSyncro/auth/callback.html</code>
+              </li>
               <li>Copia Client ID y Client Secret aquí abajo</li>
             </ol>
           </div>
@@ -606,17 +629,16 @@
           <div class="form-group">
             <label>Client ID:</label>
             <input type="text" id="google-client-id" class="form-control"
-                   placeholder="123456789-abc.apps.googleusercontent.com">
+              placeholder="123456789-abc.apps.googleusercontent.com">
             <small style="color: #666;">Lo obtienes en Google Cloud Console</small>
           </div>
 
           <div class="form-group">
             <label>Client Secret:</label>
             <div style="position: relative;">
-              <input type="password" id="google-client-secret" class="form-control"
-                     placeholder="GOCSPX-..." style="padding-right: 50px;">
-              <button type="button" onclick="toggleGoogleSecretVisibility()"
-                      style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+              <input type="password" id="google-client-secret" class="form-control" placeholder="GOCSPX-..."
+                style="padding-right: 50px;">
+              <button type="button" onclick="toggleGoogleSecretVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
                              background: none; border: none; font-size: 16px; cursor: pointer;
                              color: #666; padding: 0; width: 30px; height: 30px;
                              display: flex; align-items: center; justify-content: center;">
@@ -628,12 +650,11 @@
 
           <!-- Botones de acción -->
           <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button onclick="saveGoogleCalendarConfig()" class="btn-primario"
-                    style="background: #4285F4; flex: 1;">
+            <button onclick="saveGoogleCalendarConfig()" class="btn-primario" style="background: #4285F4; flex: 1;">
               💾 Guardar Configuración
             </button>
-            <button onclick="connectGoogleCalendar()" class="btn-primario"
-                    style="background: #34A853; flex: 1;" id="btn-connect-google">
+            <button onclick="connectGoogleCalendar()" class="btn-primario" style="background: #34A853; flex: 1;"
+              id="btn-connect-google">
               🔗 Conectar con Google
             </button>
           </div>
@@ -664,11 +685,12 @@
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <h4 style="margin: 0;">📅 Calendarios de Google</h4>
                 <button onclick="loadAndDisplayCalendars()" class="btn-secundario"
-                        style="font-size: 11px; padding: 5px 10px;">
+                  style="font-size: 11px; padding: 5px 10px;">
                   🔄 Actualizar
                 </button>
               </div>
-              <div id="calendar-list-container" style="background: #f8fafc; padding: 15px; border-radius: 8px; min-height: 100px;">
+              <div id="calendar-list-container"
+                style="background: #f8fafc; padding: 15px; border-radius: 8px; min-height: 100px;">
                 <p style="color: #666; text-align: center;">Cargando calendarios...</p>
               </div>
               <small style="color: #666; display: block; margin-top: 8px;">
@@ -677,7 +699,7 @@
             </div>
 
             <button onclick="syncBidirectionalGoogleCalendar()" class="btn-secundario"
-                    style="width: 100%; margin-top: 15px; font-size: 13px;">
+              style="width: 100%; margin-top: 15px; font-size: 13px;">
               🔄 Sincronizar Ahora (Bidireccional)
             </button>
           </div>
@@ -865,7 +887,8 @@
             </div>
 
             <div style="margin-top:15px;">
-              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📅 Vista de período por defecto:</label>
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📅 Vista de
+                período por defecto:</label>
               <select id="config-vista-periodo-defecto" onchange="guardarConfigVisualPanel()"
                 style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
                 <option value="semana">📅 Semana (7 días)</option>
@@ -873,7 +896,8 @@
                 <option value="mes">🗓️ Mes (30 días)</option>
                 <option value="todo">📋 Todas las tareas</option>
               </select>
-              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Define qué tareas ver al inicio según su fecha de programación</small>
+              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Define qué tareas
+                ver al inicio según su fecha de programación</small>
             </div>
           </div>
 
@@ -1846,7 +1870,7 @@
 
   <!-- Manejar checkboxes de hora -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Configurar manejadores para los checkboxes de hora
       const checkboxes = {
         'critica-incluir-hora': 'critica-hora',
@@ -1860,7 +1884,7 @@
         const horaInput = document.getElementById(horaId);
 
         if (checkbox && horaInput) {
-          checkbox.addEventListener('change', function() {
+          checkbox.addEventListener('change', function () {
             horaInput.style.display = this.checked ? 'block' : 'none';
             if (!this.checked) {
               horaInput.value = '';

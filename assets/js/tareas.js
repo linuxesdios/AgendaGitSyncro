@@ -2335,6 +2335,75 @@ window.renderizarFechaConUrgencia = renderizarFechaConUrgencia;
 window.configurarDragAndDrop = configurarDragAndDrop;
 window.crearAlertaUrgencia = crearAlertaUrgencia;
 
+// ========== FILTRO GLOBAL DE PERÍODO ==========
+// Función para cambiar el filtro de período GLOBAL (afecta a todas las listas)
+function cambiarVistaPeriodoGlobal(periodo) {
+  console.log('🌍 Filtro GLOBAL cambiado a:', periodo);
+
+  // Guardar período global
+  if (!window.appState) window.appState = {};
+  window.appState.periodoGlobal = periodo;
+
+  // Guardar en localStorage para persistencia
+  localStorage.setItem('periodoGlobal_cache', periodo);
+
+  // Calcular fecha límite
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  let fechaLimite;
+
+  switch (periodo) {
+    case 'hoy':
+      fechaLimite = new Date(hoy);
+      break;
+    case 'semana':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setDate(hoy.getDate() + 7);
+      break;
+    case 'quincena':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setDate(hoy.getDate() + 15);
+      break;
+    case 'mes':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setMonth(hoy.getMonth() + 1);
+      break;
+    case 'todo':
+    default:
+      fechaLimite = null;
+      break;
+  }
+
+  window.appState.fechaLimiteGlobal = fechaLimite;
+
+  // Actualizar estilos de botones
+  document.querySelectorAll('.btn-periodo-global').forEach(btn => {
+    btn.classList.remove('active');
+    const btnColor = '#4ecdc4';
+    if (btn.dataset.periodo === periodo) {
+      btn.classList.add('active');
+      btn.style.background = btnColor;
+      btn.style.color = 'white';
+    } else {
+      btn.style.background = 'white';
+      btn.style.color = btnColor;
+    }
+  });
+
+  console.log('🌍 Filtro global guardado:', {
+    periodo,
+    fechaLimite: fechaLimite ? fechaLimite.toISOString().slice(0, 10) : 'null'
+  });
+
+  // Re-renderizar TODAS las listas
+  if (typeof renderizarTareas === 'function') {
+    renderizarTareas(); // Tareas críticas
+  }
+  if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
+    renderizarTodasLasListasPersonalizadas(); // Listas personalizadas
+  }
+}
+
 // Función para cambiar la vista de período (semana, quincena, mes, todo)
 function cambiarVistaPeriodo(listaId, periodo) {
   console.log('🔵 cambiarVistaPeriodo llamado:', { listaId, periodo });
@@ -2422,40 +2491,21 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
   }
 }
 
-// Función auxiliar para verificar si una tarea debe mostrarse según el período
+// Función auxiliar para verificar si una tarea debe mostrarse según el período GLOBAL
 function debeMotrarTareaPorPeriodo(tarea, listaId) {
-  // Intentar obtener el filtro con el ID proporcionado
-  let filtro = window.appState.filtrosPeriodo?.[listaId];
+  // Usar filtro GLOBAL en lugar de per-lista
+  const filtroGlobal = window.appState?.periodoGlobal || 'todo';
+  const fechaLimite = window.appState?.fechaLimiteGlobal;
 
-  // Si no se encuentra y el ID no tiene prefijo 'lista-', intentar con el prefijo
-  if (!filtro && !listaId.startsWith('lista-')) {
-    filtro = window.appState.filtrosPeriodo?.[`lista-${listaId}`];
-  }
-
-  // Si no se encuentra y el ID TIENE prefijo 'lista-', intentar SIN el prefijo (por si acaso)
-  if (!filtro && listaId.startsWith('lista-')) {
-    filtro = window.appState.filtrosPeriodo?.[listaId.substring(6)];
-  }
-
-  if (!filtro) {
-    // Si no hay filtro, mostrar todo
+  // Si el período global es 'todo', mostrar siempre
+  if (filtroGlobal === 'todo') {
     return true;
   }
 
-  // Si el período es 'todo', mostrar siempre
-  if (filtro.periodo === 'todo') {
+  // Si hay filtro pero fechaLimite  es falsy (y no es 'todo'), mostrar todo como fallback
+  if (!fechaLimite) {
     return true;
   }
-
-  // Si hay filtro pero fechaLimite es falsy (y no es 'todo'), algo está mal
-  // Intentar recuperar fechaLimite si es posible o mostrar todo como fallback
-  if (!filtro.fechaLimite) {
-    console.warn('⚠️ Filtro con período diferente a "todo" pero sin fecha límite:', filtro);
-    return true;
-  }
-
-  // Normalizar fecha límite (manejar strings y objetos Date)
-  let fechaLimite = filtro.fechaLimite;
   if (typeof fechaLimite === 'string') {
     // Intentar convertir string a Date
     const partes = fechaLimite.split('T')[0].split('-');
@@ -2495,7 +2545,7 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
   fechaTarea.setHours(0, 0, 0, 0);
 
   // Caso especial "hoy": mostrar solo tareas de hoy y retrasadas (fechas pasadas)
-  if (filtro.periodo === 'hoy') {
+  if (filtroGlobal === 'hoy') {
     return fechaTarea <= fechaLimite;
   }
 
@@ -2504,6 +2554,7 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
 }
 
 window.debeMotrarTareaPorPeriodo = debeMotrarTareaPorPeriodo;
+window.cambiarVistaPeriodoGlobal = cambiarVistaPeriodoGlobal;
 
 window.cambiarVistaPeriodo = cambiarVistaPeriodo;
 window.filtrarTareasPorPeriodo = filtrarTareasPorPeriodo;

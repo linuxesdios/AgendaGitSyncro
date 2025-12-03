@@ -3414,14 +3414,6 @@ function generarSeccionListaPersonalizada(lista) {
         </div>
       </div>
 
-      <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn-periodo" data-periodo="hoy" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'hoy')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🕐 Hoy</button>
-        <button class="btn-periodo" data-periodo="semana" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'semana')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
-        <button class="btn-periodo" data-periodo="quincena" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'quincena')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
-        <button class="btn-periodo" data-periodo="mes" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'mes')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
-        <button class="btn-periodo active" data-periodo="todo" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'todo')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: ${lista.color}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
-      </div>
-
       <div id="${sectionId}" class="lista-tareas" style="min-height: 60px;">
         <div style="color:#777;padding:10px;text-align:center;">No hay tareas en esta lista</div>
       </div>
