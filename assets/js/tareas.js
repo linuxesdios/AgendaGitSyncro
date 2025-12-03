@@ -2,30 +2,38 @@
 
 // ========== FUNCIONES AUXILIARES PARA FECHAS ==========
 /**
- * Convierte una fecha a formato datetime-local (YYYY-MM-DDTHH:MM)
- * @param {string|null|undefined} fecha - Fecha en formato ISO, YYYY-MM-DD, o con hora
- * @returns {string} Fecha en formato datetime-local o cadena vacía
+ * Separa una fecha en sus componentes de fecha y hora
+ * @param {string|null|undefined} fecha - Fecha en formato ISO o YYYY-MM-DD
+ * @returns {{fecha: string, hora: string}} Objeto con fecha (YYYY-MM-DD) y hora (HH:MM)
  */
-function formatoParaDatetimeLocal(fecha) {
-  if (!fecha) return '';
+function separarFechaHora(fecha) {
+  if (!fecha) return { fecha: '', hora: '' };
 
-  // Si ya tiene formato datetime (contiene 'T'), extraer solo hasta los minutos
-  if (fecha.includes('T')) {
-    return fecha.slice(0, 16); // YYYY-MM-DDTHH:MM
+  if (typeof fecha === 'string') {
+    // Si ya tiene formato datetime (contiene 'T')
+    if (fecha.includes('T')) {
+      const [fechaParte, horaParte] = fecha.split('T');
+      return {
+        fecha: fechaParte,
+        hora: horaParte ? horaParte.slice(0, 5) : '' // HH:MM
+      };
+    }
+
+    // Si solo tiene fecha (YYYY-MM-DD)
+    if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return { fecha: fecha, hora: '' };
+    }
   }
 
-  // Si solo tiene fecha (YYYY-MM-DD), agregar hora 00:00
-  if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return fecha + 'T00:00';
-  }
-
-  // Si es un array [YYYY, MM, DD], convertir
   if (Array.isArray(fecha)) {
     const [year, month, day] = fecha;
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00`;
+    return {
+      fecha: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      hora: ''
+    };
   }
 
-  return '';
+  return { fecha: '', hora: '' };
 }
 
 /**
@@ -56,7 +64,25 @@ function extraerSoloFecha(fecha) {
 }
 
 /**
- * Formatea una fecha para mostrar, incluyendo hora si existe
+ * Combina fecha y hora en formato ISO (YYYY-MM-DDTHH:MM)
+ * @param {string} fecha - Fecha en formato YYYY-MM-DD
+ * @param {string} hora - Hora en formato HH:MM (opcional)
+ * @returns {string|null} Fecha combinada o solo fecha si no hay hora
+ */
+function combinarFechaHora(fecha, hora) {
+  if (!fecha) return null;
+
+  // Si hay hora, combinar
+  if (hora && hora.trim()) {
+    return `${fecha}T${hora}`;
+  }
+
+  // Si no hay hora, devolver solo la fecha
+  return fecha;
+}
+
+/**
+ * Formatea una fecha para mostrar en formato legible (dd/mm/yyyy hh:mm)
  * @param {string|null|undefined} fecha - Fecha en cualquier formato
  * @returns {string} Fecha formateada para mostrar
  */
@@ -64,19 +90,36 @@ function formatearFechaParaMostrar(fecha) {
   if (!fecha) return '';
 
   if (typeof fecha === 'string') {
-    // Si tiene hora (formato YYYY-MM-DDTHH:MM)
+    let fechaParte, horaParte;
+
+    // Si tiene hora (formato YYYY-MM-DDTHH:MM o ISO)
     if (fecha.includes('T')) {
-      const [fechaParte, horaParte] = fecha.split('T');
-      const hora = horaParte.slice(0, 5); // HH:MM
-      return `${fechaParte} ${hora}`;
+      [fechaParte, horaParte] = fecha.split('T');
+    } else {
+      fechaParte = fecha;
     }
-    // Si solo tiene fecha
+
+    // Convertir YYYY-MM-DD a DD/MM/YYYY
+    const partes = fechaParte.split('-');
+    if (partes.length === 3) {
+      const [year, month, day] = partes;
+      let resultado = `${day}/${month}/${year}`;
+
+      // Agregar hora si existe
+      if (horaParte) {
+        const hora = horaParte.slice(0, 5); // HH:MM
+        resultado += ` ${hora}`;
+      }
+
+      return resultado;
+    }
+
     return fecha;
   }
 
   if (Array.isArray(fecha)) {
     const [year, month, day] = fecha;
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
   }
 
   return '';
@@ -1489,7 +1532,12 @@ function abrirEditorTarea(index, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="datetime-local" id="editor-fecha" value="${formatoParaDatetimeLocal(tarea.fecha_fin)}">
+        <input type="date" id="editor-fecha" value="${separarFechaHora(tarea.fecha_fin).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-incluir-hora" ${separarFechaHora(tarea.fecha_fin).hora ? 'checked' : ''} onchange="document.getElementById('editor-hora').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-hora" value="${separarFechaHora(tarea.fecha_fin).hora}" style="display: ${separarFechaHora(tarea.fecha_fin).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>Persona delegada:</label>
@@ -1497,7 +1545,12 @@ function abrirEditorTarea(index, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="datetime-local" id="editor-fecha-migrar" value="${formatoParaDatetimeLocal(tarea.fecha_migrar)}">
+        <input type="date" id="editor-fecha-migrar" value="${separarFechaHora(tarea.fecha_migrar).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-incluir-hora-migrar" ${separarFechaHora(tarea.fecha_migrar).hora ? 'checked' : ''} onchange="document.getElementById('editor-hora-migrar').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-hora-migrar" value="${separarFechaHora(tarea.fecha_migrar).hora}" style="display: ${separarFechaHora(tarea.fecha_migrar).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicion(${index}, '${tipo}')">Guardar</button>
@@ -1514,13 +1567,19 @@ function abrirEditorTarea(index, tipo) {
 function guardarEdicion(index, tipo) {
   const texto = document.getElementById('editor-texto').value.trim();
   const fecha = document.getElementById('editor-fecha').value;
+  const hora = document.getElementById('editor-hora')?.value || '';
   const persona = document.getElementById('editor-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-fecha-migrar').value;
+  const horaMigrar = document.getElementById('editor-hora-migrar')?.value || '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
     return;
   }
+
+  // Combinar fecha y hora
+  const fechaFinal = combinarFechaHora(fecha, hora);
+  const fechaMigrarFinal = combinarFechaHora(fechaMigrar, horaMigrar);
 
   const esNuevaTarea = index === null || index === undefined;
 
@@ -1530,11 +1589,11 @@ function guardarEdicion(index, tipo) {
       id: Date.now().toString(),
       completada: false,
       fecha_creacion: new Date().toISOString(),
-      estado: persona ? 'migrada' : (fechaMigrar ? 'programada' : 'pendiente'),
+      estado: persona ? 'migrada' : (fechaMigrarFinal ? 'programada' : 'pendiente'),
       etiqueta: '',
-      fecha_fin: fecha || null,
+      fecha_fin: fechaFinal || null,
       persona: persona || null,
-      fecha_migrar: fechaMigrar || null
+      fecha_migrar: fechaMigrarFinal || null
     };
 
     if (tipo === 'critica') {
@@ -1557,9 +1616,9 @@ function guardarEdicion(index, tipo) {
       tarea.texto = texto;
     }
 
-    tarea.fecha_fin = fecha || null;
+    tarea.fecha_fin = fechaFinal || null;
     tarea.persona = persona || null;
-    tarea.fecha_migrar = fechaMigrar || null;
+    tarea.fecha_migrar = fechaMigrarFinal || null;
 
     // Actualizar estado según datos
     if (persona) {
@@ -1824,7 +1883,12 @@ function abrirEditorSubtarea(tareaIndex, subIndex, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="datetime-local" id="editor-subtarea-fecha" value="${formatoParaDatetimeLocal(subtarea.fecha_fin)}">
+        <input type="date" id="editor-subtarea-fecha" value="${separarFechaHora(subtarea.fecha_fin).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-subtarea-incluir-hora" ${separarFechaHora(subtarea.fecha_fin).hora ? 'checked' : ''} onchange="document.getElementById('editor-subtarea-hora').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-subtarea-hora" value="${separarFechaHora(subtarea.fecha_fin).hora}" style="display: ${separarFechaHora(subtarea.fecha_fin).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>Persona asignada:</label>
@@ -1832,7 +1896,12 @@ function abrirEditorSubtarea(tareaIndex, subIndex, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="datetime-local" id="editor-subtarea-fecha-migrar" value="${formatoParaDatetimeLocal(subtarea.fecha_migrar)}">
+        <input type="date" id="editor-subtarea-fecha-migrar" value="${separarFechaHora(subtarea.fecha_migrar).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-subtarea-incluir-hora-migrar" ${separarFechaHora(subtarea.fecha_migrar).hora ? 'checked' : ''} onchange="document.getElementById('editor-subtarea-hora-migrar').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-subtarea-hora-migrar" value="${separarFechaHora(subtarea.fecha_migrar).hora}" style="display: ${separarFechaHora(subtarea.fecha_migrar).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicionSubtarea(${tareaIndex}, ${subIndex}, '${tipo}')">Guardar</button>
@@ -1850,18 +1919,24 @@ function guardarEdicionSubtarea(tareaIndex, subIndex, tipo) {
   const subtarea = tarea.subtareas[subIndex];
   const texto = document.getElementById('editor-subtarea-texto').value.trim();
   const fecha = document.getElementById('editor-subtarea-fecha').value;
+  const hora = document.getElementById('editor-subtarea-hora')?.value || '';
   const persona = document.getElementById('editor-subtarea-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-subtarea-fecha-migrar').value;
+  const horaMigrar = document.getElementById('editor-subtarea-hora-migrar')?.value || '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
     return;
   }
 
+  // Combinar fecha y hora
+  const fechaFinal = combinarFechaHora(fecha, hora);
+  const fechaMigrarFinal = combinarFechaHora(fechaMigrar, horaMigrar);
+
   subtarea.texto = texto;
-  subtarea.fecha_fin = fecha || null;
+  subtarea.fecha_fin = fechaFinal || null;
   subtarea.persona = persona || null;
-  subtarea.fecha_migrar = fechaMigrar || null;
+  subtarea.fecha_migrar = fechaMigrarFinal || null;
 
   cerrarModal('modal-editor-subtarea');
   renderizar();
@@ -2332,6 +2407,7 @@ window.debeMotrarTareaPorPeriodo = debeMotrarTareaPorPeriodo;
 
 window.cambiarVistaPeriodo = cambiarVistaPeriodo;
 window.filtrarTareasPorPeriodo = filtrarTareasPorPeriodo;
-window.formatoParaDatetimeLocal = formatoParaDatetimeLocal;
+window.separarFechaHora = separarFechaHora;
 window.extraerSoloFecha = extraerSoloFecha;
 window.formatearFechaParaMostrar = formatearFechaParaMostrar;
+window.combinarFechaHora = combinarFechaHora;

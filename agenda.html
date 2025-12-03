@@ -286,7 +286,12 @@
       </div>
       <div class="form-group">
         <label>Fecha límite (opcional):</label>
-        <input type="datetime-local" id="critica-fecha">
+        <input type="date" id="critica-fecha">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="critica-incluir-hora" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="critica-hora" style="display: none; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>Etiqueta (opcional):</label>
@@ -322,7 +327,12 @@
       </div>
       <div class="form-group">
         <label>📅 ¿Tiene fecha límite?</label>
-        <input type="datetime-local" id="tarea-universal-fecha">
+        <input type="date" id="tarea-universal-fecha">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="tarea-universal-incluir-hora" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="tarea-universal-hora" style="display: none; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>🏷️ ¿Quieres añadir etiqueta?</label>
@@ -348,7 +358,12 @@
       </div>
       <div class="form-group">
         <label>Fecha límite (opcional):</label>
-        <input type="datetime-local" id="tarea-fecha">
+        <input type="date" id="tarea-fecha">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="tarea-incluir-hora" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="tarea-hora" style="display: none; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>Etiqueta (opcional):</label>
@@ -369,7 +384,12 @@
       <h4>Reprogramar o Delegar</h4>
       <div class="form-group">
         <label>📅 Reprogramar:</label>
-        <input type="datetime-local" id="migrar-fecha">
+        <input type="date" id="migrar-fecha">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="migrar-incluir-hora" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="migrar-hora" style="display: none; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>👤 Delegar a:</label>
@@ -1822,6 +1842,33 @@
         .then(() => console.log('✅ Service Worker registrado'))
         .catch(err => console.error('❌ Error al registrar Service Worker:', err));
     }
+  </script>
+
+  <!-- Manejar checkboxes de hora -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Configurar manejadores para los checkboxes de hora
+      const checkboxes = {
+        'critica-incluir-hora': 'critica-hora',
+        'tarea-universal-incluir-hora': 'tarea-universal-hora',
+        'tarea-incluir-hora': 'tarea-hora',
+        'migrar-incluir-hora': 'migrar-hora'
+      };
+
+      Object.entries(checkboxes).forEach(([checkboxId, horaId]) => {
+        const checkbox = document.getElementById(checkboxId);
+        const horaInput = document.getElementById(horaId);
+
+        if (checkbox && horaInput) {
+          checkbox.addEventListener('change', function() {
+            horaInput.style.display = this.checked ? 'block' : 'none';
+            if (!this.checked) {
+              horaInput.value = '';
+            }
+          });
+        }
+      });
+    });
   </script>
 
 </body>

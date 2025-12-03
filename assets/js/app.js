@@ -3822,7 +3822,12 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="datetime-local" id="editor-subtarea-lp-fecha" value="${formatoParaDatetimeLocal(subtarea.fecha_fin)}">
+        <input type="date" id="editor-subtarea-lp-fecha" value="${separarFechaHora(subtarea.fecha_fin).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-subtarea-lp-incluir-hora" ${separarFechaHora(subtarea.fecha_fin).hora ? 'checked' : ''} onchange="document.getElementById('editor-subtarea-lp-hora').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-subtarea-lp-hora" value="${separarFechaHora(subtarea.fecha_fin).hora}" style="display: ${separarFechaHora(subtarea.fecha_fin).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>Persona asignada:</label>
@@ -3830,7 +3835,12 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="datetime-local" id="editor-subtarea-lp-fecha-migrar" value="${formatoParaDatetimeLocal(subtarea.fecha_migrar)}">
+        <input type="date" id="editor-subtarea-lp-fecha-migrar" value="${separarFechaHora(subtarea.fecha_migrar).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-subtarea-lp-incluir-hora-migrar" ${separarFechaHora(subtarea.fecha_migrar).hora ? 'checked' : ''} onchange="document.getElementById('editor-subtarea-lp-hora-migrar').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-subtarea-lp-hora-migrar" value="${separarFechaHora(subtarea.fecha_migrar).hora}" style="display: ${separarFechaHora(subtarea.fecha_migrar).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicionSubtareaListaPersonalizada('${listaId}', ${tareaIndex}, ${subIndex})">Guardar</button>
@@ -3854,18 +3864,24 @@ async function guardarEdicionSubtareaListaPersonalizada(listaId, tareaIndex, sub
   const subtarea = tarea.subtareas[subIndex];
   const texto = document.getElementById('editor-subtarea-lp-texto').value.trim();
   const fecha = document.getElementById('editor-subtarea-lp-fecha').value;
+  const hora = document.getElementById('editor-subtarea-lp-hora')?.value || '';
   const persona = document.getElementById('editor-subtarea-lp-persona').value.trim();
   const fechaMigrar = document.getElementById('editor-subtarea-lp-fecha-migrar').value;
+  const horaMigrar = document.getElementById('editor-subtarea-lp-hora-migrar')?.value || '';
 
   if (!texto) {
     alert('El texto no puede estar vacío');
     return;
   }
 
+  // Combinar fecha y hora
+  const fechaFinal = combinarFechaHora(fecha, hora);
+  const fechaMigrarFinal = combinarFechaHora(fechaMigrar, horaMigrar);
+
   subtarea.texto = texto;
-  subtarea.fecha_fin = fecha || null;
+  subtarea.fecha_fin = fechaFinal || null;
   subtarea.persona = persona || null;
-  subtarea.fecha_migrar = fechaMigrar || null;
+  subtarea.fecha_migrar = fechaMigrarFinal || null;
 
   // Actualizar estado global
   window.configVisual = { ...configVisual, listasPersonalizadas: listas };
@@ -3966,7 +3982,12 @@ function editarTareaListaPersonalizada(listaId, index) {
       </div>
       <div class="form-group">
         <label>📅 Reprogramar (Fecha límite):</label>
-        <input type="datetime-local" id="editor-lp-fecha" value="${formatoParaDatetimeLocal(tarea.fecha_fin)}">
+        <input type="date" id="editor-lp-fecha" value="${separarFechaHora(tarea.fecha_fin).fecha}">
+        <label style="margin-top: 8px; display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="editor-lp-incluir-hora" ${separarFechaHora(tarea.fecha_fin).hora ? 'checked' : ''} onchange="document.getElementById('editor-lp-hora').style.display = this.checked ? 'block' : 'none'" style="margin-right: 6px;">
+          <span>Incluir hora</span>
+        </label>
+        <input type="time" id="editor-lp-hora" value="${separarFechaHora(tarea.fecha_fin).hora}" style="display: ${separarFechaHora(tarea.fecha_fin).hora ? 'block' : 'none'}; margin-top: 8px;">
       </div>
       <div class="form-group">
         <label>👤 Delegar (Persona):</label>
@@ -3998,6 +4019,7 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
 
   const texto = document.getElementById('editor-lp-texto').value;
   const fecha = document.getElementById('editor-lp-fecha').value;
+  const hora = document.getElementById('editor-lp-hora')?.value || '';
   const persona = document.getElementById('editor-lp-persona').value;
 
   if (!texto || !texto.trim()) {
@@ -4005,9 +4027,12 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
     return;
   }
 
+  // Combinar fecha y hora
+  const fechaFinal = combinarFechaHora(fecha, hora);
+
   // Actualizar tarea
   listas[listaIndex].tareas[index].texto = texto.trim();
-  listas[listaIndex].tareas[index].fecha_fin = fecha || null;
+  listas[listaIndex].tareas[index].fecha_fin = fechaFinal || null;
   listas[listaIndex].tareas[index].persona = persona ? persona.trim() : null;
 
   // Actualizar estado global
