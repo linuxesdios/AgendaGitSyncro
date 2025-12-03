@@ -2390,7 +2390,15 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
   if (listaId === 'criticas') {
     renderizarTareas();
   } else {
-    renderizarListasPersonalizadas();
+    // Intentar renderizar solo la lista específica si la función está disponible
+    if (typeof renderizarListaPersonalizada === 'function') {
+      renderizarListaPersonalizada(listaId);
+    } else if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
+      renderizarTodasLasListasPersonalizadas();
+    } else if (typeof renderizarListasPersonalizadas === 'function') {
+      // Fallback (aunque esta función suele ser para el gestor de listas, no para las tareas)
+      renderizarListasPersonalizadas();
+    }
   }
 }
 
