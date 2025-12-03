@@ -122,50 +122,11 @@
         <section class="drop-zone" data-target="criticas">
           <h3>🚨 Tareas Críticas 🚨</h3>
 
-          <div class="filtros-container">
-            <button class="filtros-toggle" onclick="toggleFiltros('criticas')">
-              <span>🔍 Filtros</span>
-              <span id="filtros-icon-criticas">▼</span>
-            </button>
-            <div id="filtros-content-criticas" class="filtros-content">
-              <div class="filtros-grid">
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Estado</label>
-                  <select id="filtro-estado-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todos</option>
-                    <option value="pendiente">Pendientes</option>
-                    <option value="migrada">Migradas</option>
-                    <option value="programada">Programadas</option>
-                    <option value="completada">Completadas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Fecha</label>
-                  <select id="filtro-fecha-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                    <option value="hoy">Hoy</option>
-                    <option value="pasadas">Pasadas</option>
-                    <option value="proximas">Próximas</option>
-                    <option value="sin-fecha">Sin fecha</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Persona</label>
-                  <select id="filtro-persona-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <label class="filtro-label">Etiqueta</label>
-                  <select id="filtro-etiqueta-criticas" class="filtro-select" onchange="aplicarFiltros()">
-                    <option value="">Todas</option>
-                  </select>
-                </div>
-                <div class="filtro-grupo">
-                  <button class="btn-limpiar-filtros" onclick="limpiarFiltros('criticas')">Limpiar</button>
-                </div>
-              </div>
-            </div>
+          <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-periodo" data-periodo="semana" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'semana')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
+            <button class="btn-periodo" data-periodo="quincena" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'quincena')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
+            <button class="btn-periodo" data-periodo="mes" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'mes')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
+            <button class="btn-periodo active" data-periodo="todo" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'todo')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: #4ecdc4; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
           </div>
 
           <div id="lista-criticas"></div>
@@ -881,6 +842,18 @@
               </select>
               <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Cambia la
                 distribución de las secciones en la página principal. En móviles siempre se usa 1 columna.</small>
+            </div>
+
+            <div style="margin-top:15px;">
+              <label style="color:rgba(255,255,255,0.9);font-weight:500;margin-bottom:8px;display:block;">📅 Vista de período por defecto:</label>
+              <select id="config-vista-periodo-defecto" onchange="guardarConfigVisualPanel()"
+                style="width:100%;padding:8px 12px;border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;">
+                <option value="semana">📅 Semana (7 días)</option>
+                <option value="quincena">📆 Quincena (15 días)</option>
+                <option value="mes">🗓️ Mes (30 días)</option>
+                <option value="todo">📋 Todas las tareas</option>
+              </select>
+              <small style="color:rgba(255,255,255,0.8);font-size:11px;display:block;margin-top:4px;">Define qué tareas ver al inicio según su fecha de programación</small>
             </div>
           </div>
 

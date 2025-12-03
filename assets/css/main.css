@@ -1357,7 +1357,12 @@ input[type="file"] {
 
 /* ========== TEMAS DE COLOR ========== */
 .tema-verde {
-  /* Ya es el tema por defecto */
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8a3 100%);
+}
+
+.tema-verde .container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(136, 216, 163, 0.3);
 }
 
 .tema-azul {

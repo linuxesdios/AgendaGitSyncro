@@ -583,6 +583,21 @@ function cargarConfigVisual() {
     // Cargar valores en el formulario de configuración
     cargarConfigVisualEnFormulario();
 
+    // Aplicar vista de período por defecto a todas las listas
+    const vistaPeriodoDefecto = config.vistaPeriodoDefecto || 'todo';
+    if (typeof cambiarVistaPeriodo === 'function') {
+      // Aplicar a tareas críticas
+      setTimeout(() => {
+        cambiarVistaPeriodo('criticas', vistaPeriodoDefecto);
+
+        // Aplicar a todas las listas personalizadas
+        const listasPersonalizadas = window.tareasData?.listasPersonalizadas || [];
+        listasPersonalizadas.forEach(lista => {
+          cambiarVistaPeriodo(`lista-${lista.id}`, vistaPeriodoDefecto);
+        });
+      }, 500); // Pequeño delay para asegurar que el DOM está listo
+    }
+
   } catch (error) {
     console.error('❌ Error al cargar configuración visual desde Supabase:', error);
   }
@@ -1146,6 +1161,7 @@ async function guardarConfigVisualPanel() {
     calendarioMostrarCitas: document.getElementById('config-calendario-mostrar-citas')?.checked !== false,
     calendarioMostrarTareas: document.getElementById('config-calendario-mostrar-tareas')?.checked !== false,
     columnas: parseInt(document.getElementById('config-columnas')?.value) || 2,
+    vistaPeriodoDefecto: document.getElementById('config-vista-periodo-defecto')?.value || 'todo',
     frases: document.getElementById('config-frases-motivacionales')?.value.split('\n').filter(f => f.trim()) || [],
     listasPersonalizadas: (window.configVisual && window.tareasData.listasPersonalizadas) || []
   };
@@ -1395,6 +1411,11 @@ function cargarConfigVisualEnFormulario() {
   const columnas = document.getElementById('config-columnas');
   if (columnas) {
     columnas.value = config.columnas || 2;
+  }
+
+  const vistaPeriodoDefecto = document.getElementById('config-vista-periodo-defecto');
+  if (vistaPeriodoDefecto) {
+    vistaPeriodoDefecto.value = config.vistaPeriodoDefecto || 'todo';
   }
 
   // 📱 OCULTAR selector de columnas en móvil (siempre usa 1 columna)
@@ -3308,50 +3329,11 @@ function generarSeccionListaPersonalizada(lista) {
         </div>
       </div>
 
-      <div class="filtros-container">
-        <button class="filtros-toggle" onclick="toggleFiltros('lista-${lista.id}')">
-          <span>🔍 Filtros</span>
-          <span id="filtros-icon-lista-${lista.id}">▼</span>
-        </button>
-        <div id="${filtroId}" class="filtros-content">
-          <div class="filtros-grid">
-            <div class="filtro-grupo">
-              <label class="filtro-label">Estado</label>
-              <select id="filtro-estado-lista-${lista.id}" onchange="aplicarFiltros('lista-${lista.id}')" class="filtro-select">
-                <option value="">Todos</option>
-                <option value="pendiente">Pendientes</option>
-                <option value="en_progreso">En progreso</option>
-                <option value="completada">Completadas</option>
-              </select>
-            </div>
-            <div class="filtro-grupo">
-              <label class="filtro-label">Fecha</label>
-              <select id="filtro-fecha-lista-${lista.id}" onchange="aplicarFiltros('lista-${lista.id}')" class="filtro-select">
-                <option value="">Todas</option>
-                <option value="hoy">Hoy</option>
-                <option value="manana">Mañana</option>
-                <option value="esta_semana">Esta semana</option>
-                <option value="pasadas">Atrasadas</option>
-              </select>
-            </div>
-            <div class="filtro-grupo">
-              <label class="filtro-label">Persona</label>
-              <select id="filtro-persona-lista-${lista.id}" onchange="aplicarFiltros('lista-${lista.id}')" class="filtro-select">
-                <option value="">Todas</option>
-              </select>
-            </div>
-            <div class="filtro-grupo">
-              <label class="filtro-label">Etiqueta</label>
-              <select id="filtro-etiqueta-lista-${lista.id}" onchange="aplicarFiltros('lista-${lista.id}')" class="filtro-select">
-                <option value="">Todas</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="text-align: center; margin-top: 10px;">
-            <button onclick="limpiarFiltros('lista-${lista.id}')" class="btn-secundario" style="font-size: 11px; padding: 5px 10px;">🔄 Limpiar filtros</button>
-          </div>
-        </div>
+      <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-periodo" data-periodo="semana" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'semana')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
+        <button class="btn-periodo" data-periodo="quincena" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'quincena')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
+        <button class="btn-periodo" data-periodo="mes" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'mes')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
+        <button class="btn-periodo active" data-periodo="todo" data-lista="lista-${lista.id}" onclick="cambiarVistaPeriodo('lista-${lista.id}', 'todo')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: ${lista.color}; color: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📋 Todo</button>
       </div>
 
       <div id="${sectionId}" class="lista-tareas" style="min-height: 60px;">

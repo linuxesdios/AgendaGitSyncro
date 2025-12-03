@@ -2143,3 +2143,91 @@ window.mostrarPopupCelebracion = mostrarPopupCelebracion;
 window.renderizarFechaConUrgencia = renderizarFechaConUrgencia;
 window.configurarDragAndDrop = configurarDragAndDrop;
 window.crearAlertaUrgencia = crearAlertaUrgencia;
+
+// Función para cambiar la vista de período (semana, quincena, mes, todo)
+function cambiarVistaPeriodo(listaId, periodo) {
+  // Guardar el período seleccionado en configVisual
+  if (!window.configVisual) window.configVisual = {};
+  if (!window.configVisual.vistaPeriodo) window.configVisual.vistaPeriodo = {};
+  window.configVisual.vistaPeriodo[listaId] = periodo;
+  localStorage.setItem('configVisual', JSON.stringify(window.configVisual));
+
+  // Actualizar estilos de los botones
+  const contenedor = document.querySelector(`[data-target="${listaId}"] .vista-periodo-container`);
+  if (contenedor) {
+    contenedor.querySelectorAll('.btn-periodo').forEach(btn => {
+      btn.classList.remove('active');
+      const color = btn.style.borderColor;
+      btn.style.background = 'white';
+      btn.style.color = color;
+    });
+    const btnActivo = contenedor.querySelector(`[data-periodo="${periodo}"]`);
+    if (btnActivo) {
+      btnActivo.classList.add('active');
+      const color = btnActivo.style.borderColor;
+      btnActivo.style.background = color;
+      btnActivo.style.color = 'white';
+    }
+  }
+
+  // Filtrar y renderizar las tareas según el período
+  filtrarTareasPorPeriodo(listaId, periodo);
+}
+
+function filtrarTareasPorPeriodo(listaId, periodo) {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  let fechaLimite;
+
+  switch (periodo) {
+    case 'semana':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setDate(hoy.getDate() + 7);
+      break;
+    case 'quincena':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setDate(hoy.getDate() + 15);
+      break;
+    case 'mes':
+      fechaLimite = new Date(hoy);
+      fechaLimite.setMonth(hoy.getMonth() + 1);
+      break;
+    case 'todo':
+    default:
+      fechaLimite = null; // Mostrar todas
+      break;
+  }
+
+  // Re-renderizar la lista correspondiente
+  if (listaId === 'criticas') {
+    renderTareas();
+  } else {
+    renderListasPersonalizadas();
+  }
+
+  // Aplicar filtro visual (ocultar tareas que no cumplan el período)
+  const listaElement = document.getElementById(listaId === 'criticas' ? 'lista-criticas' : `lista-personalizada-${listaId}`);
+  if (listaElement && fechaLimite) {
+    const tareas = listaElement.querySelectorAll('.tarea-item');
+    tareas.forEach(tarea => {
+      const fechaTexto = tarea.querySelector('small')?.textContent;
+      if (fechaTexto && fechaTexto.includes('📅')) {
+        const match = fechaTexto.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+          const fechaTarea = new Date(match[0]);
+          if (fechaTarea > fechaLimite) {
+            tarea.style.display = 'none';
+          } else {
+            tarea.style.display = '';
+          }
+        }
+      } else if (fechaLimite) {
+        // Si no tiene fecha, ocultarla cuando hay filtro de período activo
+        tarea.style.display = 'none';
+      }
+    });
+  }
+}
+
+window.cambiarVistaPeriodo = cambiarVistaPeriodo;
+window.filtrarTareasPorPeriodo = filtrarTareasPorPeriodo;
