@@ -401,8 +401,12 @@ function esFechaHoy(fecha) {
     fechaObj = new Date(fecha[0], fecha[1] - 1, fecha[2]);
   } else if (typeof fecha === 'string') {
     if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      // DD-MM-YYYY
+      // DD-MM-YYYY (with hyphens)
       const [dia, mes, anio] = fecha.split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else if (fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      // DD/MM/YYYY (with slashes)
+      const [dia, mes, anio] = fecha.split('/');
       fechaObj = new Date(anio, mes - 1, dia);
     } else if (fecha.match(/^\d{4}-\d{2}-\d{2}/)) {
       // YYYY-MM-DD...
@@ -433,8 +437,12 @@ function esFechaPasada(fecha) {
     fechaObj = new Date(fecha[0], fecha[1] - 1, fecha[2]);
   } else if (typeof fecha === 'string') {
     if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      // DD-MM-YYYY
+      // DD-MM-YYYY (with hyphens)
       const [dia, mes, anio] = fecha.split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else if (fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      // DD/MM/YYYY (with slashes)
+      const [dia, mes, anio] = fecha.split('/');
       fechaObj = new Date(anio, mes - 1, dia);
     } else if (fecha.match(/^\d{4}-\d{2}-\d{2}/)) {
       // YYYY-MM-DD...

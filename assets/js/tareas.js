@@ -109,10 +109,20 @@ function formatearFechaParaMostrar(fecha) {
       fechaParte = fecha;
     }
 
-    // Convertir YYYY-MM-DD a DD/MM/YYYY
+    // Convertir fecha a DD/MM/YYYY
     const partes = fechaParte.split('-');
     if (partes.length === 3) {
-      const [year, month, day] = partes;
+      let day, month, year;
+
+      // Detectar si es YYYY-MM-DD o DD-MM-YYYY
+      if (partes[0].length === 4) {
+        // YYYY-MM-DD
+        [year, month, day] = partes;
+      } else {
+        // DD-MM-YYYY
+        [day, month, year] = partes;
+      }
+
       let resultado = `${day}/${month}/${year}`;
 
       // Agregar hora si existe
