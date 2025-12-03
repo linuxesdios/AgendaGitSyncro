@@ -1671,10 +1671,10 @@ function toggleConfigFloating() {
     document.querySelectorAll('.config-tab').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
 
-    const visualTab = document.getElementById('tab-visual');
+    const visualTab = document.getElementById('tab-visualizacion');
     if (visualTab) visualTab.classList.add('active');
 
-    const visualBtn = document.querySelector('.config-tab[onclick*="visual"]');
+    const visualBtn = document.querySelector('.config-tab[onclick*="visualizacion"]');
     if (visualBtn) visualBtn.classList.add('active');
 
     // 2. Cargar configuración en formulario
@@ -3404,6 +3404,7 @@ function generarSeccionListaPersonalizada(lista) {
       </div>
 
       <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-periodo" data-periodo="hoy" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'hoy')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🕐 Hoy</button>
         <button class="btn-periodo" data-periodo="semana" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'semana')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
         <button class="btn-periodo" data-periodo="quincena" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'quincena')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
         <button class="btn-periodo" data-periodo="mes" data-lista="${listaIdCompleto}" onclick="cambiarVistaPeriodo('${listaIdCompleto}', 'mes')" style="padding: 8px 16px; border: 2px solid ${lista.color}; background: white; color: ${lista.color}; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
