@@ -16,6 +16,33 @@ function compararFechaConString(fechaArray, fechaString) {
   return fechaArrayToString(fechaArray) === fechaString;
 }
 
+function parsearFechaCita(cita) {
+  if (!cita || !cita.fecha) return null;
+  try {
+    const fechaStr = fechaArrayToString(cita.fecha);
+    if (!fechaStr) return null;
+
+    // Extraer hora si está en el nombre (formato: "HH:MM - Descripción")
+    const nombreParts = cita.nombre.split(' - ');
+    const horaStr = nombreParts[0];
+
+    // Verificar si tiene formato de hora
+    const horaMatch = horaStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (horaMatch) {
+      const [, horas, minutos] = horaMatch;
+      const fecha = new Date(fechaStr + 'T00:00:00');
+      fecha.setHours(parseInt(horas), parseInt(minutos), 0, 0);
+      return fecha;
+    }
+
+    // Si no tiene hora, devolver solo la fecha
+    return new Date(fechaStr + 'T00:00:00');
+  } catch (error) {
+    console.error('Error al parsear fecha de cita:', error);
+    return null;
+  }
+}
+
 // ========== INICIALIZACIÓN DEL CALENDARIO ==========
 function initializeCalendar() {
   const prevMonthBtn = document.getElementById('prevMonth');
@@ -538,7 +565,9 @@ function renderCitasPanel() {
   const panel = document.getElementById('citas-panel');
   if (!panel) return;
 
-  console.log('🔄 Renderizando panel de citas. Total:', appState.agenda.citas.length);
+  if (window.DEBUG_MODE) {
+    console.log('🔄 Renderizando panel de citas. Total:', appState.agenda.citas.length);
+  }
 
   panel.innerHTML = '';
 
@@ -546,12 +575,14 @@ function renderCitasPanel() {
   const calendarioIntegrado = document.getElementById('calendario-citas-integrado');
 
   if (calendarioIntegrado && calendarioIntegrado.style.display === 'block') {
-    console.log('🔄 Calendario integrado visible, actualizando...');
+    if (window.DEBUG_MODE) {
+      console.log('🔄 Calendario integrado visible, actualizando...');
+    }
     if (typeof renderCalendarioIntegrado === 'function') {
       setTimeout(() => renderCalendarioIntegrado(), 50);
     }
-  } else {
-    console.log('⚠️ Calendario integrado NO visible o no encontrado');
+  } else if (window.DEBUG_MODE) {
+    console.log('📋 Calendario integrado no visible (normal si no está en uso)');
   }
 
   if (!appState.agenda.citas || appState.agenda.citas.length === 0) {

@@ -2,7 +2,10 @@
 function obtenerListasPersonalizadas() {
   // LEER DESDE tareasData (window.tareasData.listasPersonalizadas) - FUENTE PRINCIPAL
   const listas = window.tareasData?.listasPersonalizadas || [];
-  console.log('🔍 obtenerListasPersonalizadas() llamado. Total listas:', listas.length);
+  // Debug opcional - solo en modo desarrollo
+  if (window.DEBUG_MODE) {
+    console.log('🔍 obtenerListasPersonalizadas() llamado. Total listas:', listas.length);
+  }
 
 
   // Log subtasks for each list for debugging

@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 96%;
   width: 100%;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.95);
@@ -22,6 +22,13 @@ body {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-sizing: border-box;
+}
+
+/* Limitar ancho máximo en pantallas muy grandes */
+@media (min-width: 2000px) {
+  .container {
+    max-width: 1920px;
+  }
 }
 
 /* ========== HEADER ========== */
@@ -865,7 +872,7 @@ section h3 {
 @media (max-width: 768px) {
   /* LETRA 30% MÁS GRANDE EN MÓVIL */
   body { font-size: 18px; padding: 5px; }
-  .container { padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+  .container { padding: 15px; border-radius: 15px; margin-bottom: 20px; max-width: 98%; }
   .header { flex-direction: row; gap: 5px; text-align: center; min-height: 60px; }
   .header h1 { font-size: 26px; }
   .fecha-actual { font-size: 16px; }

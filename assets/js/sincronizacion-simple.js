@@ -18,7 +18,10 @@ function compararFechaConString(fechaArray, fechaString) {
 function obtenerListasPersonalizadas() {
   // LEER DESDE window.tareasData.listasPersonalizadas (FUENTE CORRECTA)
   const listas = window.tareasData?.listasPersonalizadas || [];
-  console.log('🔍 obtenerListasPersonalizadas() llamado desde sincronizacion-simple.js. Total listas:', listas.length);
+  // Debug opcional - solo en modo desarrollo
+  if (window.DEBUG_MODE) {
+    console.log('🔍 obtenerListasPersonalizadas() llamado desde sincronizacion-simple.js. Total listas:', listas.length);
+  }
 
   // Log subtasks for debugging
   listas.forEach((lista, idx) => {
