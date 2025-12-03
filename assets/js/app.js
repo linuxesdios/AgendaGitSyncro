@@ -3962,7 +3962,7 @@ function editarTareaListaPersonalizada(listaId, index) {
       </div>
       <div class="form-group">
         <label>📅 Reprogramar (Fecha límite):</label>
-        <input type="date" id="editor-lp-fecha" value="${tarea.fecha || ''}">
+        <input type="date" id="editor-lp-fecha" value="${tarea.fecha_fin || ''}">
       </div>
       <div class="form-group">
         <label>👤 Delegar (Persona):</label>
@@ -4003,7 +4003,7 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
 
   // Actualizar tarea
   listas[listaIndex].tareas[index].texto = texto.trim();
-  listas[listaIndex].tareas[index].fecha = fecha || null;
+  listas[listaIndex].tareas[index].fecha_fin = fecha || null;
   listas[listaIndex].tareas[index].persona = persona ? persona.trim() : null;
 
   // Actualizar estado global
