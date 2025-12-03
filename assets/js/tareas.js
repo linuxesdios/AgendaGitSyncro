@@ -49,9 +49,19 @@ function extraerSoloFecha(fecha) {
     if (fecha.includes('T')) {
       return fecha.split('T')[0];
     }
-    // Si ya es solo fecha
+    // Si ya es formato YYYY-MM-DD
     if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return fecha;
+    }
+    // Si es formato DD-MM-YYYY, convertir a YYYY-MM-DD
+    if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [dia, mes, anio] = fecha.split('-');
+      return `${anio}-${mes}-${dia}`;
+    }
+    // Si es formato DD/MM/YYYY, convertir a YYYY-MM-DD
+    if (fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      const [dia, mes, anio] = fecha.split('/');
+      return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
   }
 
