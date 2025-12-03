@@ -390,42 +390,66 @@ function mostrarAlerta(mensaje, tipo) {
 // ========== FUNCIONES DE FECHA ==========
 function esFechaHoy(fecha) {
   if (!fecha) return false;
-  // Usar fecha local en lugar de UTC para evitar errores de zona horaria
-  const hoy = new Date();
-  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-  // Extraer fecha como string, manejando arrays y strings
-  let soloFecha;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  let fechaObj = null;
+
   if (Array.isArray(fecha)) {
-    const [year, month, day] = fecha;
-    soloFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // [YYYY, MM, DD]
+    fechaObj = new Date(fecha[0], fecha[1] - 1, fecha[2]);
   } else if (typeof fecha === 'string') {
-    soloFecha = fecha.includes('T') ? fecha.split('T')[0] : fecha;
-  } else {
-    return false;
+    if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      // DD-MM-YYYY
+      const [dia, mes, anio] = fecha.split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else if (fecha.match(/^\d{4}-\d{2}-\d{2}/)) {
+      // YYYY-MM-DD...
+      const [anio, mes, dia] = fecha.split('T')[0].split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else {
+      // Try standard parsing
+      fechaObj = new Date(fecha);
+    }
   }
 
-  return soloFecha === hoyStr;
+  if (!fechaObj || isNaN(fechaObj.getTime())) return false;
+
+  fechaObj.setHours(0, 0, 0, 0);
+  return fechaObj.getTime() === hoy.getTime();
 }
 
 function esFechaPasada(fecha) {
   if (!fecha) return false;
-  // Usar fecha local en lugar de UTC para evitar errores de zona horaria
-  const hoy = new Date();
-  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-  // Extraer fecha como string, manejando arrays y strings
-  let soloFecha;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  let fechaObj = null;
+
   if (Array.isArray(fecha)) {
-    const [year, month, day] = fecha;
-    soloFecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // [YYYY, MM, DD]
+    fechaObj = new Date(fecha[0], fecha[1] - 1, fecha[2]);
   } else if (typeof fecha === 'string') {
-    soloFecha = fecha.includes('T') ? fecha.split('T')[0] : fecha;
-  } else {
-    return false;
+    if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      // DD-MM-YYYY
+      const [dia, mes, anio] = fecha.split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else if (fecha.match(/^\d{4}-\d{2}-\d{2}/)) {
+      // YYYY-MM-DD...
+      const [anio, mes, dia] = fecha.split('T')[0].split('-');
+      fechaObj = new Date(anio, mes - 1, dia);
+    } else {
+      // Try standard parsing
+      fechaObj = new Date(fecha);
+    }
   }
 
-  return soloFecha < hoyStr;
+  if (!fechaObj || isNaN(fechaObj.getTime())) return false;
+
+  fechaObj.setHours(0, 0, 0, 0);
+  return fechaObj < hoy;
 }
 
 function esLargoPlazo(fecha) {
