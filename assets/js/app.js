@@ -4236,7 +4236,6 @@ function completarTareaListaPersonalizada(listaId, tareaIndex) {
     tarea.estado = 'pendiente';
     tarea.completada = false;
     delete tarea.persona;
-    delete tarea.fecha_migrar;
     delete tarea.fechaCompletada;
   }
 

@@ -1027,7 +1027,7 @@ function guardarMigracion() {
       if (lista && lista.tareas[tareaIndex] && lista.tareas[tareaIndex].subtareas[subIndex]) {
         const subtarea = lista.tareas[tareaIndex].subtareas[subIndex];
 
-        subtarea.fecha_migrar = fecha || null;
+        subtarea.fecha_fin = fecha || null;
         subtarea.persona = persona || null;
         subtarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
 
@@ -1056,7 +1056,7 @@ function guardarMigracion() {
     const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[tareaIndex] : appState.agenda.tareas[tareaIndex];
     const subtarea = tarea.subtareas[subIndex];
 
-    subtarea.fecha_migrar = fecha || null;
+    subtarea.fecha_fin = fecha || null;
     subtarea.persona = persona || null;
     subtarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
 
@@ -1092,7 +1092,7 @@ function guardarMigracion() {
     if (lista && lista.tareas[tareaIndex]) {
       const tarea = lista.tareas[tareaIndex];
 
-      tarea.fecha_migrar = fecha || null;
+      tarea.fecha_fin = fecha || null;
       tarea.persona = persona || null;
       tarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
 
@@ -1126,7 +1126,7 @@ function guardarMigracion() {
   // ========== MANEJAR TAREAS NORMALES Y CRÍTICAS ==========
   const tarea = tipo === 'critica' ? appState.agenda.tareas_criticas[index] : appState.agenda.tareas[index];
 
-  tarea.fecha_migrar = fecha || null;
+  tarea.fecha_fin = fecha || null;
   tarea.persona = persona || null;
   // Si hay persona, mantener como migrada, si solo hay fecha, programada
   tarea.estado = persona ? 'migrada' : (fecha ? 'programada' : 'pendiente');
