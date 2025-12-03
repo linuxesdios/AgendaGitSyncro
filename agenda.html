@@ -510,10 +510,8 @@
           style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">☁️ Supabase</button>
         <button class="config-tab" onclick="switchTab('google-calendar')"
           style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">📅 Google</button>
-        <button class="config-tab" onclick="switchTab('visual')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🎨 Visual</button>
-        <button class="config-tab" onclick="switchTab('funcionales')"
-          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">⚙️ Funcional</button>
+        <button class="config-tab" onclick="switchTab('visualizacion')"
+          style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🎨 Visualización</button>
         <button class="config-tab" onclick="switchTab('etiquetas')"
           style="flex:1;min-width:80px;padding:8px 6px;font-size:11px;text-align:center;">🏷️ Etiquetas</button>
         <button class="config-tab" onclick="switchTab('personas')"
@@ -707,10 +705,10 @@
         </div>
       </div>
 
-      <!-- Contenido Visual -->
-      <div id="tab-visual" class="tab-content">
+      <!-- Contenido Visualización (Visual + Funcional) -->
+      <div id="tab-visualizacion" class="tab-content">
         <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">🎨 Configuración Visual</h3>
+          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">🎨 Configuración de Visualización</h3>
 
           <!-- Sección: Apariencia General -->
           <div
@@ -1024,20 +1022,6 @@
             </div>
           </div>
 
-          <div style="text-align:center;margin-top:25px;">
-            <button class="btn-primario" onclick="guardarConfigVisualPanel()"
-              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.4);transition:all 0.3s ease;">
-              ✨ Aplicar Configuración Visual
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contenido Funcionales -->
-      <div id="tab-funcionales" class="tab-content">
-        <div style="padding:20px;">
-          <h3 style="margin:0 0 20px 0;text-align:center;color:#4a5568;">⚙️ Configuración Funcional</h3>
-
           <!-- Sección: Comportamiento de Tareas -->
           <div
             style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(79,172,254,0.3);">
@@ -1140,13 +1124,14 @@
           </div>
 
           <div style="text-align:center;margin-top:25px;">
-            <button class="btn-primario" onclick="guardarConfigFuncionales()"
-              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(79,172,254,0.4);transition:all 0.3s ease;">
-              ⚙️ Aplicar Configuración Funcional
+            <button class="btn-primario" onclick="guardarConfigVisualPanel(); guardarConfigFuncionales();"
+              style="padding:12px 30px;font-size:14px;border-radius:8px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border:none;color:white;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,0.4);transition:all 0.3s ease;">
+              ✨ Aplicar Configuración de Visualización
             </button>
           </div>
         </div>
       </div>
+
 
       <!-- Contenido Etiquetas -->
       <div id="tab-etiquetas" class="tab-content">

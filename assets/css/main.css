@@ -2344,22 +2344,21 @@ input[type="file"] {
     font-weight: 500 !important;
   }
 
-  /* FILA 2: Badges de persona y fecha (forzar nueva línea) */
+  /* FILA 2: Badges de persona y fecha (en la MISMA línea inline) */
   .tarea-texto span,
   .tarea-texto small {
     display: inline-block !important;
     font-size: 13px !important;
     padding: 3px 7px !important;
-    margin: 0 4px 4px 0 !important;
+    margin: 2px 4px !important;
     border-radius: 4px !important;
     vertical-align: middle !important;
   }
 
-  /* Forzar que badges estén en segunda línea */
-  .tarea-texto span:first-of-type,
-  .tarea-texto small:first-of-type {
-    display: block !important;
-    margin-top: 4px !important;
+  /* TÍTULO MÁS GRANDE */
+  .tarea-texto strong {
+    font-size: 19px !important;
+    font-weight: 600 !important;
   }
 
   /* FILA 3: Botones (nueva línea horizontal) - 30% MÁS GRANDES */
