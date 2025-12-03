@@ -1308,11 +1308,9 @@ function switchTab(tabName) {
   }
 
   // Cargar datos específicos del tab
-  if (tabName === 'visual') {
-
+  if (tabName === 'visualizacion') {
     cargarConfigVisualEnFormulario();
     // Renderizar listas personalizadas inmediatamente
-
     if (typeof renderizarListasPersonalizadas === 'function') {
       renderizarListasPersonalizadas();
     }
@@ -2559,6 +2557,12 @@ function abrirEditorBaseDatos() {
     return;
   }
 
+  // Eliminar modal existente si lo hay
+  const modalExistente = document.getElementById('modal-editor-db');
+  if (modalExistente) {
+    modalExistente.remove();
+  }
+
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'modal-editor-db';
@@ -3407,13 +3411,23 @@ function renderizarListaPersonalizada(listaId) {
     return;
   }
 
-  const tareas = lista.tareas || [];
+  let tareas = lista.tareas || [];
 
   try {
     contenedor.innerHTML = '';
 
     if (tareas.length === 0) {
       contenedor.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas en esta lista</div>';
+      return;
+    }
+
+    // Aplicar filtro de período
+    if (typeof debeMotrarTareaPorPeriodo === 'function') {
+      tareas = tareas.filter(tarea => debeMotrarTareaPorPeriodo(tarea, listaId));
+    }
+
+    if (tareas.length === 0) {
+      contenedor.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas que coincidan con el período seleccionado</div>';
       return;
     }
 
@@ -3427,7 +3441,7 @@ function renderizarListaPersonalizada(listaId) {
       if (tarea.estado === 'completada') div.classList.add('tarea-completada');
 
       // Verificar si es urgente (fecha límite es hoy o pasada)
-      const fechaString = Array.isArray(tarea.fecha) ? fechaArrayToString(tarea.fecha) : tarea.fecha;
+      const fechaString = Array.isArray(tarea.fecha_fin) ? fechaArrayToString(tarea.fecha_fin) : tarea.fecha_fin;
       const esUrgente = esFechaHoy(fechaString) || esFechaPasada(fechaString);
       if (esUrgente && tarea.estado !== 'completada') {
         div.classList.add('urgente');
@@ -3468,8 +3482,8 @@ function renderizarListaPersonalizada(listaId) {
       }
 
       // Fecha con indicadores de urgencia (usando función compartida)
-      if (tarea.fecha) {
-        const fechaMostrar = Array.isArray(tarea.fecha) ? fechaArrayToString(tarea.fecha) : tarea.fecha;
+      if (tarea.fecha_fin) {
+        const fechaMostrar = Array.isArray(tarea.fecha_fin) ? fechaArrayToString(tarea.fecha_fin) : tarea.fecha_fin;
         if (typeof renderizarFechaConUrgencia === 'function') {
           contenido += ` ${renderizarFechaConUrgencia(fechaMostrar, esUrgente)}`;
         } else {

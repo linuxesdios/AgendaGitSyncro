@@ -134,7 +134,12 @@ function renderizarCriticas() {
   }
 
   // Aplicar filtros
-  const tareasFiltradas = filtrarTareas(appState.agenda.tareas_criticas, 'criticas');
+  let tareasFiltradas = filtrarTareas(appState.agenda.tareas_criticas, 'criticas');
+
+  // Aplicar filtro de período
+  if (typeof debeMotrarTareaPorPeriodo === 'function') {
+    tareasFiltradas = tareasFiltradas.filter(tarea => debeMotrarTareaPorPeriodo(tarea, 'criticas'));
+  }
 
   if (tareasFiltradas.length === 0) {
     lista.innerHTML = '<div style="color:#777;padding:10px;text-align:center;">No hay tareas que coincidan con los filtros</div>';
@@ -2198,36 +2203,43 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
       break;
   }
 
+  // Guardar el filtro activo en el estado
+  if (!window.appState.filtrosPeriodo) window.appState.filtrosPeriodo = {};
+  window.appState.filtrosPeriodo[listaId] = { periodo, fechaLimite };
+
   // Re-renderizar la lista correspondiente
   if (listaId === 'criticas') {
     renderizarTareas();
   } else {
     renderizarListasPersonalizadas();
   }
-
-  // Aplicar filtro visual (ocultar tareas que no cumplan el período)
-  const listaElement = document.getElementById(listaId === 'criticas' ? 'lista-criticas' : `lista-personalizada-${listaId}`);
-  if (listaElement && fechaLimite) {
-    const tareas = listaElement.querySelectorAll('.tarea-item');
-    tareas.forEach(tarea => {
-      const fechaTexto = tarea.querySelector('small')?.textContent;
-      if (fechaTexto && fechaTexto.includes('📅')) {
-        const match = fechaTexto.match(/(\d{4})-(\d{2})-(\d{2})/);
-        if (match) {
-          const fechaTarea = new Date(match[0]);
-          if (fechaTarea > fechaLimite) {
-            tarea.style.display = 'none';
-          } else {
-            tarea.style.display = '';
-          }
-        }
-      } else if (fechaLimite) {
-        // Si no tiene fecha, ocultarla cuando hay filtro de período activo
-        tarea.style.display = 'none';
-      }
-    });
-  }
 }
+
+// Función auxiliar para verificar si una tarea debe mostrarse según el período
+function debeMotrarTareaPorPeriodo(tarea, listaId) {
+  const filtro = window.appState.filtrosPeriodo?.[listaId];
+  if (!filtro || !filtro.fechaLimite) return true; // Sin filtro o "todo", mostrar todas
+
+  // Buscar fecha_fin en la tarea
+  let fechaTarea = null;
+
+  if (tarea.fecha_fin) {
+    // Puede ser string "YYYY-MM-DD" o array [YYYY, MM, DD]
+    if (typeof tarea.fecha_fin === 'string') {
+      fechaTarea = new Date(tarea.fecha_fin);
+    } else if (Array.isArray(tarea.fecha_fin)) {
+      fechaTarea = new Date(tarea.fecha_fin[0], tarea.fecha_fin[1] - 1, tarea.fecha_fin[2]);
+    }
+  }
+
+  // Si no tiene fecha_fin, no mostrarla cuando hay filtro activo
+  if (!fechaTarea) return false;
+
+  // Mostrar solo si la fecha está dentro del límite
+  return fechaTarea <= filtro.fechaLimite;
+}
+
+window.debeMotrarTareaPorPeriodo = debeMotrarTareaPorPeriodo;
 
 window.cambiarVistaPeriodo = cambiarVistaPeriodo;
 window.filtrarTareasPorPeriodo = filtrarTareasPorPeriodo;
