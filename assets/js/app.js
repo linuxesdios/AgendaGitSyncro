@@ -3454,8 +3454,10 @@ function renderizarListaPersonalizada(listaId) {
     }
 
     // Aplicar filtro de período
+    console.log('🔶 Aplicando filtro a', tareas.length, 'tareas con listaId:', listaId);
     if (typeof debeMotrarTareaPorPeriodo === 'function') {
       tareas = tareas.filter(tarea => debeMotrarTareaPorPeriodo(tarea, listaId));
+      console.log('🔶 Después del filtro:', tareas.length, 'tareas');
     }
 
     if (tareas.length === 0) {
@@ -4345,8 +4347,10 @@ function renderizarTodasLasListasPersonalizadas() {
 
     // Renderizar el contenido de cada lista
     listasPersonalizadas.forEach(lista => {
-      // Usar el mismo formato de ID que los botones de filtro (con prefijo 'lista-')
-      renderizarListaPersonalizada(`lista-${lista.id}`);
+      // Asegurar que el ID tenga el prefijo 'lista-' una sola vez
+      const listaId = lista.id.startsWith('lista-') ? lista.id : `lista-${lista.id}`;
+      console.log('🔷 Renderizando lista:', { listaIdOriginal: lista.id, listaIdFinal: listaId });
+      renderizarListaPersonalizada(listaId);
 
     });
 
