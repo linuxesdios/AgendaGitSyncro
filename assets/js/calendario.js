@@ -1867,4 +1867,5 @@ function mostrarEventosDelDia(fecha, eventos) {
 }
 
 window.mostrarEventosDelDia = mostrarEventosDelDia;
+window.parsearFechaCita = parsearFechaCita;
 

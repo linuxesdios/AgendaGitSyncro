@@ -2200,9 +2200,9 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
 
   // Re-renderizar la lista correspondiente
   if (listaId === 'criticas') {
-    renderTareas();
+    renderizarTareas();
   } else {
-    renderListasPersonalizadas();
+    renderizarListasPersonalizadas();
   }
 
   // Aplicar filtro visual (ocultar tareas que no cumplan el período)
