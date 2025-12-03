@@ -3286,9 +3286,6 @@ function eliminarListaPersonalizada(id) {
 }
 
 function renderizarListasPersonalizadas() {
-  console.log('📋 EJECUTANDO renderizarListasPersonalizadas()');
-  console.log('📋 Filtros actuales:', window.appState?.filtrosPeriodo);
-
   const contenedor = document.getElementById('listas-personalizadas-contenido');
 
   if (!contenedor) {

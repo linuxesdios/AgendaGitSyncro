@@ -2417,13 +2417,6 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
     filtro = window.appState.filtrosPeriodo?.[listaId.substring(6)];
   }
 
-  console.log('🟡 debeMotrarTareaPorPeriodo:', {
-    tarea: tarea.texto?.substring(0, 30) || tarea.titulo?.substring(0, 30),
-    listaId,
-    filtroExiste: !!filtro,
-    filtro: filtro
-  });
-
   if (!filtro) {
     // Si no hay filtro, mostrar todo
     return true;
