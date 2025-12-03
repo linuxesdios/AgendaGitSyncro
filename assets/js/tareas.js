@@ -2351,6 +2351,10 @@ function filtrarTareasPorPeriodo(listaId, periodo) {
   let fechaLimite;
 
   switch (periodo) {
+    case 'hoy':
+      // Modo especial: solo mostrar tareas de hoy y retrasadas
+      fechaLimite = new Date(hoy);
+      break;
     case 'semana':
       fechaLimite = new Date(hoy);
       fechaLimite.setDate(hoy.getDate() + 7);
@@ -2395,7 +2399,9 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
       // Extraer solo la parte de fecha si tiene hora
       const soloFecha = extraerSoloFecha(tarea.fecha_fin);
       if (soloFecha) {
-        fechaTarea = new Date(soloFecha);
+        // Usar zona horaria local en lugar de UTC para evitar errores
+        const [año, mes, dia] = soloFecha.split('-');
+        fechaTarea = new Date(parseInt(año), parseInt(mes) - 1, parseInt(dia));
       }
     } else if (Array.isArray(tarea.fecha_fin)) {
       fechaTarea = new Date(tarea.fecha_fin[0], tarea.fecha_fin[1] - 1, tarea.fecha_fin[2]);
@@ -2408,7 +2414,12 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
   // Normalizar fechas a solo día (sin hora) para comparación
   fechaTarea.setHours(0, 0, 0, 0);
 
-  // Mostrar solo si la fecha está dentro del límite
+  // Caso especial "hoy": mostrar solo tareas de hoy y retrasadas (fechas pasadas)
+  if (filtro.periodo === 'hoy') {
+    return fechaTarea <= filtro.fechaLimite; // fechaLimite es hoy, así que muestra hoy y anteriores
+  }
+
+  // Otros períodos: mostrar solo si la fecha está dentro del límite
   return fechaTarea <= filtro.fechaLimite;
 }
 

@@ -390,18 +390,22 @@ function mostrarAlerta(mensaje, tipo) {
 // ========== FUNCIONES DE FECHA ==========
 function esFechaHoy(fecha) {
   if (!fecha) return false;
-  const hoy = new Date().toISOString().slice(0, 10);
+  // Usar fecha local en lugar de UTC para evitar errores de zona horaria
+  const hoy = new Date();
+  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
   // Extraer solo la parte de fecha si tiene hora
   const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
-  return soloFecha === hoy;
+  return soloFecha === hoyStr;
 }
 
 function esFechaPasada(fecha) {
   if (!fecha) return false;
-  const hoy = new Date().toISOString().slice(0, 10);
+  // Usar fecha local en lugar de UTC para evitar errores de zona horaria
+  const hoy = new Date();
+  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
   // Extraer solo la parte de fecha si tiene hora
   const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
-  return soloFecha < hoy;
+  return soloFecha < hoyStr;
 }
 
 function esLargoPlazo(fecha) {

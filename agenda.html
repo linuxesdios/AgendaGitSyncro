@@ -40,8 +40,8 @@
       transform: scale(0.95);
     }
 
-    /* Estilo para el botón principal de tarea universal */
-    #btn-tarea-universal {
+    /* Estilo para el botón principal de tarea universal - Deshabilitado para que use el estilo estándar */
+    /* #btn-tarea-universal {
       background: #4ecdc4 !important;
       border: 2px solid #45b7b8 !important;
       color: white !important;
@@ -58,7 +58,6 @@
       box-shadow: 0 6px 12px rgba(78, 205, 196, 0.4) !important;
     }
 
-    /* Modo oscuro */
     .tema-oscuro #btn-tarea-universal {
       background: #5ab3b3 !important;
       border-color: #4a9999 !important;
@@ -67,7 +66,7 @@
     .tema-oscuro #btn-tarea-universal:hover {
       background: #4a9999 !important;
       border-color: #3d7f7f !important;
-    }
+    } */
   </style>
 </head>
 
@@ -123,6 +122,7 @@
           <h3>🚨 Tareas Críticas 🚨</h3>
 
           <div class="vista-periodo-container" style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-periodo" data-periodo="hoy" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'hoy')" style="padding: 8px 16px; border: 2px solid #ff1744; background: white; color: #ff1744; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">⚠️ Hoy</button>
             <button class="btn-periodo" data-periodo="semana" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'semana')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📅 Semana</button>
             <button class="btn-periodo" data-periodo="quincena" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'quincena')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">📆 15 Días</button>
             <button class="btn-periodo" data-periodo="mes" data-lista="criticas" onclick="cambiarVistaPeriodo('criticas', 'mes')" style="padding: 8px 16px; border: 2px solid #4ecdc4; background: white; color: #4ecdc4; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s;">🗓️ Mes</button>
