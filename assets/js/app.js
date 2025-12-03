@@ -391,13 +391,17 @@ function mostrarAlerta(mensaje, tipo) {
 function esFechaHoy(fecha) {
   if (!fecha) return false;
   const hoy = new Date().toISOString().slice(0, 10);
-  return fecha === hoy;
+  // Extraer solo la parte de fecha si tiene hora
+  const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
+  return soloFecha === hoy;
 }
 
 function esFechaPasada(fecha) {
   if (!fecha) return false;
   const hoy = new Date().toISOString().slice(0, 10);
-  return fecha < hoy;
+  // Extraer solo la parte de fecha si tiene hora
+  const soloFecha = typeof fecha === 'string' && fecha.includes('T') ? fecha.split('T')[0] : fecha;
+  return soloFecha < hoy;
 }
 
 function esLargoPlazo(fecha) {
@@ -3483,7 +3487,7 @@ function renderizarListaPersonalizada(listaId) {
 
       // Fecha con indicadores de urgencia (usando función compartida)
       if (tarea.fecha_fin) {
-        const fechaMostrar = Array.isArray(tarea.fecha_fin) ? fechaArrayToString(tarea.fecha_fin) : tarea.fecha_fin;
+        const fechaMostrar = Array.isArray(tarea.fecha_fin) ? fechaArrayToString(tarea.fecha_fin) : formatearFechaParaMostrar(tarea.fecha_fin);
         if (typeof renderizarFechaConUrgencia === 'function') {
           contenido += ` ${renderizarFechaConUrgencia(fechaMostrar, esUrgente)}`;
         } else {
@@ -3612,7 +3616,7 @@ function renderizarListaPersonalizada(listaId) {
                 contenidoSub += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
               }
               if (subtarea.fecha_migrar) {
-                contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_migrar}</span>`;
+                contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${formatearFechaParaMostrar(subtarea.fecha_migrar)}</span>`;
               }
               contenidoSub += '</span>';
             }
@@ -3818,7 +3822,7 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="date" id="editor-subtarea-lp-fecha" value="${subtarea.fecha_fin || ''}">
+        <input type="datetime-local" id="editor-subtarea-lp-fecha" value="${formatoParaDatetimeLocal(subtarea.fecha_fin)}">
       </div>
       <div class="form-group">
         <label>Persona asignada:</label>
@@ -3826,7 +3830,7 @@ function abrirEditorSubtareaListaPersonalizada(listaId, tareaIndex, subIndex) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="date" id="editor-subtarea-lp-fecha-migrar" value="${subtarea.fecha_migrar || ''}">
+        <input type="datetime-local" id="editor-subtarea-lp-fecha-migrar" value="${formatoParaDatetimeLocal(subtarea.fecha_migrar)}">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicionSubtareaListaPersonalizada('${listaId}', ${tareaIndex}, ${subIndex})">Guardar</button>
@@ -3962,7 +3966,7 @@ function editarTareaListaPersonalizada(listaId, index) {
       </div>
       <div class="form-group">
         <label>📅 Reprogramar (Fecha límite):</label>
-        <input type="date" id="editor-lp-fecha" value="${tarea.fecha_fin || ''}">
+        <input type="datetime-local" id="editor-lp-fecha" value="${formatoParaDatetimeLocal(tarea.fecha_fin)}">
       </div>
       <div class="form-group">
         <label>👤 Delegar (Persona):</label>

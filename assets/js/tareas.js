@@ -1,5 +1,87 @@
 // ========== GESTIÓN DE TAREAS ==========
 
+// ========== FUNCIONES AUXILIARES PARA FECHAS ==========
+/**
+ * Convierte una fecha a formato datetime-local (YYYY-MM-DDTHH:MM)
+ * @param {string|null|undefined} fecha - Fecha en formato ISO, YYYY-MM-DD, o con hora
+ * @returns {string} Fecha en formato datetime-local o cadena vacía
+ */
+function formatoParaDatetimeLocal(fecha) {
+  if (!fecha) return '';
+
+  // Si ya tiene formato datetime (contiene 'T'), extraer solo hasta los minutos
+  if (fecha.includes('T')) {
+    return fecha.slice(0, 16); // YYYY-MM-DDTHH:MM
+  }
+
+  // Si solo tiene fecha (YYYY-MM-DD), agregar hora 00:00
+  if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return fecha + 'T00:00';
+  }
+
+  // Si es un array [YYYY, MM, DD], convertir
+  if (Array.isArray(fecha)) {
+    const [year, month, day] = fecha;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00`;
+  }
+
+  return '';
+}
+
+/**
+ * Extrae solo la parte de fecha de un datetime
+ * @param {string|null|undefined} fecha - Fecha en cualquier formato
+ * @returns {string|null} Fecha en formato YYYY-MM-DD o null
+ */
+function extraerSoloFecha(fecha) {
+  if (!fecha) return null;
+
+  if (typeof fecha === 'string') {
+    // Si tiene 'T', extraer solo la fecha
+    if (fecha.includes('T')) {
+      return fecha.split('T')[0];
+    }
+    // Si ya es solo fecha
+    if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return fecha;
+    }
+  }
+
+  if (Array.isArray(fecha)) {
+    const [year, month, day] = fecha;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  return null;
+}
+
+/**
+ * Formatea una fecha para mostrar, incluyendo hora si existe
+ * @param {string|null|undefined} fecha - Fecha en cualquier formato
+ * @returns {string} Fecha formateada para mostrar
+ */
+function formatearFechaParaMostrar(fecha) {
+  if (!fecha) return '';
+
+  if (typeof fecha === 'string') {
+    // Si tiene hora (formato YYYY-MM-DDTHH:MM)
+    if (fecha.includes('T')) {
+      const [fechaParte, horaParte] = fecha.split('T');
+      const hora = horaParte.slice(0, 5); // HH:MM
+      return `${fechaParte} ${hora}`;
+    }
+    // Si solo tiene fecha
+    return fecha;
+  }
+
+  if (Array.isArray(fecha)) {
+    const [year, month, day] = fecha;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  return '';
+}
+
 // ========== RENDERIZAR TAREAS ==========
 function renderizar() {
   requestAnimationFrame(() => {
@@ -188,7 +270,7 @@ function renderizarCriticas() {
     }
     if (tarea.fecha_fin) {
       const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
-      contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${tarea.fecha_fin}</small>`;
+      contenido += ` <small style="background: ${esUrgente ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esUrgente ? 'bold' : 'normal'};">📅 ${formatearFechaParaMostrar(tarea.fecha_fin)}</small>`;
     }
     // Mostrar información de migración/delegación para tareas críticas
     if (tarea.persona || tarea.fecha_migrar) {
@@ -198,7 +280,7 @@ function renderizarCriticas() {
       }
       if (tarea.fecha_migrar) {
         const colorMigrar = esFechaHoy(tarea.fecha_migrar) ? '#ff1744' : '#666';
-        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${tarea.fecha_migrar}</span>`;
+        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${formatearFechaParaMostrar(tarea.fecha_migrar)}</span>`;
       }
       contenido += '</span>';
     }
@@ -332,7 +414,7 @@ function renderizarCriticas() {
             contenidoSub += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
           }
           if (subtarea.fecha_migrar) {
-            contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_migrar}</span>`;
+            contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${formatearFechaParaMostrar(subtarea.fecha_migrar)}</span>`;
           }
           contenidoSub += '</span>';
         }
@@ -425,7 +507,7 @@ function renderizarTareas() {
     }
     if (tarea.fecha_fin) {
       const colorFecha = (esFechaHoy(tarea.fecha_fin) || esFechaPasada(tarea.fecha_fin)) ? '#ff1744' : '#666';
-      contenido += ` <small style="background: ${esFechaHoy(tarea.fecha_fin) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esFechaHoy(tarea.fecha_fin) ? 'bold' : 'normal'}; font-size: 10px;">hacer antes de 📅 ${tarea.fecha_fin}</small>`;
+      contenido += ` <small style="background: ${esFechaHoy(tarea.fecha_fin) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorFecha}; padding: 2px 6px; border-radius: 3px; font-weight: ${esFechaHoy(tarea.fecha_fin) ? 'bold' : 'normal'}; font-size: 10px;">hacer antes de 📅 ${formatearFechaParaMostrar(tarea.fecha_fin)}</small>`;
     }
     // Mostrar información de migración/delegación
     if (tarea.persona || tarea.fecha_migrar) {
@@ -435,7 +517,7 @@ function renderizarTareas() {
       }
       if (tarea.fecha_migrar) {
         const colorMigrar = esFechaHoy(tarea.fecha_migrar) ? '#ff1744' : '#666';
-        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${tarea.fecha_migrar}</span>`;
+        contenido += `<span style="background: ${esFechaHoy(tarea.fecha_migrar) ? '#ffcdd2' : '#ffe5e5'}; color: ${colorMigrar}; padding: 3px 8px; border-radius: 4px; font-weight: ${esFechaHoy(tarea.fecha_migrar) ? 'bold' : 'normal'}; font-size: 12px;">📅 ${formatearFechaParaMostrar(tarea.fecha_migrar)}</span>`;
       }
       contenido += '</span>';
     }
@@ -569,7 +651,7 @@ function renderizarTareas() {
             contenidoSub += `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px;">👤 ${escapeHtml(subtarea.persona)}</span>`;
           }
           if (subtarea.fecha_migrar) {
-            contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${subtarea.fecha_migrar}</span>`;
+            contenidoSub += `<span style="background: #ffe5e5; color: #666; padding: 2px 6px; border-radius: 3px; font-size: 10px;">📅 ${formatearFechaParaMostrar(subtarea.fecha_migrar)}</span>`;
           }
           contenidoSub += '</span>';
         }
@@ -1407,7 +1489,7 @@ function abrirEditorTarea(index, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="date" id="editor-fecha" value="${tarea.fecha_fin || ''}">
+        <input type="datetime-local" id="editor-fecha" value="${formatoParaDatetimeLocal(tarea.fecha_fin)}">
       </div>
       <div class="form-group">
         <label>Persona delegada:</label>
@@ -1415,7 +1497,7 @@ function abrirEditorTarea(index, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="date" id="editor-fecha-migrar" value="${tarea.fecha_migrar || ''}">
+        <input type="datetime-local" id="editor-fecha-migrar" value="${formatoParaDatetimeLocal(tarea.fecha_migrar)}">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicion(${index}, '${tipo}')">Guardar</button>
@@ -1742,7 +1824,7 @@ function abrirEditorSubtarea(tareaIndex, subIndex, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha límite:</label>
-        <input type="date" id="editor-subtarea-fecha" value="${subtarea.fecha_fin || ''}">
+        <input type="datetime-local" id="editor-subtarea-fecha" value="${formatoParaDatetimeLocal(subtarea.fecha_fin)}">
       </div>
       <div class="form-group">
         <label>Persona asignada:</label>
@@ -1750,7 +1832,7 @@ function abrirEditorSubtarea(tareaIndex, subIndex, tipo) {
       </div>
       <div class="form-group">
         <label>Fecha migración:</label>
-        <input type="date" id="editor-subtarea-fecha-migrar" value="${subtarea.fecha_migrar || ''}">
+        <input type="datetime-local" id="editor-subtarea-fecha-migrar" value="${formatoParaDatetimeLocal(subtarea.fecha_migrar)}">
       </div>
       <div class="modal-botones">
         <button class="btn-primario" onclick="guardarEdicionSubtarea(${tareaIndex}, ${subIndex}, '${tipo}')">Guardar</button>
@@ -2224,16 +2306,23 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
   let fechaTarea = null;
 
   if (tarea.fecha_fin) {
-    // Puede ser string "YYYY-MM-DD" o array [YYYY, MM, DD]
+    // Puede ser string "YYYY-MM-DD", "YYYY-MM-DDTHH:MM", ISO string o array [YYYY, MM, DD]
     if (typeof tarea.fecha_fin === 'string') {
-      fechaTarea = new Date(tarea.fecha_fin);
+      // Extraer solo la parte de fecha si tiene hora
+      const soloFecha = extraerSoloFecha(tarea.fecha_fin);
+      if (soloFecha) {
+        fechaTarea = new Date(soloFecha);
+      }
     } else if (Array.isArray(tarea.fecha_fin)) {
       fechaTarea = new Date(tarea.fecha_fin[0], tarea.fecha_fin[1] - 1, tarea.fecha_fin[2]);
     }
   }
 
-  // Si no tiene fecha_fin, no mostrarla cuando hay filtro activo
-  if (!fechaTarea) return false;
+  // Si no tiene fecha_fin, mostrarla siempre (las tareas sin fecha no se filtran)
+  if (!fechaTarea || isNaN(fechaTarea.getTime())) return true;
+
+  // Normalizar fechas a solo día (sin hora) para comparación
+  fechaTarea.setHours(0, 0, 0, 0);
 
   // Mostrar solo si la fecha está dentro del límite
   return fechaTarea <= filtro.fechaLimite;
@@ -2243,3 +2332,6 @@ window.debeMotrarTareaPorPeriodo = debeMotrarTareaPorPeriodo;
 
 window.cambiarVistaPeriodo = cambiarVistaPeriodo;
 window.filtrarTareasPorPeriodo = filtrarTareasPorPeriodo;
+window.formatoParaDatetimeLocal = formatoParaDatetimeLocal;
+window.extraerSoloFecha = extraerSoloFecha;
+window.formatearFechaParaMostrar = formatearFechaParaMostrar;
