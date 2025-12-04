@@ -105,6 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Aplicar clases adaptativas
   document.body.classList.add(isMobile() ? 'mobile-device' : 'desktop-device');
 
+  // ⚡ INICIALIZAR FILTRO GLOBAL DE PERÍODO
+  const periodoGlobalCache = localStorage.getItem('periodoGlobal_cache');
+  const periodoDefecto = localStorage.getItem('vistaPeriodoDefecto_cache') || 'todo';
+  const periodoInicial = periodoGlobalCache || periodoDefecto;
+
+  if (typeof cambiarVistaPeriodoGlobal === 'function') {
+    // Usar setTimeout para asegurar que las funciones de renderizado estén listas
+    setTimeout(() => {
+      cambiarVistaPeriodoGlobal(periodoInicial);
+    }, 500);
+  }
+
   // Cargar configuración de opciones
   cargarConfigOpciones();
 
