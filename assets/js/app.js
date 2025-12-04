@@ -4765,3 +4765,383 @@ if (!window.mostrarResumenDiarioManual) {
     }, 500);
   };
 }
+
+// ============================================================================
+// SISTEMA DE MARCADORES WEB
+// ============================================================================
+
+/**
+ * Estructura de datos para marcadores:
+ * {
+ *   bookmarks: [
+ *     { name: "Google", url: "https://google.com", favicon: "url_del_icono" },
+ *     ...
+ *   ]
+ * }
+ */
+
+// Máximo número de marcadores (15 + 1 botón de añadir = 16 espacios)
+const MAX_BOOKMARKS = 15;
+
+// Cargar marcadores desde localStorage
+function cargarMarcadores() {
+  try {
+    const data = localStorage.getItem('webBookmarks');
+    return data ? JSON.parse(data) : { bookmarks: [] };
+  } catch (error) {
+    console.error('❌ Error al cargar marcadores:', error);
+    return { bookmarks: [] };
+  }
+}
+
+// Guardar marcadores en localStorage
+function guardarMarcadoresEnStorage(data) {
+  try {
+    localStorage.setItem('webBookmarks', JSON.stringify(data));
+    console.log('✅ Marcadores guardados correctamente');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al guardar marcadores:', error);
+    alert('Error al guardar los marcadores. Por favor, intenta de nuevo.');
+    return false;
+  }
+}
+
+// Obtener el favicon de una URL
+function obtenerFavicon(url) {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.origin;
+
+    // Intentar múltiples fuentes de favicon
+    const faviconSources = [
+      `${domain}/favicon.ico`,
+      `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`,
+      `https://icons.duckduckgo.com/ip3/${urlObj.hostname}.ico`
+    ];
+
+    return faviconSources[1]; // Usar Google Favicon Service como principal
+  } catch (error) {
+    console.error('❌ Error al obtener favicon:', error);
+    return null;
+  }
+}
+
+// Renderizar marcadores en el grid
+function renderizarMarcadores() {
+  const container = document.getElementById('bookmarks-area');
+  if (!container) {
+    console.error('❌ No se encontró el contenedor de marcadores');
+    return;
+  }
+
+  const data = cargarMarcadores();
+  const bookmarks = data.bookmarks || [];
+
+  container.innerHTML = '';
+
+  // Renderizar marcadores existentes
+  bookmarks.forEach((bookmark, index) => {
+    const bookmarkEl = document.createElement('a');
+    bookmarkEl.className = 'bookmark-item';
+    bookmarkEl.href = bookmark.url;
+    bookmarkEl.target = '_blank';
+    bookmarkEl.rel = 'noopener noreferrer';
+    bookmarkEl.title = `${bookmark.name}\n${bookmark.url}`;
+
+    // Botón de eliminar
+    const deleteBtn = document.createElement('div');
+    deleteBtn.className = 'bookmark-delete';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      eliminarMarcador(index);
+    };
+    bookmarkEl.appendChild(deleteBtn);
+
+    // Favicon
+    const favicon = document.createElement('img');
+    favicon.className = 'bookmark-favicon';
+    favicon.src = bookmark.favicon || obtenerFavicon(bookmark.url);
+    favicon.alt = bookmark.name;
+    favicon.onerror = function() {
+      this.style.display = 'none';
+      const fallback = document.createElement('span');
+      fallback.className = 'bookmark-favicon error';
+      fallback.textContent = bookmark.name.charAt(0).toUpperCase();
+      this.parentNode.insertBefore(fallback, this);
+    };
+    bookmarkEl.appendChild(favicon);
+
+    // Nombre
+    const name = document.createElement('span');
+    name.className = 'bookmark-name';
+    name.textContent = bookmark.name;
+    bookmarkEl.appendChild(name);
+
+    // Doble clic para editar
+    bookmarkEl.ondblclick = (e) => {
+      e.preventDefault();
+      abrirModalMarcador(index);
+    };
+
+    container.appendChild(bookmarkEl);
+  });
+
+  // Agregar botón de crear nuevo (si no se alcanzó el máximo)
+  if (bookmarks.length < MAX_BOOKMARKS) {
+    const addBtn = document.createElement('div');
+    addBtn.className = 'bookmark-item bookmark-add';
+    addBtn.title = 'Añadir nuevo marcador';
+    addBtn.innerHTML = '+';
+    addBtn.onclick = () => abrirModalMarcador();
+    container.appendChild(addBtn);
+  }
+
+  console.log(`✅ Renderizados ${bookmarks.length} marcadores`);
+}
+
+// Abrir modal para crear o editar marcador
+function abrirModalMarcador(index = null) {
+  const modal = document.getElementById('modal-bookmark');
+  const title = document.getElementById('bookmark-modal-title');
+  const nameInput = document.getElementById('bookmark-name');
+  const urlInput = document.getElementById('bookmark-url');
+  const editIndexInput = document.getElementById('bookmark-edit-index');
+
+  if (!modal) {
+    console.error('❌ No se encontró el modal de marcadores');
+    return;
+  }
+
+  // Limpiar campos
+  nameInput.value = '';
+  urlInput.value = '';
+  editIndexInput.value = '';
+
+  // Si es edición, cargar datos
+  if (index !== null) {
+    const data = cargarMarcadores();
+    const bookmark = data.bookmarks[index];
+
+    if (bookmark) {
+      title.textContent = '✏️ Editar Marcador';
+      nameInput.value = bookmark.name;
+      urlInput.value = bookmark.url;
+      editIndexInput.value = index;
+    }
+  } else {
+    title.textContent = '🔖 Añadir Marcador';
+  }
+
+  modal.style.display = 'flex';
+  nameInput.focus();
+}
+
+// Cerrar modal de marcador
+function cerrarModalMarcador() {
+  const modal = document.getElementById('modal-bookmark');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Guardar marcador (crear o editar)
+function guardarMarcador() {
+  const nameInput = document.getElementById('bookmark-name');
+  const urlInput = document.getElementById('bookmark-url');
+  const editIndexInput = document.getElementById('bookmark-edit-index');
+
+  const name = nameInput.value.trim();
+  let url = urlInput.value.trim();
+
+  // Validaciones
+  if (!name) {
+    alert('Por favor, ingresa un nombre para el marcador');
+    nameInput.focus();
+    return;
+  }
+
+  if (!url) {
+    alert('Por favor, ingresa una URL válida');
+    urlInput.focus();
+    return;
+  }
+
+  // Agregar https:// si no tiene protocolo
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+  }
+
+  // Validar URL
+  try {
+    new URL(url);
+  } catch (error) {
+    alert('La URL ingresada no es válida. Por favor, verifica e intenta de nuevo.');
+    urlInput.focus();
+    return;
+  }
+
+  const data = cargarMarcadores();
+  const favicon = obtenerFavicon(url);
+  const editIndex = editIndexInput.value;
+
+  const bookmark = {
+    name: name.substring(0, 12), // Limitar a 12 caracteres
+    url: url,
+    favicon: favicon
+  };
+
+  // Crear o editar
+  if (editIndex !== '') {
+    // Editar existente
+    data.bookmarks[parseInt(editIndex)] = bookmark;
+    console.log('✏️ Marcador editado:', bookmark);
+  } else {
+    // Crear nuevo
+    if (data.bookmarks.length >= MAX_BOOKMARKS) {
+      alert(`Has alcanzado el límite máximo de ${MAX_BOOKMARKS} marcadores`);
+      return;
+    }
+    data.bookmarks.push(bookmark);
+    console.log('➕ Marcador creado:', bookmark);
+  }
+
+  // Guardar y renderizar
+  if (guardarMarcadoresEnStorage(data)) {
+    renderizarMarcadores();
+    cerrarModalMarcador();
+  }
+}
+
+// Eliminar marcador
+function eliminarMarcador(index) {
+  const data = cargarMarcadores();
+  const bookmark = data.bookmarks[index];
+
+  if (!bookmark) {
+    console.error('❌ Marcador no encontrado');
+    return;
+  }
+
+  const confirmar = confirm(`¿Eliminar el marcador "${bookmark.name}"?`);
+
+  if (confirmar) {
+    data.bookmarks.splice(index, 1);
+
+    if (guardarMarcadoresEnStorage(data)) {
+      renderizarMarcadores();
+      console.log('🗑️ Marcador eliminado:', bookmark);
+    }
+  }
+}
+
+// Exportar marcadores (para respaldo)
+function exportarMarcadores() {
+  const data = cargarMarcadores();
+  const dataStr = JSON.stringify(data, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(dataBlob);
+  link.download = `marcadores_${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+
+  console.log('📥 Marcadores exportados');
+}
+
+// Importar marcadores (desde archivo)
+function importarMarcadores(file) {
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (!data.bookmarks || !Array.isArray(data.bookmarks)) {
+        throw new Error('Formato de archivo inválido');
+      }
+
+      if (guardarMarcadoresEnStorage(data)) {
+        renderizarMarcadores();
+        alert('✅ Marcadores importados correctamente');
+      }
+    } catch (error) {
+      console.error('❌ Error al importar marcadores:', error);
+      alert('Error al importar marcadores. Verifica que el archivo sea válido.');
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+// Limpiar todos los marcadores
+function limpiarMarcadores() {
+  const confirmar = confirm('¿Estás seguro de que quieres eliminar TODOS los marcadores?\n\nEsta acción no se puede deshacer.');
+
+  if (confirmar) {
+    const segundaConfirmacion = confirm('⚠️ ÚLTIMA ADVERTENCIA: Se eliminarán todos los marcadores permanentemente.\n\n¿Continuar?');
+
+    if (segundaConfirmacion) {
+      const data = { bookmarks: [] };
+      if (guardarMarcadoresEnStorage(data)) {
+        renderizarMarcadores();
+        alert('🗑️ Todos los marcadores han sido eliminados');
+      }
+    }
+  }
+}
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('modal-bookmark');
+  if (event.target === modal) {
+    cerrarModalMarcador();
+  }
+});
+
+// Inicializar marcadores al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔖 Inicializando sistema de marcadores...');
+  renderizarMarcadores();
+});
+
+// Hacer funciones globales accesibles
+window.abrirModalMarcador = abrirModalMarcador;
+window.cerrarModalMarcador = cerrarModalMarcador;
+window.guardarMarcador = guardarMarcador;
+window.eliminarMarcador = eliminarMarcador;
+window.renderizarMarcadores = renderizarMarcadores;
+window.exportarMarcadores = exportarMarcadores;
+window.importarMarcadores = importarMarcadores;
+window.limpiarMarcadores = limpiarMarcadores;
+
+// Actualizar estadísticas de marcadores en el panel de configuración
+function actualizarEstadisticasMarcadores() {
+  const data = cargarMarcadores();
+  const count = data.bookmarks ? data.bookmarks.length : 0;
+  const available = MAX_BOOKMARKS - count;
+
+  const countEl = document.getElementById('bookmarks-count');
+  const availableEl = document.getElementById('bookmarks-available');
+
+  if (countEl) countEl.textContent = count;
+  if (availableEl) availableEl.textContent = available;
+
+  console.log(`📊 Estadísticas actualizadas: ${count}/${MAX_BOOKMARKS} marcadores`);
+}
+
+// Actualizar estadísticas al cambiar a la pestaña de marcadores
+const originalSwitchTab = window.switchTab;
+if (typeof originalSwitchTab === 'function') {
+  window.switchTab = function(tab) {
+    originalSwitchTab(tab);
+    if (tab === 'marcadores') {
+      actualizarEstadisticasMarcadores();
+    }
+  };
+}
+
+// Hacer función global accesible
+window.actualizarEstadisticasMarcadores = actualizarEstadisticasMarcadores;
