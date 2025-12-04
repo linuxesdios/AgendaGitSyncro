@@ -5102,9 +5102,16 @@ window.addEventListener('click', function(event) {
 });
 
 // Inicializar marcadores al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
   console.log('🔖 Inicializando sistema de marcadores...');
-  renderizarMarcadores();
+  // Usar setTimeout para asegurar que todo esté completamente cargado
+  setTimeout(() => {
+    renderizarMarcadores();
+    // Actualizar estadísticas si está en la pestaña de configuración
+    if (typeof actualizarEstadisticasMarcadores === 'function') {
+      actualizarEstadisticasMarcadores();
+    }
+  }, 100);
 });
 
 // Hacer funciones globales accesibles

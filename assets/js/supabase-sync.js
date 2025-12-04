@@ -912,7 +912,7 @@ function cerrarModalConfigInicial() {
   }
 }
 
-// Procesar archivo JSON de configuración
+// Procesar archivo JSON de configuración (CON DESENCRIPTACIÓN)
 function procesarConfigJSON(file) {
   if (!file) {
     alert('❌ No se seleccionó ningún archivo');
@@ -921,9 +921,43 @@ function procesarConfigJSON(file) {
 
   const reader = new FileReader();
 
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
-      const config = JSON.parse(e.target.result);
+      const archivoData = JSON.parse(e.target.result);
+      let config;
+
+      // Verificar si el archivo está encriptado
+      if (archivoData.encrypted === true && archivoData.data) {
+        // Archivo encriptado: pedir contraseña
+        console.log('🔒 Archivo encriptado detectado');
+
+        const password = prompt(
+          '🔒 Archivo protegido con contraseña\n\n' +
+          'Ingresa la contraseña para desencriptar las credenciales:'
+        );
+
+        if (!password) {
+          alert('❌ Se requiere la contraseña para desencriptar el archivo.');
+          window.configTemporal = null;
+          return;
+        }
+
+        try {
+          // Desencriptar
+          console.log('🔓 Desencriptando credenciales...');
+          const jsonDesencriptado = await desencriptarTextoJSON(archivoData.data, password);
+          config = JSON.parse(jsonDesencriptado);
+          console.log('✅ Archivo desencriptado correctamente');
+        } catch (error) {
+          console.error('❌ Error al desencriptar:', error);
+          alert('❌ Contraseña incorrecta o archivo corrupto.\n\nPor favor, verifica la contraseña e intenta de nuevo.');
+          window.configTemporal = null;
+          return;
+        }
+      } else {
+        // Archivo sin encriptar (formato antiguo)
+        config = archivoData;
+      }
 
       // Validar que tenga las propiedades requeridas
       const requeridos = ['supabaseUrl', 'supabaseKey', 'googleClientId', 'googleClientSecret'];
@@ -931,6 +965,7 @@ function procesarConfigJSON(file) {
 
       if (faltantes.length > 0) {
         alert(`❌ El JSON no contiene los siguientes campos requeridos:\n\n${faltantes.join('\n')}`);
+        window.configTemporal = null;
         return;
       }
 
@@ -1034,11 +1069,26 @@ function aplicarConfigJSON(guardarPermanente) {
     // Cerrar modal
     cerrarModalConfigInicial();
 
-    // Inicializar conexiones
-    setTimeout(() => {
+    // Inicializar conexiones y hacer pull automático
+    setTimeout(async () => {
       // Reiniciar Supabase si la función existe
       if (typeof testSupabaseConnection === 'function') {
         testSupabaseConnection();
+      }
+
+      // Si se guardó permanentemente, hacer pull automático desde Supabase
+      if (guardarPermanente) {
+        console.log('🔄 Sincronizando datos desde Supabase...');
+        try {
+          if (typeof supabasePull === 'function') {
+            await supabasePull();
+            console.log('✅ Datos sincronizados desde Supabase');
+            alert('✅ Configuración aplicada y datos sincronizados desde Supabase');
+          }
+        } catch (error) {
+          console.error('⚠️ Error al sincronizar desde Supabase:', error);
+          alert('⚠️ Configuración aplicada pero hubo un error al sincronizar datos:\n\n' + error.message);
+        }
       }
 
       // Mostrar mensaje de éxito
@@ -1051,8 +1101,79 @@ function aplicarConfigJSON(guardarPermanente) {
   }
 }
 
-// Generar y descargar JSON de credenciales
-function generarYDescargarCredenciales() {
+// ========== FUNCIONES DE ENCRIPTACIÓN PARA JSON ==========
+const SALT_JSON = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+
+// Función para generar clave de encriptación desde contraseña
+async function generarClaveEncriptacionJSON(password) {
+  const encoder = new TextEncoder();
+  const passwordKey = await window.crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+
+  return await window.crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: SALT_JSON,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// Función para encriptar texto
+async function encriptarTextoJSON(texto, password) {
+  const encoder = new TextEncoder();
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const clave = await generarClaveEncriptacionJSON(password);
+
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv },
+    clave,
+    encoder.encode(texto)
+  );
+
+  // Combinar IV + datos encriptados en base64
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+
+  return btoa(String.fromCharCode(...combined));
+}
+
+// Función para desencriptar texto
+async function desencriptarTextoJSON(textoEncriptado, password) {
+  try {
+    const decoder = new TextDecoder();
+    const combined = new Uint8Array(atob(textoEncriptado).split('').map(char => char.charCodeAt(0)));
+
+    const iv = combined.slice(0, 12);
+    const encrypted = combined.slice(12);
+
+    const clave = await generarClaveEncriptacionJSON(password);
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: iv },
+      clave,
+      encrypted
+    );
+
+    return decoder.decode(decrypted);
+  } catch (error) {
+    throw new Error('Contraseña incorrecta o datos corruptos');
+  }
+}
+
+// Generar y descargar JSON de credenciales (CON ENCRIPTACIÓN)
+async function generarYDescargarCredenciales() {
   try {
     // Obtener credenciales desde los inputs o localStorage
     let supabaseUrl = document.getElementById('supabase-url')?.value || localStorage.getItem('supabaseUrl') || '';
@@ -1063,6 +1184,32 @@ function generarYDescargarCredenciales() {
     // Verificar que al menos haya alguna credencial
     if (!supabaseUrl && !supabaseKey && !googleClientId && !googleClientSecret) {
       alert('⚠️ No hay credenciales configuradas para exportar.\n\nPor favor, configura primero Supabase o Google Calendar.');
+      return;
+    }
+
+    // Pedir contraseña para encriptar
+    const password = prompt(
+      '🔒 Protege tu archivo de credenciales\n\n' +
+      'Ingresa una contraseña para encriptar el archivo JSON.\n' +
+      'Esta contraseña será necesaria para importar las credenciales.\n\n' +
+      '⚠️ IMPORTANTE: Recuerda esta contraseña, no hay forma de recuperarla.'
+    );
+
+    if (!password) {
+      alert('❌ Exportación cancelada. Se requiere una contraseña para proteger tus credenciales.');
+      return;
+    }
+
+    if (password.length < 8) {
+      alert('❌ La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    // Confirmar contraseña
+    const passwordConfirm = prompt('🔒 Confirma tu contraseña:');
+
+    if (password !== passwordConfirm) {
+      alert('❌ Las contraseñas no coinciden. Exportación cancelada.');
       return;
     }
 
@@ -1078,16 +1225,29 @@ function generarYDescargarCredenciales() {
 
     // Convertir a JSON
     const jsonStr = JSON.stringify(credenciales, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // Encriptar el JSON
+    console.log('🔐 Encriptando credenciales...');
+    const jsonEncriptado = await encriptarTextoJSON(jsonStr, password);
+
+    // Crear objeto con datos encriptados y metadata
+    const archivoFinal = {
+      encrypted: true,
+      data: jsonEncriptado,
+      version: '1.0',
+      timestamp: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(archivoFinal, null, 2)], { type: 'application/json' });
 
     // Crear enlace de descarga
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `agenda-credenciales-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `agenda-credenciales-encriptadas-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
 
-    console.log('📥 Credenciales exportadas correctamente');
-    alert('✅ Archivo JSON de credenciales generado y descargado.\n\n⚠️ Recuerda guardarlo en un lugar seguro.');
+    console.log('📥 Credenciales exportadas y encriptadas correctamente');
+    alert('✅ Archivo JSON encriptado generado y descargado.\n\n🔒 Archivo protegido con tu contraseña.\n⚠️ Recuerda guardarlo en un lugar seguro.');
 
   } catch (error) {
     console.error('❌ Error al generar JSON de credenciales:', error);
