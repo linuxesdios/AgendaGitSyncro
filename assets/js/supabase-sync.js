@@ -875,22 +875,231 @@ function detectarPrimeraVezSupabase() {
 }
 
 
-function mostrarAyudaPrimeraVez() {
-  const shouldShow = confirm(
-    '?? �Bienvenido a la sincronizaci�n en la nube!\n\n' +
-    'Caracter�sticas de Supabase:\n' +
-    '? Peticiones ilimitadas\n' +
-    '? Real-time autom�tico\n' +
-    '? R�pido y con buen dashboard\n\n' +
-    '�Quieres una gu�a r�pida de 2 minutos para configurarlo?\n\n' +
-    'Click "Aceptar" para ver los pasos\n' +
-    'Click "Cancelar" para configurar despu�s'
-  );
+// Variable global para almacenar la configuración temporal (no persistente)
+window.configTemporal = null;
 
-  if (shouldShow) {
-    mostrarGuiaRapidaSupabase();
+function mostrarAyudaPrimeraVez() {
+  // Mostrar el nuevo modal de configuración inicial
+  const modal = document.getElementById('modal-config-inicial');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    console.error('❌ No se encontró el modal de configuración inicial');
+    // Fallback a la guía antigua si el modal no existe
+    const shouldShow = confirm(
+      '☁️ ¡Bienvenido a la sincronización en la nube!\n\n' +
+      'Puedes cargar un archivo JSON con tu configuración o configurar manualmente.\n\n' +
+      '¿Quieres configurar ahora?'
+    );
+    if (shouldShow) {
+      toggleConfigFloating();
+    }
   }
 }
+
+function cerrarModalConfigInicial() {
+  const modal = document.getElementById('modal-config-inicial');
+  if (modal) {
+    modal.style.display = 'none';
+    // Limpiar el preview
+    const preview = document.getElementById('config-json-preview');
+    if (preview) preview.style.display = 'none';
+    // Resetear input
+    const input = document.getElementById('config-json-input');
+    if (input) input.value = '';
+    // Limpiar configuración temporal si no se aplicó
+    window.configTemporal = null;
+  }
+}
+
+// Procesar archivo JSON de configuración
+function procesarConfigJSON(file) {
+  if (!file) {
+    alert('❌ No se seleccionó ningún archivo');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const config = JSON.parse(e.target.result);
+
+      // Validar que tenga las propiedades requeridas
+      const requeridos = ['supabaseUrl', 'supabaseKey', 'googleClientId', 'googleClientSecret'];
+      const faltantes = requeridos.filter(key => !config[key]);
+
+      if (faltantes.length > 0) {
+        alert(`❌ El JSON no contiene los siguientes campos requeridos:\n\n${faltantes.join('\n')}`);
+        return;
+      }
+
+      // Guardar en variable temporal
+      window.configTemporal = config;
+
+      // Mostrar preview
+      const preview = document.getElementById('config-json-preview');
+      const details = document.getElementById('config-json-details');
+
+      if (preview && details) {
+        details.innerHTML = `
+          <strong>🌐 Supabase URL:</strong> ${config.supabaseUrl.substring(0, 30)}...<br>
+          <strong>🔑 Supabase Key:</strong> ${config.supabaseKey.substring(0, 20)}...${config.supabaseKey.substring(config.supabaseKey.length - 10)}<br>
+          <strong>📅 Google Client ID:</strong> ${config.googleClientId.substring(0, 30)}...<br>
+          <strong>🔐 Google Client Secret:</strong> ${config.googleClientSecret.substring(0, 20)}...
+        `;
+        preview.style.display = 'block';
+      }
+
+      // Habilitar botones
+      const btnTemporal = document.getElementById('btn-config-temporal');
+      const btnFijar = document.getElementById('btn-config-fijar');
+
+      if (btnTemporal) {
+        btnTemporal.disabled = false;
+        btnTemporal.style.opacity = '1';
+        btnTemporal.style.cursor = 'pointer';
+      }
+
+      if (btnFijar) {
+        btnFijar.disabled = false;
+        btnFijar.style.opacity = '1';
+        btnFijar.style.cursor = 'pointer';
+      }
+
+      console.log('✅ Configuración JSON cargada correctamente');
+
+    } catch (error) {
+      console.error('❌ Error al procesar JSON:', error);
+      alert('❌ Error al leer el archivo JSON. Verifica que sea un archivo JSON válido.');
+      window.configTemporal = null;
+    }
+  };
+
+  reader.onerror = function() {
+    alert('❌ Error al leer el archivo');
+    window.configTemporal = null;
+  };
+
+  reader.readAsText(file);
+}
+
+// Aplicar configuración JSON (temporal o permanente)
+function aplicarConfigJSON(guardarPermanente) {
+  if (!window.configTemporal) {
+    alert('❌ No hay configuración cargada. Por favor, selecciona un archivo JSON primero.');
+    return;
+  }
+
+  const config = window.configTemporal;
+
+  try {
+    // Aplicar configuración de Supabase
+    const supabaseUrlInput = document.getElementById('supabase-url');
+    const supabaseKeyInput = document.getElementById('supabase-key');
+
+    if (supabaseUrlInput) supabaseUrlInput.value = config.supabaseUrl;
+    if (supabaseKeyInput) supabaseKeyInput.value = config.supabaseKey;
+
+    // Aplicar configuración de Google Calendar
+    const googleClientIdInput = document.getElementById('google-client-id');
+    const googleClientSecretInput = document.getElementById('google-client-secret');
+
+    if (googleClientIdInput) googleClientIdInput.value = config.googleClientId;
+    if (googleClientSecretInput) googleClientSecretInput.value = config.googleClientSecret;
+
+    // Si es permanente, guardar en localStorage (solo credenciales)
+    if (guardarPermanente) {
+      try {
+        // Guardar Supabase
+        localStorage.setItem('supabaseUrl', config.supabaseUrl);
+        localStorage.setItem('supabaseKey', config.supabaseKey);
+
+        // Guardar Google Calendar
+        localStorage.setItem('googleClientId', config.googleClientId);
+        localStorage.setItem('googleClientSecret', config.googleClientSecret);
+
+        console.log('✅ Credenciales guardadas en localStorage');
+        alert('✅ Configuración aplicada y guardada permanentemente en tu navegador');
+      } catch (error) {
+        console.error('❌ Error al guardar en localStorage:', error);
+        alert('⚠️ La configuración se aplicó pero no se pudo guardar en localStorage');
+      }
+    } else {
+      // Solo temporal, no guardar en localStorage
+      console.log('⏱️ Configuración aplicada temporalmente (no se guardó en localStorage)');
+      alert('⏱️ Configuración aplicada temporalmente.\n\nSe usará solo durante esta sesión. Al cerrar el navegador se perderá.');
+    }
+
+    // Cerrar modal
+    cerrarModalConfigInicial();
+
+    // Inicializar conexiones
+    setTimeout(() => {
+      // Reiniciar Supabase si la función existe
+      if (typeof testSupabaseConnection === 'function') {
+        testSupabaseConnection();
+      }
+
+      // Mostrar mensaje de éxito
+      console.log('🚀 Configuración aplicada exitosamente');
+    }, 500);
+
+  } catch (error) {
+    console.error('❌ Error al aplicar configuración:', error);
+    alert('❌ Error al aplicar la configuración. Por favor, intenta de nuevo.');
+  }
+}
+
+// Generar y descargar JSON de credenciales
+function generarYDescargarCredenciales() {
+  try {
+    // Obtener credenciales desde los inputs o localStorage
+    let supabaseUrl = document.getElementById('supabase-url')?.value || localStorage.getItem('supabaseUrl') || '';
+    let supabaseKey = document.getElementById('supabase-key')?.value || localStorage.getItem('supabaseKey') || '';
+    let googleClientId = document.getElementById('google-client-id')?.value || localStorage.getItem('googleClientId') || '';
+    let googleClientSecret = document.getElementById('google-client-secret')?.value || localStorage.getItem('googleClientSecret') || '';
+
+    // Verificar que al menos haya alguna credencial
+    if (!supabaseUrl && !supabaseKey && !googleClientId && !googleClientSecret) {
+      alert('⚠️ No hay credenciales configuradas para exportar.\n\nPor favor, configura primero Supabase o Google Calendar.');
+      return;
+    }
+
+    // Crear objeto con las credenciales
+    const credenciales = {
+      supabaseUrl: supabaseUrl,
+      supabaseKey: supabaseKey,
+      googleClientId: googleClientId,
+      googleClientSecret: googleClientSecret,
+      fechaExportacion: new Date().toISOString(),
+      version: '1.0'
+    };
+
+    // Convertir a JSON
+    const jsonStr = JSON.stringify(credenciales, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+
+    // Crear enlace de descarga
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `agenda-credenciales-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+
+    console.log('📥 Credenciales exportadas correctamente');
+    alert('✅ Archivo JSON de credenciales generado y descargado.\n\n⚠️ Recuerda guardarlo en un lugar seguro.');
+
+  } catch (error) {
+    console.error('❌ Error al generar JSON de credenciales:', error);
+    alert('❌ Error al generar el archivo de credenciales. Por favor, intenta de nuevo.');
+  }
+}
+
+// Hacer funciones globales accesibles
+window.procesarConfigJSON = procesarConfigJSON;
+window.aplicarConfigJSON = aplicarConfigJSON;
+window.generarYDescargarCredenciales = generarYDescargarCredenciales;
+window.cerrarModalConfigInicial = cerrarModalConfigInicial;
 
 function mostrarGuiaRapidaSupabase() {
   alert(

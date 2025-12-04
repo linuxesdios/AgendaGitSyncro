@@ -1478,6 +1478,26 @@
             </div>
           </div>
 
+          <!-- Sección: Exportar Configuración -->
+          <div
+            style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(102,126,234,0.3);">
+            <h4 style="margin:0 0 15px 0;color:white;font-size:16px;">🔑 Exportar Credenciales</h4>
+            <p style="margin:0 0 15px 0;color:rgba(255,255,255,0.9);font-size:13px;">
+              Genera un archivo JSON con tus credenciales de Supabase y Google Calendar para importarlas rápidamente en otro dispositivo
+            </p>
+
+            <button class="btn-primario" onclick="generarYDescargarCredenciales()"
+              style="padding:12px 20px;background:rgba(255,255,255,0.9);color:#667eea;border:none;border-radius:6px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;font-size:14px;width:100%;">
+              📥 Generar JSON de Credenciales
+            </button>
+
+            <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.2);border-radius:6px;">
+              <small style="color:rgba(255,255,255,0.95);font-size:11px;line-height:1.5;display:block;">
+                ⚠️ <strong>Importante:</strong> Este archivo contiene datos sensibles. Guárdalo en un lugar seguro y no lo compartas públicamente.
+              </small>
+            </div>
+          </div>
+
           <!-- Sección: Gestión de Datos -->
           <div
             style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%);color:#2d3748;padding:18px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(250,112,154,0.3);">
@@ -1964,6 +1984,73 @@
       </div>
 
       <input type="hidden" id="bookmark-edit-index" value="">
+    </div>
+  </div>
+
+  <!-- Modal de Configuración Inicial -->
+  <div id="modal-config-inicial" class="modal">
+    <div class="modal-content" style="max-width:550px;">
+      <h4 style="text-align:center;color:#4ecdc4;margin-bottom:10px;">☁️ Bienvenido a la Sincronización en la Nube</h4>
+      <p style="color:#666;font-size:13px;text-align:center;margin-bottom:20px;">
+        Configura Supabase y Google Calendar de forma rápida
+      </p>
+
+      <!-- Información sobre características -->
+      <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:15px;border-radius:10px;margin-bottom:20px;">
+        <h5 style="margin:0 0 10px 0;color:white;">✨ Características:</h5>
+        <ul style="margin:0;padding-left:20px;font-size:13px;line-height:1.8;">
+          <li>☁️ Sincronización automática con Supabase</li>
+          <li>📅 Integración con Google Calendar</li>
+          <li>⚡ Real-time sin límites</li>
+          <li>🔒 Datos seguros y encriptados</li>
+        </ul>
+      </div>
+
+      <!-- Área de carga de JSON -->
+      <div style="background:#f8f9fa;padding:20px;border-radius:10px;border:2px dashed #4ecdc4;margin-bottom:20px;">
+        <h5 style="margin:0 0 15px 0;color:#2d3748;text-align:center;">📁 Carga tu configuración</h5>
+
+        <div style="text-align:center;margin-bottom:15px;">
+          <input type="file" id="config-json-input" accept=".json" style="display:none;" onchange="procesarConfigJSON(this.files[0])">
+          <button class="btn-primario" onclick="document.getElementById('config-json-input').click()" style="padding:12px 24px;font-size:14px;background:#4ecdc4;color:white;border:none;border-radius:8px;cursor:pointer;">
+            📂 Seleccionar archivo JSON
+          </button>
+        </div>
+
+        <div id="config-json-preview" style="display:none;background:white;padding:15px;border-radius:8px;border:1px solid #e0e0e0;">
+          <h6 style="margin:0 0 10px 0;color:#4ecdc4;">✅ Configuración cargada:</h6>
+          <div id="config-json-details" style="font-size:12px;color:#666;line-height:1.6;"></div>
+        </div>
+
+        <small style="color:#999;font-size:11px;display:block;text-align:center;margin-top:10px;">
+          El JSON debe contener: supabaseUrl, supabaseKey, googleClientId, googleClientSecret
+        </small>
+      </div>
+
+      <!-- Botones de acción -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;">
+        <button class="btn-secundario" onclick="aplicarConfigJSON(false)" id="btn-config-temporal" disabled style="padding:12px;font-size:14px;opacity:0.5;cursor:not-allowed;">
+          ⏱️ Cargar Temporal
+        </button>
+        <button class="btn-primario" onclick="aplicarConfigJSON(true)" id="btn-config-fijar" disabled style="padding:12px;font-size:14px;opacity:0.5;cursor:not-allowed;">
+          💾 Cargar y Fijar
+        </button>
+      </div>
+
+      <div style="background:#fff3cd;padding:12px;border-radius:8px;border:1px solid #ffc107;margin-bottom:15px;">
+        <p style="margin:0;font-size:12px;color:#856404;line-height:1.5;">
+          <strong>💡 Diferencia:</strong><br>
+          • <strong>Temporal:</strong> Se usa solo en esta sesión, no se guarda en localStorage<br>
+          • <strong>Fijar:</strong> Se guarda permanentemente en tu navegador
+        </p>
+      </div>
+
+      <!-- Opción de configurar manualmente -->
+      <div style="text-align:center;">
+        <button class="btn-secundario" onclick="cerrarModalConfigInicial(); setTimeout(() => toggleConfigFloating(), 300);" style="padding:10px 20px;background:transparent;border:2px solid #ccc;color:#666;">
+          ⚙️ Configurar Manualmente
+        </button>
+      </div>
     </div>
   </div>
 
