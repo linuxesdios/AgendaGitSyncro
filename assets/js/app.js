@@ -106,9 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.add(isMobile() ? 'mobile-device' : 'desktop-device');
 
   // ⚡ INICIALIZAR FILTRO GLOBAL DE PERÍODO
+  // Prioridad: 1. Configuración por defecto, 2. Caché de sesión, 3. 'todo'
+  const periodoDefecto = localStorage.getItem('vistaPeriodoDefecto_cache');
   const periodoGlobalCache = localStorage.getItem('periodoGlobal_cache');
-  const periodoDefecto = localStorage.getItem('vistaPeriodoDefecto_cache') || 'todo';
-  const periodoInicial = periodoGlobalCache || periodoDefecto;
+  const periodoInicial = periodoDefecto || periodoGlobalCache || 'todo';
 
   if (typeof cambiarVistaPeriodoGlobal === 'function') {
     // Usar setTimeout para asegurar que las funciones de renderizado estén listas
@@ -1263,6 +1264,11 @@ async function guardarConfigVisualPanel() {
   localStorage.setItem('tema_cache', config.tema);
   localStorage.setItem('titulo_cache', config.titulo);
   localStorage.setItem('vistaPeriodoDefecto_cache', config.vistaPeriodoDefecto);
+
+  // ⚡ APLICAR FILTRO DE PERÍODO INMEDIATAMENTE
+  if (typeof cambiarVistaPeriodoGlobal === 'function') {
+    cambiarVistaPeriodoGlobal(config.vistaPeriodoDefecto);
+  }
 
   // Guardar en Supabase
   if (typeof window.supabasePush === 'function') {
