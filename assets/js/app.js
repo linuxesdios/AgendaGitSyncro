@@ -34,7 +34,8 @@ const appState = {
     sentimientos: '',
     citas: [],
     personas: [],
-    contrasenas: []
+    contrasenas: [],
+    bookmarks: []
   },
   calendar: {
     currentDate: new Date(),
@@ -1883,7 +1884,11 @@ async function renderizarContrasenas() {
   const lista = document.getElementById('lista-contrasenas');
   if (!lista) return;
 
-  const contrasenas = appState.agenda.contrasenas || [];
+  // Cargar contraseñas desde localStorage (NO desde Supabase)
+  const contrasenas = JSON.parse(localStorage.getItem('contrasenas_encriptadas') || '[]');
+
+  // Actualizar también en memoria
+  appState.agenda.contrasenas = contrasenas;
 
   if (contrasenas.length === 0) {
     lista.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">No hay contraseñas guardadas aún.</p>';
@@ -2199,19 +2204,23 @@ async function guardarNuevaContrasena() {
       algoritmo: 'AES-256-GCM'
     };
 
-    // Agregar a la lista
+    // Agregar a la lista (localStorage, NO Supabase)
+    let contrasenas = JSON.parse(localStorage.getItem('contrasenas_encriptadas') || '[]');
+    contrasenas.push(nuevaContrasena);
+    localStorage.setItem('contrasenas_encriptadas', JSON.stringify(contrasenas));
+
+    // Actualizar también en memoria (pero NO sincronizar con Supabase)
     if (!appState.agenda.contrasenas) {
       appState.agenda.contrasenas = [];
     }
     appState.agenda.contrasenas.push(nuevaContrasena);
 
-    // Guardar y actualizar interfaz
-    await guardarJSON(true); // Guardado inmediato en lugar de programado
+    // Actualizar interfaz (NO guardar en Supabase)
     await renderizarContrasenas();
     cerrarModalNuevaContrasena();
 
     // Mostrar confirmación
-    mostrarModalExito('¡Contraseña guardada!', 'La contraseña se ha guardado y encriptada exitosamente en Supabase');
+    mostrarModalExito('¡Contraseña guardada!', 'La contraseña se ha guardado y encriptada exitosamente en localStorage (NO en Supabase por seguridad)');
 
   } catch (error) {
     mostrarModalError('Error al guardar', 'No se pudo guardar la contraseña: ' + error.message);
@@ -2226,8 +2235,11 @@ async function eliminarContrasena(id) {
       contrasenaMaestra = await solicitarContrasenaMaestra('eliminar una contraseña');
     }
 
+    // Cargar contraseñas desde localStorage
+    let contrasenas = JSON.parse(localStorage.getItem('contrasenas_encriptadas') || '[]');
+
     // Buscar la contraseña para mostrar el nombre del servicio
-    const contrasena = appState.agenda.contrasenas.find(c => c.id === id);
+    const contrasena = contrasenas.find(c => c.id === id);
     if (!contrasena) {
       mostrarModalError('Error', 'Contraseña no encontrada');
       return;
@@ -2238,9 +2250,14 @@ async function eliminarContrasena(id) {
       return;
     }
 
-    // Eliminar la contraseña
-    appState.agenda.contrasenas = appState.agenda.contrasenas.filter(c => c.id !== id);
-    await guardarJSON(true); // Guardado inmediato en lugar de programado
+    // Eliminar la contraseña de localStorage (NO de Supabase)
+    contrasenas = contrasenas.filter(c => c.id !== id);
+    localStorage.setItem('contrasenas_encriptadas', JSON.stringify(contrasenas));
+
+    // Actualizar en memoria
+    appState.agenda.contrasenas = contrasenas;
+
+    // Actualizar interfaz
     await renderizarContrasenas();
 
     // Mostrar confirmación
@@ -2262,8 +2279,11 @@ async function editarContrasena(id) {
       contrasenaMaestra = await solicitarContrasenaMaestra('editar una contraseña');
     }
 
+    // Cargar contraseñas desde localStorage
+    const contrasenas = JSON.parse(localStorage.getItem('contrasenas_encriptadas') || '[]');
+
     // Buscar la contraseña a editar
-    const contrasena = appState.agenda.contrasenas.find(c => c.id === id);
+    const contrasena = contrasenas.find(c => c.id === id);
     if (!contrasena) {
       mostrarModalError('Error', 'Contraseña no encontrada');
       return;
@@ -2374,11 +2394,14 @@ async function guardarContrasenaEditada(id) {
     const usuarioEncriptado = await encriptarTexto(usuario, contrasenaMaestra);
     const contrasenaEncriptada = await encriptarTexto(contrasena, contrasenaMaestra);
 
+    // Cargar contraseñas desde localStorage
+    let contrasenas = JSON.parse(localStorage.getItem('contrasenas_encriptadas') || '[]');
+
     // Actualizar la contraseña en el array
-    const index = appState.agenda.contrasenas.findIndex(c => c.id === id);
+    const index = contrasenas.findIndex(c => c.id === id);
     if (index !== -1) {
-      appState.agenda.contrasenas[index] = {
-        ...appState.agenda.contrasenas[index],
+      contrasenas[index] = {
+        ...contrasenas[index],
         servicio: servicio,
         usuario: '••••••••', // Mostrar asteriscos
         usuarioEncriptado: usuarioEncriptado,
@@ -2387,13 +2410,18 @@ async function guardarContrasenaEditada(id) {
         ultimaActualizacion: new Date().toISOString().slice(0, 10)
       };
 
-      // Guardar y actualizar interfaz
-      await guardarJSON(true); // Guardado inmediato en lugar de programado
+      // Guardar en localStorage (NO en Supabase)
+      localStorage.setItem('contrasenas_encriptadas', JSON.stringify(contrasenas));
+
+      // Actualizar en memoria
+      appState.agenda.contrasenas = contrasenas;
+
+      // Actualizar interfaz
       await renderizarContrasenas();
       cerrarModalEditarContrasena();
 
       // Mostrar confirmación
-      mostrarModalExito('¡Contraseña actualizada!', 'Los cambios se han guardado y encriptado exitosamente');
+      mostrarModalExito('¡Contraseña actualizada!', 'Los cambios se han guardado y encriptado exitosamente en localStorage');
     } else {
       mostrarModalError('Error', 'No se encontró la contraseña a editar');
     }
@@ -4128,6 +4156,40 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
   // Combinar fecha y hora
   const fechaFinal = combinarFechaHora(fecha, hora);
 
+  // Guardar la tarea actual para comparar
+  const tareaActual = listas[listaIndex].tareas[index];
+  const fechaAnterior = tareaActual.fecha_fin;
+  const fechaCambio = fechaAnterior !== fechaFinal;
+
+  // Si la fecha cambió y tiene googleTaskId, eliminar y recrear en Google Tasks
+  if (fechaCambio && tareaActual.googleTaskId && typeof deleteGoogleTask === 'function' && typeof createGoogleTask === 'function') {
+    console.log('📅 Fecha cambió, actualizando Google Task:', tareaActual.googleTaskId);
+
+    // Eliminar tarea antigua de Google Tasks
+    deleteGoogleTask(tareaActual.googleTaskId, tareaActual.googleTaskListId || '@default')
+      .then(success => {
+        if (success) {
+          console.log('✅ Tarea antigua eliminada de Google Tasks');
+
+          // Crear nueva tarea con la nueva fecha
+          createGoogleTask({
+            title: texto.trim(),
+            notes: tareaActual.descripcion || '',
+            due: fechaFinal ? new Date(fechaFinal).toISOString() : null
+          }, tareaActual.googleTaskListId || '@default')
+            .then(newTask => {
+              if (newTask && newTask.id) {
+                // Actualizar googleTaskId con el nuevo ID
+                listas[listaIndex].tareas[index].googleTaskId = newTask.id;
+                console.log('✅ Nueva tarea creada en Google Tasks:', newTask.id);
+              }
+            })
+            .catch(err => console.error('❌ Error al crear nueva tarea en Google Tasks:', err));
+        }
+      })
+      .catch(err => console.error('❌ Error al eliminar tarea de Google Tasks:', err));
+  }
+
   // Actualizar tarea
   listas[listaIndex].tareas[index].texto = texto.trim();
   listas[listaIndex].tareas[index].fecha_fin = fechaFinal || null;
@@ -4349,6 +4411,19 @@ function ejecutarEliminacionTareaListaPersonalizada(listaId, tareaIndex) {
   }
 
   const tareaEliminada = lista.tareas[tareaIndex];
+
+  // Eliminar de Google Tasks si existe googleTaskId
+  if (tareaEliminada.googleTaskId && typeof deleteGoogleTask === 'function') {
+    deleteGoogleTask(tareaEliminada.googleTaskId, tareaEliminada.googleTaskListId || '@default')
+      .then(success => {
+        if (success) {
+          console.log('✅ Tarea eliminada de Google Tasks:', tareaEliminada.googleTaskId);
+        } else {
+          console.warn('⚠️ No se pudo eliminar de Google Tasks:', tareaEliminada.googleTaskId);
+        }
+      })
+      .catch(err => console.error('❌ Error al eliminar de Google Tasks:', err));
+  }
 
   // Eliminar tarea del array
   listasPersonalizadas[listaIndex].tareas.splice(tareaIndex, 1);
@@ -4929,22 +5004,48 @@ if (!window.mostrarResumenDiarioManual) {
 // Máximo número de marcadores (15 + 1 botón de añadir = 16 espacios)
 const MAX_BOOKMARKS = 15;
 
-// Cargar marcadores desde localStorage
+// Cargar marcadores SOLO desde Supabase (no localStorage)
 function cargarMarcadores() {
   try {
-    const data = localStorage.getItem('webBookmarks');
-    return data ? JSON.parse(data) : { bookmarks: [] };
+    // Cargar SOLO desde Supabase
+    if (window.appState && window.appState.agenda && window.appState.agenda.bookmarks) {
+      console.log('📚 Cargando marcadores desde Supabase:', window.appState.agenda.bookmarks.length);
+      return { bookmarks: window.appState.agenda.bookmarks };
+    }
+
+    console.log('📚 No hay marcadores en Supabase');
+    return { bookmarks: [] };
   } catch (error) {
     console.error('❌ Error al cargar marcadores:', error);
     return { bookmarks: [] };
   }
 }
 
-// Guardar marcadores en localStorage
+// Guardar marcadores SOLO en Supabase (no localStorage)
 function guardarMarcadoresEnStorage(data) {
   try {
-    localStorage.setItem('webBookmarks', JSON.stringify(data));
-    console.log('✅ Marcadores guardados correctamente');
+    // Guardar SOLO en Supabase (NO en localStorage)
+    if (window.appState && window.appState.agenda) {
+      window.appState.agenda.bookmarks = data.bookmarks || [];
+      console.log('📤 Guardando marcadores en Supabase...');
+
+      // Usar supabasePush para guardar en Supabase
+      if (typeof guardarJSON === 'function') {
+        guardarJSON(true);
+        console.log('✅ Marcadores guardados en Supabase');
+      } else if (typeof window.supabasePush === 'function') {
+        window.supabasePush().then(() => {
+          console.log('✅ Marcadores guardados en Supabase');
+        }).catch(err => {
+          console.error('❌ Error al guardar marcadores en Supabase:', err);
+        });
+      }
+    } else {
+      console.error('❌ No hay conexión con Supabase para guardar marcadores');
+      alert('Error: No se puede guardar sin conexión a Supabase.');
+      return false;
+    }
+
     return true;
   } catch (error) {
     console.error('❌ Error al guardar marcadores:', error);

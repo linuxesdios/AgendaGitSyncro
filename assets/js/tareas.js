@@ -2408,11 +2408,11 @@ function cambiarVistaPeriodoGlobal(periodo) {
 function cambiarVistaPeriodo(listaId, periodo) {
   console.log('🔵 cambiarVistaPeriodo llamado:', { listaId, periodo });
 
-  // Guardar el período seleccionado en configVisual
+  // Guardar el período seleccionado en configVisual (solo en memoria, Supabase lo sincroniza)
   if (!window.configVisual) window.configVisual = {};
   if (!window.configVisual.vistaPeriodo) window.configVisual.vistaPeriodo = {};
   window.configVisual.vistaPeriodo[listaId] = periodo;
-  localStorage.setItem('configVisual', JSON.stringify(window.configVisual));
+  // NO guardar en localStorage - Supabase lo sincronizará automáticamente
 
   // Actualizar estilos de los botones
   const contenedor = document.querySelector(`[data-target="${listaId}"] .vista-periodo-container`);
