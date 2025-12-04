@@ -13,7 +13,9 @@
       "WebSearch",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(Get-Date -Format \"yyyy-MM-dd\")"
+      "Bash(Get-Date -Format \"yyyy-MM-dd\")",
+      "Bash(cat:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

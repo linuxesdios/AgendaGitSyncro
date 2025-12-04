@@ -3572,7 +3572,8 @@ function renderizarListaPersonalizada(listaId) {
       } else {
         simbolo.textContent = tarea.estado === 'completada' ? '✓' : (tarea.estado === 'en_progreso' ? '⏳' : '●');
       }
-      simbolo.onclick = () => completarTareaListaPersonalizada(listaId, index);
+      // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+      simbolo.onclick = () => completarTareaListaPersonalizadaPorId(listaId, tarea.id);
 
       // Contenido de texto (Click para editar)
       const texto = document.createElement('div');
@@ -3609,7 +3610,8 @@ function renderizarListaPersonalizada(listaId) {
       }
 
       texto.innerHTML = contenido;
-      texto.onclick = () => editarTareaListaPersonalizada(listaId, index);
+      // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+      texto.onclick = () => editarTareaListaPersonalizadaPorId(listaId, tarea.id);
 
       div.appendChild(simbolo);
       div.appendChild(texto);
@@ -3621,7 +3623,8 @@ function renderizarListaPersonalizada(listaId) {
       btnSubtarea.title = 'Añadir subtarea';
       btnSubtarea.onclick = (e) => {
         e.stopPropagation();
-        abrirModalSubtareaListaPersonalizada(listaId, index);
+        // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+        abrirModalSubtareaListaPersonalizadaPorId(listaId, tarea.id);
       };
       div.appendChild(btnSubtarea);
 
@@ -3658,25 +3661,8 @@ function renderizarListaPersonalizada(listaId) {
       btnBorrar.onclick = (e) => {
         e.stopPropagation();
         mostrarCuentaRegresiva(() => {
-          // Verificar índice actualizado en tiempo real
-          const configVisualActual = window.configVisual || {};
-          const listasActuales = configVisualActual.listasPersonalizadas || [];
-          const listaActual = listasActuales.find(l => l.id === listaId);
-
-          if (!listaActual || !listaActual.tareas || index >= listaActual.tareas.length) {
-            // No interferir si ya hay una eliminación en progreso
-            if (window.eliminandoTarea) {
-
-              return;
-            }
-
-            console.warn('⚠️ Índice obsoleto detectado, re-renderizando lista');
-            mostrarAlerta('🔄 Actualizando interfaz...', 'info');
-            renderizarListasPersonalizadas();
-            return;
-          }
-
-          ejecutarEliminacionTareaListaPersonalizada(listaId, index);
+          // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+          ejecutarEliminacionTareaListaPersonalizadaPorId(listaId, tarea.id);
         });
       };
       div.appendChild(btnBorrar);
@@ -3710,7 +3696,8 @@ function renderizarListaPersonalizada(listaId) {
             const subSimbolo = document.createElement('span');
             subSimbolo.className = 'subtarea-simbolo';
             subSimbolo.textContent = obtenerSimboloSubtarea(subtarea);
-            subSimbolo.onclick = () => cambiarEstadoSubtareaListaPersonalizada(listaId, index, subIndex);
+            // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+            subSimbolo.onclick = () => cambiarEstadoSubtareaListaPersonalizadaPorId(listaId, tarea.id, subIndex);
 
             const subTexto = document.createElement('div');
             subTexto.className = 'subtarea-texto';
@@ -3727,14 +3714,16 @@ function renderizarListaPersonalizada(listaId) {
               contenidoSub += '</span>';
             }
             subTexto.innerHTML = contenidoSub;
-            subTexto.onclick = () => abrirEditorSubtareaListaPersonalizada(listaId, index, subIndex);
+            // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+            subTexto.onclick = () => abrirEditorSubtareaListaPersonalizadaPorId(listaId, tarea.id, subIndex);
 
             const btnBorrarSub = document.createElement('button');
             btnBorrarSub.className = 'btn-borrar-subtarea';
             btnBorrarSub.textContent = '🗑️';
             btnBorrarSub.onclick = (e) => {
               e.stopPropagation();
-              eliminarSubtareaListaPersonalizada(listaId, index, subIndex);
+              // CORREGIDO: Usar ID de tarea en lugar de índice filtrado
+              eliminarSubtareaListaPersonalizadaPorId(listaId, tarea.id, subIndex);
             };
 
             subDiv.appendChild(subSimbolo);
@@ -4157,6 +4146,163 @@ function guardarEdicionTareaListaPersonalizada(listaId, index) {
   // Renderizar y guardar
   renderizarListaPersonalizada(listaId);
   supabasePush();
+}
+
+// ========== FUNCIONES CON ID (CORREGIDAS PARA FILTROS) ==========
+// Estas funciones buscan tareas por ID en lugar de usar índices directos
+// Esto evita problemas cuando las tareas se filtran por período
+
+function editarTareaListaPersonalizadaPorId(listaId, tareaId) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    mostrarAlerta('❌ Error: Tarea no encontrada', 'error');
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  editarTareaListaPersonalizada(listaId, index);
+}
+
+function completarTareaListaPersonalizadaPorId(listaId, tareaId) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  completarTareaListaPersonalizada(listaId, index);
+}
+
+function ejecutarEliminacionTareaListaPersonalizadaPorId(listaId, tareaId) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    mostrarAlerta('❌ Error: Lista no encontrada', 'error');
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    mostrarAlerta('❌ Error: Tarea no encontrada', 'error');
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  ejecutarEliminacionTareaListaPersonalizada(listaId, index);
+}
+
+function abrirModalSubtareaListaPersonalizadaPorId(listaId, tareaId) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    mostrarAlerta('❌ Error: Tarea no encontrada', 'error');
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  abrirModalSubtareaListaPersonalizada(listaId, index);
+}
+
+function cambiarEstadoSubtareaListaPersonalizadaPorId(listaId, tareaId, subIndex) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  cambiarEstadoSubtareaListaPersonalizada(listaId, index, subIndex);
+}
+
+function abrirEditorSubtareaListaPersonalizadaPorId(listaId, tareaId, subIndex) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    mostrarAlerta('❌ Error: Tarea no encontrada', 'error');
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  abrirEditorSubtareaListaPersonalizada(listaId, index, subIndex);
+}
+
+function eliminarSubtareaListaPersonalizadaPorId(listaId, tareaId, subIndex) {
+  const listas = window.tareasData?.listasPersonalizadas || [];
+  const lista = listas.find(l => l.id === listaId);
+
+  if (!lista) {
+    console.error('❌ Lista no encontrada:', listaId);
+    return;
+  }
+
+  // Buscar índice de la tarea por ID
+  const index = lista.tareas.findIndex(t => t.id === tareaId);
+
+  if (index === -1) {
+    console.error('❌ Tarea no encontrada con ID:', tareaId);
+    mostrarAlerta('❌ Error: Tarea no encontrada', 'error');
+    return;
+  }
+
+  // Llamar a la función original con el índice correcto
+  eliminarSubtareaListaPersonalizada(listaId, index, subIndex);
 }
 
 // Variable para evitar interferencias durante eliminación
