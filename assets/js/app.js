@@ -657,6 +657,12 @@ function cargarConfigVisual() {
     // Cargar valores en el formulario de configuración
     cargarConfigVisualEnFormulario();
 
+    // Renderizar marcadores desde Supabase
+    if (typeof renderizarMarcadores === 'function') {
+      renderizarMarcadores();
+      console.log('📚 Marcadores renderizados desde Supabase');
+    }
+
     // Aplicar vista de período por defecto SOLO SI NO HAY FILTRO ACTIVO
     const vistaPeriodoDefecto = config.vistaPeriodoDefecto || 'todo';
     if (typeof cambiarVistaPeriodo === 'function') {
@@ -5258,6 +5264,10 @@ function guardarMarcador() {
   // Guardar y renderizar
   if (guardarMarcadoresEnStorage(data)) {
     renderizarMarcadores();
+    // Actualizar estadísticas en el modal si está abierto
+    if (typeof actualizarEstadisticasMarcadores === 'function') {
+      actualizarEstadisticasMarcadores();
+    }
     cerrarModalMarcador();
   }
 }
@@ -5279,6 +5289,10 @@ function eliminarMarcador(index) {
 
     if (guardarMarcadoresEnStorage(data)) {
       renderizarMarcadores();
+      // Actualizar estadísticas en el modal si está abierto
+      if (typeof actualizarEstadisticasMarcadores === 'function') {
+        actualizarEstadisticasMarcadores();
+      }
       console.log('🗑️ Marcador eliminado:', bookmark);
     }
   }
@@ -5312,6 +5326,10 @@ function importarMarcadores(file) {
 
       if (guardarMarcadoresEnStorage(data)) {
         renderizarMarcadores();
+        // Actualizar estadísticas en el modal si está abierto
+        if (typeof actualizarEstadisticasMarcadores === 'function') {
+          actualizarEstadisticasMarcadores();
+        }
         alert('✅ Marcadores importados correctamente');
       }
     } catch (error) {
@@ -5334,6 +5352,10 @@ function limpiarMarcadores() {
       const data = { bookmarks: [] };
       if (guardarMarcadoresEnStorage(data)) {
         renderizarMarcadores();
+        // Actualizar estadísticas en el modal si está abierto
+        if (typeof actualizarEstadisticasMarcadores === 'function') {
+          actualizarEstadisticasMarcadores();
+        }
         alert('🗑️ Todos los marcadores han sido eliminados');
       }
     }
