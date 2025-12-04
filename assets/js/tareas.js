@@ -2396,8 +2396,8 @@ function cambiarVistaPeriodoGlobal(periodo) {
   });
 
   // Re-renderizar TODAS las listas
-  if (typeof renderizarTareas === 'function') {
-    renderizarTareas(); // Tareas críticas
+  if (typeof renderizarCriticas === 'function') {
+    renderizarCriticas(); // Tareas críticas
   }
   if (typeof renderizarTodasLasListasPersonalizadas === 'function') {
     renderizarTodasLasListasPersonalizadas(); // Listas personalizadas
@@ -2543,6 +2543,17 @@ function debeMotrarTareaPorPeriodo(tarea, listaId) {
   }
 
   fechaTarea.setHours(0, 0, 0, 0);
+
+  // Debug log para entender por qué falla
+  /*
+  console.log('🔍 Filtrando tarea:', {
+    titulo: tarea.titulo || tarea.texto,
+    fechaTarea: fechaTarea.toISOString().slice(0, 10),
+    filtroGlobal,
+    fechaLimite: fechaLimite ? fechaLimite.toISOString().slice(0, 10) : 'null',
+    pasa: fechaTarea <= fechaLimite
+  });
+  */
 
   // Caso especial "hoy": mostrar solo tareas de hoy y retrasadas (fechas pasadas)
   if (filtroGlobal === 'hoy') {
