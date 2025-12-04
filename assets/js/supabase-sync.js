@@ -322,7 +322,7 @@ async function supabasePull() {
     const collections = [
       'tareas', 'citas', 'config', 'notas', 'sentimientos',
       'contrasenas', 'historial_eliminados', 'historial_tareas',
-      'personas', 'etiquetas', 'log', 'salvados'
+      'personas', 'etiquetas', 'log', 'salvados', 'bookmarks'
     ];
 
     const promises = collections.map(async (collection) => {
@@ -379,8 +379,10 @@ async function supabasePull() {
           break;
         case 'config':
           if (data.visual) {
-            window.configVisual = { ...window.configVisual, ...data.visual };
-            // Actualizar t�tulo de la pesta�a
+            // Excluir listasPersonalizadas de configVisual - las tareas NO son configuración
+            const { listasPersonalizadas, ...visualSinTareas } = data.visual;
+            window.configVisual = { ...window.configVisual, ...visualSinTareas };
+            // Actualizar título de la pestaña
             if (data.visual.titulo) {
               document.title = data.visual.titulo;
             }
@@ -426,6 +428,12 @@ async function supabasePull() {
         case 'salvados':
           window.salvadosData = data;
           break;
+        case 'bookmarks':
+          if (data.bookmarks) {
+            if (!window.appState.agenda) window.appState.agenda = {};
+            window.appState.agenda.bookmarks = data.bookmarks;
+          }
+          break;
       }
     });
 
@@ -457,6 +465,10 @@ async function supabasePull() {
     }
     if (typeof window.renderizarCriticas === 'function') {
       window.renderizarCriticas();
+    }
+    if (typeof window.renderizarMarcadores === 'function') {
+      window.renderizarMarcadores();
+      console.log('📚 Marcadores renderizados desde Supabase');
     }
 
     // IMPORTANTE: Renderizar listas personalizadas DESPU�S de actualizar tareasData
@@ -604,7 +616,12 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
       {
         id: 'config',
         data: {
-          visual: window.configVisual || {},
+          visual: (() => {
+            // Crear copia de configVisual SIN listasPersonalizadas
+            const visualConfig = { ...(window.configVisual || {}) };
+            delete visualConfig.listasPersonalizadas; // Las listas se guardan en 'tareas'
+            return visualConfig;
+          })(),
           funcionales: window.configFuncionales || {},
           opciones: window.configOpciones || {}
         }
@@ -640,6 +657,10 @@ async function supabasePush(isAutomatic = false, skipPullBefore = false, skipCon
       {
         id: 'etiquetas',
         data: window.etiquetasData || {}
+      },
+      {
+        id: 'bookmarks',
+        data: { bookmarks: window.appState?.agenda?.bookmarks || [] }
       },
       {
         id: '_metadata',
